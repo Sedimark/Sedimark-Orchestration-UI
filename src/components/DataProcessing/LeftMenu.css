@@ -1,0 +1,11 @@
+.toggleMenu{
+    position: absolute;
+    left:0px;
+    top:20%;
+    background-color: red ;
+}
+
+.menu-logo{
+    width: 100px;
+    text-align: center;
+}
