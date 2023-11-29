@@ -1,6 +1,6 @@
 import React, { memo, useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
-import styles from "./Loader.css";
+import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
@@ -120,7 +120,7 @@ export default memo(({ data, isConnectable }) => {
         <Handle
         type="target"
         position={Position.Left}
-        id="a"
+        id="left"
         style={{padding:"10px",border:"3px solid #03fcbe"}}
         isConnectable={isConnectable}
       />
@@ -168,7 +168,7 @@ export default memo(({ data, isConnectable }) => {
       <Handle
         type="source"
         position={Position.Right}
-        id="b"
+        id="right"
         style={{padding:"10px",border:"3px solid #03fcbe"}}
         isConnectable={isConnectable}
       />

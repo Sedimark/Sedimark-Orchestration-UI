@@ -4,7 +4,6 @@ import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import List from '@mui/material/List';
-import Divider from '@mui/material/Divider';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -211,7 +210,7 @@ export default function MiniDrawer() {
 
     
 
-      <List style={{marginTop:"90%"}}>
+      <List style={{position:"absolute",bottom:"10px"}}>
       <h2 style={{color:"#fff"}}>Account</h2>
         <ListItem key={"Notifications"} disablePadding sx={{ display: 'block' }} onClick={()=>{setDisplayMLModels(true);}}>
               <ListItemButton
@@ -261,7 +260,7 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
 
-            <ListItem key={"FAQ"} disablePadding sx={{ display: 'block' }} onClick={()=>{setDisplayMLModels(true);}}>
+            <ListItem key={"FAQ"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -270,7 +269,7 @@ export default function MiniDrawer() {
                     color:"white"
                   }}
                   key={2}
-                >
+                > 
                   <ListItemIcon
                     sx={{
                       minWidth: 0,
@@ -285,8 +284,6 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
         </List>
-       
-        
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
       </Box>

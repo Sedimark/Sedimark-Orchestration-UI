@@ -1,12 +1,9 @@
 import React, { memo ,useCallback, useEffect, useState} from 'react';
 import { Handle, Position } from 'reactflow';
-import styles from "./Loader.css";
+import styles from "./BaseNodesStyles.css";
 import DataSetInfoNode from '../dialogs/DatasetInfo/DatasetInfoNode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFile } from '@fortawesome/free-solid-svg-icons'
-import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons';
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import { faRightLeft } from '@fortawesome/free-solid-svg-icons';
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {DATASET_FETCH_DATASET_INFO } from "../../../utils/apiEndpoints";
@@ -23,6 +20,7 @@ export default memo(({ data, isConnectable }) => {
   const dispatch = useDispatch();
   const datasetSelected = useSelector((state)=>state.selectedDataset);
   const allNodes = useSelector((state)=>state.nodes);
+  const [params,setParams] = useState({});
 
   const fetchDatasetInfo = (datasetId)=>{
     axios.get(DATASET_FETCH_DATASET_INFO(datasetId))
@@ -59,23 +57,53 @@ export default memo(({ data, isConnectable }) => {
     }
   },[datasetSelected])
 
- 
+
+  useEffect(()=>{
+    setParams(data.config);
+  },[])
+
+
   return (
-    <div style={{  borderRadius:"5%",padding:"10px" , border:"1px solid blue", backgroundColor:"#cff6ff" }}> 
-     <p className='remove-node-btn-container' onClick={()=>{deleteNode()}}><span className='remove-node-btn'>x</span></p>
+    <div style={{  borderRadius:"5%",padding:"10px" , border:"1px solid blue", backgroundColor:"#e0e9ff" , minHeight:"150px"}}> 
+     
       <div>
-        <div className='dataset-node-header'>
+        <div className='base-node-header'>
             <FontAwesomeIcon icon={faFile} /> Loader
         </div>
-        <div className='dataset-node-info-section'>
-            <div className='dataset-node-info-section-container'>    
-               <div class="file-input-container">
-                    <strong><label for="myFile" class="select-file-button">Select File</label></strong>
-                     <input type="file" class="file-input" id="myFile" />       
-                </div>
+        <div className='base-node-info-section'>
+            <div className='base-node-info-section-container node-content-container'>    
+              {
+                Object.entries(params).map(([key, value]) => {
+                  console.log(key,value);
+                  if(value == "unique_selection"){  
+                    return (
+                  <div class="dropdown-container node-element">
+                       <label for="columns" className="dropdown-label exporter-font-color node-element-input-tag">{key}:</label>
+                     <select id="columns" className="dropdown-select export-dropdown-style input-element-node">
+                       <option value="1">One Column</option>
+                       <option value="2">Two Columns</option>
+                       <option value="3">Three Columns</option>
+                     </select>
+                   </div>
+                    );
+                  } else if(value == "multiple_selection"){
+
+
+                  } else if(value == "number"){
+                      return(
+                      <div className="node-element">
+                        <label for="numberInput" className="number-input-tag node-element-input-tag">Enter a Number:</label>
+                        <input type="number"  id="numberInput" className="input-element-node" name="numberInput"/>
+                      </div>
+                      );
+                  } else if(value == "text-field"){
+
+                  }
+                })
+              }
             </div>
-            <div className='dataset-node-bottom-toolbox'>
-                <button className='change-dataset-btn dataset-toolbox-btn' onClick={()=>{handleChangeDatasetButton()}}>View Data <FontAwesomeIcon icon={faChartSimple}/> </button>
+            <div className='base-node-bottom-toolbox'>
+                <button className='change-base-btn base-toolbox-btn' onClick={()=>{handleChangeDatasetButton()}}>View Data <FontAwesomeIcon icon={faChartSimple}/> </button>
             </div>
         </div>
         
@@ -83,7 +111,7 @@ export default memo(({ data, isConnectable }) => {
       <Handle
         type="source"
         position={Position.Right}
-        id="c"
+        id="right"
         style={{padding:"10px",border:"3px solid blue"}}
         isConnectable={isConnectable}
       />

@@ -1,19 +1,12 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Handle, Position } from 'reactflow';
-import styles from "./Loader.css";
+import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { faFilter } from '@fortawesome/free-solid-svg-icons';
-import { faTable } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
 import DataFeaturing from '../dialogs/DataFeaturing/DataFeaturing';
 import {setNodes, removeDataFeaturingColumns} from "../../../reducers/nodeSlice";
 import { useDispatch } from 'react-redux';
@@ -92,59 +85,39 @@ export default memo(({ data, isConnectable }) => {
   },[dataFeaturing])
 
   return (
-    <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #FFC0CB" }}>
+    <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px" }}>
         <Handle
         type="target"
         position={Position.Left}
-        id="a"
-        style={{padding:"10px",border:"3px solid #FFC0CB"}}
+        id="left"
+        style={{padding:"10px",border:"3px solid #ff33cc"}}
         isConnectable={isConnectable}
-      /> 
+      />  
       <div>
-      <p className='remove-node-btn-container' onClick={()=>{deleteNode()}}><span className='remove-node-btn'>x</span></p>
-        <div className='dataset-node-header node-header-filter processing-node-header'>
-            <FontAwesomeIcon icon={faFilter} /> Data featuring
+      {/* <p className='remove-node-btn-container' onClick={()=>{deleteNode()}}><span className='remove-node-btn'>x</span></p> */}
+        <div className='base-node-header node-header-filter processing-node-header'>
+            <FontAwesomeIcon icon={faFilter} /> Remove Null Columns
         </div>
        
-        <div className='dataset-node-info-section'>
-            <h3> <FontAwesomeIcon icon={faTable}/> Selected Rows</h3>
-            <hr/>
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 200 }} aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Column Name</StyledTableCell>
-                    <StyledTableCell align="right">Sample Data</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows.map((row,index) => (
-                    <StyledTableRow key={index}>
-                      <StyledTableCell component="th" scope="row">
-                        {row.column_name}
-                      </StyledTableCell>
-                      <StyledTableCell align="right">{row.sample_data}</StyledTableCell>
-                
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <hr/>
-            <div className='dataset-node-bottom-toolbox'>
-                <button className='dataset-toolbox-btn' onClick={()=>{checkDatasetSelectedAndGo()}}>See all selected rows <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
-            </div>
+        <div className='base-node-info-section info-section-processing'>
+           <div className='processing-node-body'>
+           <div class="dropdown-container">
+            <label for="columns" class="dropdown-label">Columns:</label>
+            <select id="columns" class="dropdown-select">
+                <option value="1">One Column</option>
+                <option value="2">Two Columns</option>
+                <option value="3">Three Columns</option>
+            </select>
         </div>
-        <div className='dataset-node-bottom'>
-
+           </div>  
         </div>
         {dataFeaturingOpen && <DataFeaturing open={dataFeaturingOpen} handleClose={()=>{setDataFeaturingOpen(false);}} />}
       </div>
       <Handle
         type="source"
         position={Position.Right}
-        id="b"
-        style={{padding:"10px",border:"3px solid #fa8219"}}
+        id="right"
+        style={{padding:"10px",border:"3px solid #ff33cc"}}
         isConnectable={isConnectable}
       />
      

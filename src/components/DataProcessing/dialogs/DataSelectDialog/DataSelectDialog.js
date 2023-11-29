@@ -17,14 +17,14 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDatabase } from '@fortawesome/free-solid-svg-icons';
+import { faCodeBranch } from '@fortawesome/free-solid-svg-icons';
 import Paper from '@mui/material/Paper'; 
 import { Typography } from '@mui/material';
 import style from "./DataSelectDialog.css";
 import DataSetInfo from './DataSetInfo';
-import {DATASET_FETCH_ALL_DATASETS} from "../../../../utils/apiEndpoints";
+import {DATASET_FETCH_ALL_DATASETS, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
-import {addNode, addDataset, setNodes, clearDataset} from "../../../../reducers/nodeSlice";
+import {addNode, addPipeline, setNodes, clearPipeline} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 
@@ -34,15 +34,16 @@ export default function DataSelectDialog(props) {
   
   const dispatch = useDispatch();
   const nodes = useSelector((state)=>state.nodes);
-  const dataset = useSelector((state)=>state.selectedDataset);
+  const pipeline = useSelector((state)=>state.selectedPipeline);
   const [checked, setChecked] = React.useState([]);
   const [dataSetSearch,setDatasetSearch] = React.useState(true);
   const [dataSets, setDataSets] = React.useState([]);
   const [selectedDatasetId,setSelectedDatasetId] = React.useState("");
   const [selectedDatasetName, setSelectedDatasetName] = React.useState("");
-  const [filteredDatasets,setFilteredDatasets] = React.useState([]);
+  const [filteredPipelines,setfilteredPipelines] = React.useState([]);
   const [searchedString, setSearchedString] = React.useState("");
-  
+  const [isLoading, setIsLoading] = React.useState(true);
+
 
   const handleDisplayDataSetInfo = (datasetId) =>{
     if(datasetId){
@@ -84,57 +85,31 @@ export default function DataSelectDialog(props) {
 
   const restoreChecksBasedOnStoredData = (data)=>{
     
-    if(data.length == 0 || dataset.length == 0){
+    if(data.length == 0 || pipeline.length == 0){
       return;
     }
-    const filteredDataset = data.filter((dt)=> {
-      return  dt.dataset_name == dataset[0].dataset_name
+    const filteredPipelines = data.filter((dt)=> {
+      return  dt == pipeline[0];
     });
-    if(filteredDataset.length !=0){
-      setChecked(filteredDataset);
+    if(filteredPipelines.length !=0){
+      setChecked(filteredPipelines);
     }
 
   }
 
   
-  const fetchAllData = () =>{
-    
-    const fetchedData = [
-      {
-          "id": 1,
-          "dataset_name": "Heart Failure",
-          "dataset_id": 1,
-          "dataset_info_id": 1,
-          "database_name": "heart_failure"
-      },
-      {
-          "id": 2,
-          "dataset_name": "Red Wine",
-          "dataset_id": 2,
-          "dataset_info_id": 2,
-          "database_name": "red_wine"
-      },
-      {
-          "id": 3,
-          "dataset_name": "Water Potability",
-          "dataset_id": 3,
-          "dataset_info_id": 3,
-          "database_name": "water_potability"
-      },
-      {
-          "id": 4,
-          "dataset_name": "White Wine",
-          "dataset_id": 4,
-          "dataset_info_id": 4,
-          "database_name": "white_wine"
+  const fetchAllPipelines = async()=>{
+     try{
+      const resp = await axios.get(FETCH_PIPELINES);
+      if(resp.data.length!=0){
+        setfilteredPipelines(resp.data);
+        restoreChecksBasedOnStoredData(resp.data);
+        setIsLoading(false);
       }
-  ]
-   setFilteredDatasets(fetchedData);
-   setDataSets(fetchedData);
-   setDatasetSearch(fetchedData);
-   restoreChecksBasedOnStoredData(fetchedData);
       
-   
+     } catch(err){
+      console.log(err);
+     }
   }
   
 
@@ -154,49 +129,48 @@ export default function DataSelectDialog(props) {
   const updateSearch = (evt)=>{
     setSearchedString(evt.target.value);
     const updatedDataset = searchListByDatasetName(dataSets,evt.target.value);
-    setFilteredDatasets(updatedDataset);
+    setfilteredPipelines(updatedDataset);
   }
 
-  const addCorespondingDataset = ()=>{
-  
+  const addCorespondingPipeline = ()=>{
 
-    if(dataset.length == 0){
-      dispatch(addDataset(checked[0]));
+    if(pipeline.length == 0){
+      dispatch(addPipeline(checked[0]));
       return;
     }
    
-    if(dataset.length !=0 && dataset[0].dataset_name != checked[0].dataset_name)
+    if(pipeline.length !=0 && pipeline[0] != checked[0])
     {
-      dispatch(addDataset(checked[0]));
+      dispatch(addPipeline(checked[0]));
     }
        
   }
  
-  const addCorespondingNode = () =>{
+  // const addCorespondingNode = () =>{
     
-   if(checked.length != 0){
-      for(let node of nodes){
-        if(node.nodeData.type == "Dataset"){
-          return;
-        } 
-      }
-      const newNode = {type:"Dataset"}
-      dispatch(addNode(newNode))  
-   } else if(checked.length == 0) {
-    dispatch(clearDataset({}))
-     const newNodeList = [];
-     for(let node of nodes){
-      if(node.nodeData.type !== "Dataset"){
-        newNodeList.push(node);
-      } 
-    }
-    dispatch(setNodes(newNodeList));
-   }
+  //  if(checked.length != 0){
+  //     for(let node of nodes){
+  //       if(node.nodeData.type == "Dataset"){
+  //         return;
+  //       } 
+  //     }
+  //     const newNode = {type:"Dataset"}
+  //     dispatch(addNode(newNode))  
+  //  } else if(checked.length == 0) {
+  //   dispatch(clearPipeline({}))
+  //    const newNodeList = [];
+  //    for(let node of nodes){
+  //     if(node.nodeData.type !== "Dataset"){
+  //       newNodeList.push(node);
+  //     } 
+  //   }
+  //   dispatch(setNodes(newNodeList));
+  //  }
    
-  }
+  // }
   
   React.useEffect(()=>{
-    fetchAllData();
+    fetchAllPipelines();
   },[])
 
  
@@ -206,7 +180,7 @@ export default function DataSelectDialog(props) {
     <ThemeProvider theme={darkTheme}>
       <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth="true" >
 
-           <DialogTitle> Datasets </DialogTitle>
+           <DialogTitle> Pipelines </DialogTitle>
             <DialogContent>   
              {
                 dataSetSearch &&
@@ -220,10 +194,9 @@ export default function DataSelectDialog(props) {
                   </IconButton>
                   <InputBase
                     sx={{ ml: 1, flex: 1 }}
-                    placeholder="Search Dataset"
+                    placeholder="Search Pipeline"
                     inputProps={{ 'aria-label': 'search google maps' }}
                     onChange={(evt)=>{updateSearch(evt)}}
-                    
                   />
                     <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
                   <IconButton onClick={()=>{}} type="button" sx={{ p: '10px' }} aria-label="search">
@@ -240,7 +213,7 @@ export default function DataSelectDialog(props) {
                         secondaryAction={
                           <div className='dataset-select-toolbox'>
                             <p>Select</p>
-                            <p>More Info</p>
+                          
                           </div>
                         }
                         disablePadding
@@ -252,10 +225,18 @@ export default function DataSelectDialog(props) {
                         <ListItemButton>
                           
                           <ListItemText  id={'fd3432'}  disableTypography
-                          primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>DataSet Name</Typography>} />
+                          primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>Pipeline Name</Typography>} />
                         </ListItemButton>
                       </ListItem>
-                   {filteredDatasets.map((value,index) => {
+                   {
+                    isLoading &&
+                    <div className="loading-circle-container">
+                      <div className="loading-circle"></div>
+                      <p className="loading-text">Loading...</p>
+                    </div>
+                    
+                   }
+                   { !isLoading && filteredPipelines.map((value,index) => {
                      const labelId = `checkbox-list-secondary-label-${value}`;
                       return (
                         <ListItem
@@ -268,35 +249,29 @@ export default function DataSelectDialog(props) {
                                 checked={checked.indexOf(value) !== -1}
                                 inputProps={{ 'aria-labelledby': labelId }}
                               />
-                              <Button variant="outlined" onClick={()=>{handleDisplayDataSetInfo(value.id)}}>Info</Button>
+                              
                             </div>
                           }
                           disablePadding
                         > 
                           <ListItemButton>
                             <ListItemAvatar>
-                              <p className='select-dialog-list'><FontAwesomeIcon icon={faDatabase}/></p> 
+                              <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                             </ListItemAvatar>
                             <ListItemText  id={labelId}  disableTypography
-                            primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value.dataset_name}</Typography>} />
+                            primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value}</Typography>} />
                           </ListItemButton>
                         </ListItem>
                       );
                      
-                    
                    })}
                  </List>
-              }
-
-              {
-                !dataSetSearch &&
-                <DataSetInfo handleDisplayDataSetInfo={handleDisplayDataSetInfo} selectedDatasetId={selectedDatasetId} selectedDatasetName={selectedDatasetName}/>
               }
 
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>
-              <Button onClick={()=>{props.handleClose(); addCorespondingNode(); addCorespondingDataset()}}>Apply</Button>
+              <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}}>Apply</Button>
             </DialogActions>
           
       </Dialog>

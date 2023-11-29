@@ -1,29 +1,31 @@
 import React, { useCallback,useState, useMemo, useEffect } from 'react';
 import ReactFlow, { MiniMap,Background, Controls, useNodesState, useEdgesState, addEdge, applyEdgeChanges, applyNodeChanges } from 'reactflow';
-import Dataset from './custom_nodes/Dataset';
+import Loader from './custom_nodes/Loader.js';
 import 'reactflow/dist/style.css';
-import FeatureSelection from './custom_nodes/FeatureSelection';
-import Normalization from './custom_nodes/Normalization';
-import DataImputation from './custom_nodes/DataImputation';
-import ModelTraining from './custom_nodes/ModelTraining';
+import Transformer from './custom_nodes/Transformer.js';
+import Exporter from './custom_nodes/Exporter.js';
 import CustomEdge from "./custom_edges/CustomEdge.js";
-import {  useSelector } from "react-redux/es/hooks/useSelector";
+import {useSelector} from "react-redux/es/hooks/useSelector";
 import {setMappedNodes, setMappedEdges} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
+import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
+import { v4 as uuidv4 } from 'uuid';
+import axios from "axios";
 
 function Flow() {
 
-  const nodeTypes = useMemo(() => ({ dataSet: Dataset , featureSelection:FeatureSelection, normalization:Normalization, dataImputation:DataImputation, modelTraining:ModelTraining}), []);
+  const selectedPipeline = useSelector((state)=> state.selectedPipeline);
+  const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter}), []);
   const edgeTypes = useMemo(() => ({ special: CustomEdge }), []);
   const storedNodes = useSelector((state)=>state.nodes);
   const storedDataset = useSelector((state)=>state.selectedDataset);
   const edgeToDelete = useSelector((state)=>state.edgeToDelete);
-  const [placedNodes, setPlacedNodes] = useState([]);
   const initialNodes = []; 
   const initialEdges = [];
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useEdgesState(initialEdges);
   const [variant, setVariant] = useState('cross');
+  const [pipelineEdges, setPipelineEdges] = useState([]);
   const dispatch = useDispatch();
   
   const onNodesChange = useCallback(
@@ -48,16 +50,12 @@ function Flow() {
 
   const nodeColor = (node) => {
     switch (node.type) {
-      case 'featureSelection':
-        return '#f56b02';
-      case 'dataSet':
+      case 'transformer':
+        return '#d340cd';
+      case 'loader':
         return '#cff6ff';
-      case  'normalization':
-        return '#06dca7'    
-      case  'normalization':
-        return '#06dca7'
-      case 'dataImputation':
-        return '#f50c0c'
+      case  'exporter':
+        return '#dbd112'    
       default:
           return '#c9c7c7'
     }
@@ -96,83 +94,99 @@ function Flow() {
     setNodes(newNodeArr);
   }
 
+  
 
   const addNode = (nodeData) => {
-    const newNodes = [...nodes];
-    
-    if(nodeData.length < nodes.length){
-      checkAndRemoveNode(nodeData,nodes);
-      return;
-    }
-    
+    const newNodes = [];
+
     for(let nodeType of nodeData){
       
-      if(nodeType == "Dataset" && !containsNode(nodeType,nodes)){
+      if(nodeType.type == "Loader"){
       
         newNodes.push({
-          id: 'node-1',
-          type: 'dataSet',
-          data: { label: 'Dataset' },
+          id: nodeType.node_id,
+          type: 'loader',
+          data: { label: 'Loader', config:nodeType.config},
           position: { x: 150, y: 25 },
        });
       
       } 
-      if (nodeType == "Data featuring" && !containsNode(nodeType,nodes)){
+      if (nodeType.type == "Transformer"){
         
         newNodes.push(
           {
-           id: 'node-2',
-           type: 'featureSelection',
-           data: { label: 'Data featuring' },
+           id: nodeType.node_id,
+           type: 'transformer',
+           data: { label: 'Transformer', config:nodeType.config },
            position: { x: 850, y: 5 },
           });
         
       }  
-      if (nodeType == "Normalization" && !containsNode(nodeType,nodes)){
+      if (nodeType.type == "Exporter"){
       
         newNodes.push(
           {
-            id: 'node-3',
-            type: 'normalization',
-            data: { label: 'Normalization' },
+            id: nodeType.node_id,
+            type: 'exporter',
+            data: { label: 'Exporter', config:nodeType.config},
             position: { x: 1550, y: 45 },
           }
         );
         
       } 
-      if (nodeType == "Data Imputation" && !containsNode(nodeType,nodes)){
-        
-        newNodes.push(
-          {
-            id: 'node-4',
-            type: 'dataImputation',
-            data: { label: 'Data Imputation' },
-            position: { x: 2550, y: 195 },
-          }
-        ); 
-        
-      } 
-      if (nodeType == "Model Training" && !containsNode(nodeType,nodes)){
-        
-        newNodes.push(
-          {
-            id: 'node-5',
-            type: 'modelTraining',
-            data: { label: 'Model Training' },
-            position: { x: 3250, y: 500 },
-          }
-        ); 
-      } 
     }
-    
     setNodes(newNodes);
+    
   }
 
-  const processAndPlaceNodes = (nodes) =>{ 
-    const allNodes = [];
-    for(let node of nodes){    
-      allNodes.push(node.nodeData.type);   
+  const processAndPlaceEdges = ()=>{
+    const storedEdges = [...edges];
+    for(const processedEdge of pipelineEdges){
+      const connections = processedEdge.downstream_blocks;
+      for(const conn of connections){
+        const newEdge = {
+          id:uuidv4(),
+          source:processedEdge.node_id,
+          target:conn,
+          type:'default',
+          sourceHandle:'right',
+          targetHandle:'left',
+          animated: false,
+        }
+        storedEdges.push(newEdge);
+      }
     }
+    setEdges(storedEdges);
+  }
+  
+  const processAndPlaceNodes = (blocks) =>{ 
+    const allNodes = [];
+    const connectionEdges = [];
+    for(const block of blocks){
+      if(block.type == "data_loader"){
+        allNodes.push({type:"Loader", node_id:block.name,config:block.configuration});
+        connectionEdges.push({
+          node_id:block.name,
+          upstream_blocks:block.upstream_blocks,
+          downstream_blocks:block.downstream_blocks
+        });
+      } else if(block.type == "transformer"){
+        allNodes.push({type:"Transformer", node_id:block.name,config:block.configuration});
+        connectionEdges.push({
+          node_id:block.name,
+          upstream_blocks:block.upstream_blocks,
+          downstream_blocks:block.downstream_blocks
+        });
+      } else if(block.type == "data_exporter"){
+        allNodes.push({type:"Exporter", node_id:block.name,config:block.configuration});
+        connectionEdges.push({
+          node_id:block.name,
+          upstream_blocks:block.upstream_blocks,
+          downstream_blocks:block.downstream_blocks
+        });
+      }
+    }
+    setPipelineEdges(connectionEdges);
     addNode(allNodes);
   }
 
@@ -202,10 +216,6 @@ function Flow() {
   
       sourceEdges.pop();
       targetEdges.pop();
-      if(sourceEdges.indexOf(lastEdgeSource)!==-1 || targetEdges.indexOf(lastEdgeTarget)!==-1 ) {
-        deleteOneEdge(edges[edges.length-1].id);
-        return;
-      }
    }
    
   }
@@ -235,22 +245,38 @@ function Flow() {
    setTheNodes();
   } 
 
+
  
-
-  useEffect(()=>{
-    processAndPlaceNodes(storedNodes);
-  },[storedNodes])
-
-  useEffect(()=>{  
-    
-    deleteOneEdge(edgeToDelete);
-  },[edgeToDelete])
+  const fetchPipelineData = async(pipeline_name)=>{
+    try{
+      const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+      processAndPlaceNodes(resp.data.pipeline.blocks);
+    } catch(err){
+      console.log(err);
+    }
+  }
 
   useEffect(()=>{
     verifyAddedEdgeIsOk();
-
     setTheEdges();
   },[edges])
+
+
+  useEffect(()=>{
+    if(nodes.length!=0){
+      
+      setTimeout(()=>{
+        processAndPlaceEdges();
+      },100)
+    }
+  },[nodes])
+
+  useEffect(()=>{
+    if(selectedPipeline.length != 0){
+      fetchPipelineData(selectedPipeline);
+    }
+  },[selectedPipeline])
+  
 
  
     return (
@@ -261,7 +287,7 @@ function Flow() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
+          onConnect={null}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
         >
@@ -270,8 +296,7 @@ function Flow() {
           }}
           maskColor="rgb(0,0,0, 0.1)" />
 
-          
-          <Background variant='dots' color="#fff" />
+          <Background variant='dots' color="#000" />
           <Controls />
           
         </ReactFlow>

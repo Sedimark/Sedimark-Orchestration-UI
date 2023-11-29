@@ -2,7 +2,7 @@ import {createSlice, nanoid} from '@reduxjs/toolkit'
 
 const initialState = {
     nodes:[],
-    selectedDataset:[],
+    selectedPipeline:[],
     selectedModelType:"",
     selectedDataFeaturingColumns:[],
     normalizationColumns:[],
@@ -12,7 +12,8 @@ const initialState = {
     mappedNodes:[],
     constant_value_imputation_columns:[],
     constant_value_imputation_values:[],
-    edges:[]
+    edges:[],
+    mageAIOauthToken:""
 }
 
 export const nodeSlice = createSlice({
@@ -57,15 +58,15 @@ export const nodeSlice = createSlice({
         resetSelectedModelType:(state, action)=>{
             state.selectedModelType = "";
         },
-        clearDataset:(state,action)=>{
-            state.selectedDataset = [];
+        clearPipeline:(state,action)=>{
+            state.selectedPipeline = [];
         },
-        addDataset:(state,action) =>{
-            state.selectedDataset = [];
-            state.selectedDataset = [action.payload]
+        addPipeline:(state,action) =>{
+            state.selectedPipeline = [];
+            state.selectedPipeline = [action.payload]
         },
         removeDataset:(state,action) =>{
-            state.selectedDataset = [];
+            state.selectedPipeline = [];
         },
         removeDataFeaturingColumns:(state,action)=>{
             state.selectedDataFeaturingColumns = [];
@@ -92,12 +93,15 @@ export const nodeSlice = createSlice({
         resetNormalizationAndStandardization:(state) =>{
             state.normalizationColumns = [];
             state.standardizationColumns = [];
+        },
+        setMageAIOauthToken:(state, action)=>{
+            state.mageAIOauthToken = action.payload;
         }
          
     }
 });
 
 
-export const {setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addDataset, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearDataset, removePreProcessingNodes} = nodeSlice.actions
+export const {setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken} = nodeSlice.actions
 
 export default nodeSlice.reducer;

@@ -2,3 +2,6 @@ export const DATASET_FETCH_ALL_DATASETS = "http://localhost:8089/api/dataset/all
 export const DATASET_FETCH_DATASET_INFO = (id)=>`http://localhost:8089/api/dataset/dataset-info?id=${id}`;
 export const DATASET_FETCH_DATASET_SNIPPET = (id)=>`http://localhost:8089/api/dataset/fetch-snippet?id=${id}`;
 export const START_PIPELINE = `http://localhost:8081/start_pipeline`;
+export const FETCH_PIPELINES = `http://localhost:8000/pipelines`;
+export const FETCH_MAGE_AI_OAUTH_KEY = `https://mage.sedimark.work/api/sessions`;
+export const FETCH_PIPELINE_DATA = (pipeline_name)=>`http://localhost:8000/pipeline/read?pipeline_name=${pipeline_name}`;

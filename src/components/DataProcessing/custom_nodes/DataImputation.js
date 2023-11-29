@@ -1,6 +1,6 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Handle, Position } from 'reactflow';
-import styles from "./Loader.css";
+import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -86,7 +86,7 @@ export default memo(({ data, isConnectable }) => {
         <Handle
         type="target"
         position={Position.Left}
-        id="a"
+        id="left"
         style={{padding:"10px",border:"3px solid #fc0324"}}
         isConnectable={1}
       />

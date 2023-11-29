@@ -5,12 +5,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCirclePlay, faCircleStop } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
-import { START_PIPELINE } from "../../utils/apiEndpoints";
+import { FETCH_PIPELINES } from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
 import axios from "axios";
 
 function DataProcessing() {
   
+  const mage_ai_oauth_key = useSelector((state)=>state.mageAIOauthToken);
   const constant_value_imputation_columns = useSelector((state)=>state.constant_value_imputation_columns);
   const constant_value_imputation_values = useSelector((state)=>state.constant_value_imputation_values)
   const pipelineNodes = useSelector((state)=>state.mappedNodes);
@@ -67,7 +68,7 @@ function DataProcessing() {
       dataset_name: "heart_failure",
       operations:[...operationsList]
     }
-      axios.post(START_PIPELINE,requestObject).then((resp)=>{console.log(resp.data)}).catch(err => console.log(err));
+      // axios.post(START_PIPELINE,requestObject).then((resp)=>{console.log(resp.data)}).catch(err => console.log(err));
   }
 
   const startPipelineAndMakeRequests = ()=>{
@@ -140,8 +141,8 @@ function DataProcessing() {
           } 
         }
       }
-      makeRequestForPipeline(operationsList);
   }
+
 
     return (
       <div style={{ height: '100%' }}>        
@@ -162,8 +163,6 @@ function DataProcessing() {
                 <span className="circle">1</span>
                 <span className="circle">2</span>
                 <span className="circle">3</span>
-                <span className="circle">4</span>
-                <span className="circle">5</span>
                 <div className="progress-bar">
                   <span className="indicator" style={{width:"0%",marginLeft:"-200px"}}></span>
                 </div>

@@ -1,0 +1,394 @@
+.base-node-header{
+    background: rgb(24, 1, 231);
+    color:#fff;
+    padding:10px;
+    width: 400px;
+    font-size: 1.3rem;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px; 
+    border-bottom-left-radius: 10px; 
+    border-bottom-right-radius: 10px; 
+}
+
+
+
+.base-node-separator{
+    background-color: #242c3a;
+    height: 20px;
+}
+
+.base-node-info-section{
+    padding-top:1px;
+    
+    color:#fff;
+}
+
+.base-node-info-section-container{
+    text-align: center;
+    padding-top:5px;
+    padding-left:15px;
+    padding:20px;
+}
+
+.base-toolbox-btn{
+
+    background-color: #2d3748;
+    border:none;
+    margin-top:10px;
+    margin-bottom: 10px;
+    border: 2px solid rgb(255, 242, 0);
+    padding:8px;
+    color:rgb(255, 242, 0);
+    border-radius: 5px;
+}
+
+.open-more-icon{
+    margin-top:5px;
+    padding-top: 10px;
+    font-size: 1rem !important;
+}
+
+.base-node-bottom{
+    background-color: #2d3748;
+    height: 10px;
+    border-top-left-radius: 0; 
+    border-top-right-radius: 0; 
+    border-bottom-left-radius: 10px; 
+    border-bottom-right-radius: 10px; 
+} 
+
+.base-toolbox-btn:hover{
+    cursor: pointer;
+}
+
+.base-node-bottom-toolbox{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.change-base-btn{
+    background-color: #80bbe0;;
+    border: 2px solid blue;
+    color:blue;
+}
+
+.node-header-filter{
+    width: 480px;
+}
+
+.applied-alg{
+
+    color:#03fcbe;
+    border-color: #03fcbe;
+}
+
+.imputation-algs{
+    color:#fc0324;
+    border-color: #fc0324;
+}
+
+.model-training-card-header{
+    width: 880px;
+}
+
+.training-card-body{
+    width: 750px;
+    margin: auto;
+}
+
+.model-status-container{
+    margin-top:60px;
+    font-size: 1.4rem;
+}
+
+.model-data-btn{
+    color:aqua;
+    border-color: aqua;
+    padding:10px;
+    font-size: 1.2rem;
+}
+
+.elapsed-time{
+    color:rgb(255, 255, 176);
+    font-weight: bold;
+    font-size: 1.3rem;
+}
+
+.elapsed-time-text{
+    padding:10px;
+}
+
+.loading-spinner {
+    margin: auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px;
+    height: 30px;
+    margin-bottom:10px;
+}
+
+.dot1, .dot2, .dot3 {
+    
+    width: 25px;
+    height: 25px;
+    background-color: #3498db;
+    border-radius: 50%;
+    margin: 0 5px;
+    transform: scale(0); /* Initial scale to make dots invisible */
+    animation: rotate 1.5s infinite linear; /* Apply the rotate animation */
+}
+
+.dot2 {
+    animation-delay: 0.5s; /* Delay the animation for the second dot */
+}
+
+.dot3 {
+    animation-delay: 1s; /* Delay the animation for the third dot */
+}
+
+.loader-block-inner-text{
+    color:blue;
+    font-size: 1.4rem;
+}
+
+@keyframes rotate {
+    0% { transform: scale(0); } /* Initial scale to make dots invisible */
+    50% { transform: scale(1); } /* Scale up to full size */
+    100% { transform: scale(0); } /* Scale back to invisible */
+}
+
+.done-container{
+    padding:10px;
+    font-size: 1.9rem;
+}
+
+.remove-node-btn{
+    position: absolute;
+    right:5px;
+    top:1px;
+    width: 25px;
+    height: 25px;
+    font-size: 1.1rem;
+    background: #000000;
+    border: 3px solid red;
+    cursor: pointer;
+    color:white;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+
+
+.file-input-container {
+    position: relative;
+    overflow: hidden;
+    display: inline-block;
+    margin:auto;
+}
+
+.file-input {
+    position: absolute;
+    font-size: 100px;
+    opacity: 0;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+.select-file-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #3498db;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.select-file-button:hover {
+    background-color: #2980b9;
+}
+
+/* ===--->  STYLES FOR PROCESSING NODE <---=== */
+
+.processing-node-header{
+    background-color:#d340cd;
+}
+
+.processing-node-body{
+    margin-top: 35px; 
+    width: 100%;
+    min-height:70px;
+    border-radius: 5px;
+    background-color: #ffdbfe; 
+}
+
+
+.dropdown-container {
+    margin-top:20px;
+    text-align: center;
+}
+
+.dropdown-label,
+.dropdown-select {
+    display: inline-block; /* Display elements on the same line */
+    vertical-align: middle; /* Align elements vertically in the middle */
+}
+
+.dropdown-label {
+    margin-right: 10px; /* Add some space between label and select */
+    color: #b200ab;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+
+.dropdown-select {
+    padding: 5px;
+    font-size: 15px;
+    border: 2px solid #cc0da2;
+    border-radius: 5px;
+    color: #b200ab;
+}
+
+/* ===--->  STYLES FOR EXPORT NODE <---=== */
+
+.export-node-header{
+    background: #ece93b;
+    color:#fff;
+    padding:10px;
+    width: 96%;
+    margin:auto;
+    margin-top: 8px;
+    font-size: 1.3rem;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px; 
+    border-bottom-left-radius: 10px; 
+    border-bottom-right-radius: 10px; 
+}
+
+.exporter-node-header-title{
+    color:#000;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.exporter-card-body{
+    color:#000;
+    padding:20px;
+    font-size: 1.3rem;
+}
+
+.exporter-node-body{
+    background-color:#f5ffcd ;
+}
+
+.exporter-font-color{
+    color:#000;
+}
+
+.export-dropdown-style{
+    border: 2px solid #000;
+    color: #000;
+}
+
+
+.black-outline-input {
+    border: 2px solid #000; /* Black border */
+    padding: 5px;
+    font-size: 12px;
+    border-radius: 5px;
+}
+
+.export-dropdown-style{
+    margin-left: 20px;
+}
+
+#search-bar {
+    height: 46px;
+    border-radius: 48px;
+    border: 0.5px solid lightgrey;
+    width: 100%;
+    padding-right: 40px;
+    padding-left: 10px;
+}
+
+#search-btn {
+    height: 46px;
+    border-top-right-radius: 48px;
+    border-bottom-right-radius: 48px;
+    padding: 15px;
+    font-size: 1.1em;
+    position: absolute;
+    right: 15px;
+    border-left: 0.5px solid lightgrey;
+}
+
+.menu-btn {
+    border-radius: 48px;
+    border: 0.5px solid lightgrey;
+    font-size: 0.9em;
+    padding: 2px 10px;
+    background-color: white;
+}
+
+.menu {
+    padding-top: 10px;
+    z-index: 200;
+    margin-top: 4px;
+    background-color: white;
+    position: absolute;
+}
+
+.menu-option {
+    padding: 6px 20px 6px;
+}
+
+#overlay {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+}
+
+ /* Style for the number input */
+ input[type="number"] {
+    width: 60%;
+    border-radius: 4px;
+    padding: 5px;
+    margin-left:10px;
+    border: 2px solid black; /* Black outline */
+    background-color: white; /* White interior */
+    color: black; /* Text color */
+    box-sizing: border-box; /* Include padding and border in element's total width and height */
+  }
+
+  #numberInput{
+    margin-left:15px;
+    width: 92%;
+  }
+
+  .number-input-tag{
+    color:#000;
+    font-size: 1.2rem;
+    font-weight: bold;
+  }
+
+  .input-element-node{
+    width: 90% ;
+    
+  }
+
+  .node-element{
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .node-element-input-tag{
+    position: relative;
+    float:left;
+  }
