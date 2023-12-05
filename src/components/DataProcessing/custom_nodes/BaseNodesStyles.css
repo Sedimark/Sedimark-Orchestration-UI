@@ -10,7 +10,9 @@
     border-bottom-right-radius: 10px; 
 }
 
-
+.base-node-header:hover{
+    cursor: pointer;
+}
 
 .base-node-separator{
     background-color: #242c3a;
@@ -25,7 +27,7 @@
 
 .base-node-info-section-container{
     text-align: center;
-    padding-top:5px;
+    padding-top:15px;
     padding-left:15px;
     padding:20px;
 }
@@ -214,7 +216,7 @@
 /* ===--->  STYLES FOR PROCESSING NODE <---=== */
 
 .processing-node-header{
-    background-color:#d340cd;
+    background-color:rgb(181, 38, 176);
 }
 
 .processing-node-body{
@@ -225,6 +227,18 @@
     background-color: #ffdbfe; 
 }
 
+.processing-node-toolbox-btn{
+    background-color: #cc0da2;
+    border:none;
+    margin-top:20px;
+    border-radius: 5px;    
+    color:#fff;
+    padding: 11px;
+}
+
+.processing-node-toolbox-btn:hover{
+    cursor: pointer;
+}
 
 .dropdown-container {
     margin-top:20px;
@@ -254,6 +268,12 @@
 
 /* ===--->  STYLES FOR EXPORT NODE <---=== */
 
+.exporter-node-btn{
+    background-color: #fcba03;
+    color:#000;
+    margin-bottom: 10px;
+}
+
 .export-node-header{
     background: #ece93b;
     color:#fff;
@@ -266,6 +286,10 @@
     border-top-right-radius: 10px; 
     border-bottom-left-radius: 10px; 
     border-bottom-right-radius: 10px; 
+}
+
+.export-node-header:hover{
+    cursor: pointer;
 }
 
 .exporter-node-header-title{
@@ -391,4 +415,61 @@
   .node-element-input-tag{
     position: relative;
     float:left;
+  }
+
+  /* ====  STYLES FOR CUSTOM NODE ===  */
+
+  .custom-node-header{
+    background: #000;
+    color:#fff;
+    padding:10px;
+    width: 96%;
+    margin:auto;
+    margin-top: 8px;
+    font-size: 1.3rem;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px; 
+    border-bottom-left-radius: 10px; 
+    border-bottom-right-radius: 10px; 
+}
+
+.custom-node-header:hover{
+    cursor: pointer;
+}
+
+.custom-node-toolbox-btn{
+    padding:10px;
+    margin-top:20px;
+    background-color: #000;
+    border-radius: 5px;
+    color:#fff;
+}
+
+.custom-node-toolbox-btn:hover{
+    cursor: pointer;
+}
+
+
+.empty-node-container{
+    margin-top:40px;
+    font-size: 2.2rem;
+}
+
+.node-title{
+    display: inline-block;
+    cursor: pointer;
+}
+
+.node-title:hover::after {
+    content: attr("Uga buga ");
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #fff;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1;
   }

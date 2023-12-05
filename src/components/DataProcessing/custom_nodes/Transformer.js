@@ -5,9 +5,16 @@ import { styled } from '@mui/material/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFilter } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import TableCell, { tableCellClasses } from '@mui/material/TableCell';
+import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import TableRow from '@mui/material/TableRow';
 import DataFeaturing from '../dialogs/DataFeaturing/DataFeaturing';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell, { tableCellClasses } from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import Paper from '@mui/material/Paper';
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import {setNodes, removeDataFeaturingColumns} from "../../../reducers/nodeSlice";
 import { useDispatch } from 'react-redux';
 
@@ -18,6 +25,10 @@ export default memo(({ data, isConnectable }) => {
   const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
   const [dataFeaturingOpen, setDataFeaturingOpen] = useState(false);
   const [rows,setRows] = useState([]);
+  const [variablesPresent, setVariablesPresent] = useState(null);
+  const [allColumns , setAllColumns] = useState([]);
+  const [fullNodeName, setFullNodeName] = useState("");
+  const [nodeName, setNodeName] = useState("");
   const allNodes = useSelector((state)=>state.nodes);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -80,9 +91,24 @@ export default memo(({ data, isConnectable }) => {
     }
   }
 
+  const processName = (str)=>{
+    const truncateString = "...";
+    const maxLength = 29;
+    if(str.length > maxLength){
+       setNodeName(str.substring(0, maxLength) + truncateString);
+    } else {
+      setNodeName(str);
+    }
+  }
+  
   useEffect(()=>{
     populateRows(dataFeaturing);
   },[dataFeaturing])
+
+  useEffect(()=>{
+    processName(data.name);
+    setFullNodeName(data.name);
+  },[])
 
   return (
     <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px" }}>
@@ -94,23 +120,42 @@ export default memo(({ data, isConnectable }) => {
         isConnectable={isConnectable}
       />  
       <div>
-      {/* <p className='remove-node-btn-container' onClick={()=>{deleteNode()}}><span className='remove-node-btn'>x</span></p> */}
-        <div className='base-node-header node-header-filter processing-node-header'>
-            <FontAwesomeIcon icon={faFilter} /> Remove Null Columns
+        <div className='base-node-header node-header-filter processing-node-header' title={fullNodeName}>
+            {nodeName? nodeName:"Custom"}
         </div>
        
-        <div className='base-node-info-section info-section-processing'>
-           <div className='processing-node-body'>
-           <div class="dropdown-container">
-            <label for="columns" class="dropdown-label">Columns:</label>
-            <select id="columns" class="dropdown-select">
-                <option value="1">One Column</option>
-                <option value="2">Two Columns</option>
-                <option value="3">Three Columns</option>
-            </select>
-        </div>
-           </div>  
-        </div>
+         {variablesPresent && 
+            <div className='base-node-info-section-container'>
+                  <h3> Variables</h3>
+                  <TableContainer component={Paper}>
+                   <Table sx={{ minWidth: 200 }} aria-label="customized table">
+                     <TableHead>
+                       <TableRow>
+                          <StyledTableCell>Variable Name</StyledTableCell>
+                         <StyledTableCell align="right">Value</StyledTableCell>
+                       </TableRow>
+                     </TableHead>
+                     <TableBody>
+                        {allColumns.map((row,index) => (
+                          <StyledTableRow key={index}>
+                            <StyledTableCell component="th" scope="row">
+                             {row.name}
+                            </StyledTableCell>
+                          <StyledTableCell align="right">{row.algType}</StyledTableCell>
+                        </StyledTableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              
+              <div className='custom-node-bottom-toolbox'>
+   			        <button className='processing-node-toolbox-btn' onClick={()=>{checkDatasetSelectedAndGo()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+		         </div>
+          </div>
+         }
+        {
+          !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
+        }
         {dataFeaturingOpen && <DataFeaturing open={dataFeaturingOpen} handleClose={()=>{setDataFeaturingOpen(false);}} />}
       </div>
       <Handle

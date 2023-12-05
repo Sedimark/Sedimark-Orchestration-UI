@@ -1,9 +1,8 @@
-import React, { memo ,useCallback, useEffect, useState} from 'react';
+import React, { memo , useEffect, useState} from 'react';
 import { Handle, Position } from 'reactflow';
 import styles from "./BaseNodesStyles.css";
 import DataSetInfoNode from '../dialogs/DatasetInfo/DatasetInfoNode';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFile } from '@fortawesome/free-solid-svg-icons'
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {DATASET_FETCH_DATASET_INFO } from "../../../utils/apiEndpoints";
@@ -17,6 +16,8 @@ export default memo(({ data, isConnectable }) => {
   const [publishDate, setPublishDate] = useState("");
   const [selectDataDialog, setSelectDataDialog] = useState(false);
   const [datasetInfoNodeDialog, setDatasetInfoNodeDialog] = useState(false);
+  const [nodeName, setNodeName] = useState("");
+  const [fullNodeName, setFullNodeName] = useState("");
   const dispatch = useDispatch();
   const datasetSelected = useSelector((state)=>state.selectedDataset);
   const allNodes = useSelector((state)=>state.nodes);
@@ -57,50 +58,40 @@ export default memo(({ data, isConnectable }) => {
     }
   },[datasetSelected])
 
+  const processName = (str)=>{
+    const truncateString = "...";
+    const maxLength = 29;
+    if(str.length > maxLength){
+       setNodeName(str.substring(0, maxLength) + truncateString);
+    } else {
+      setNodeName(str);
+    }
+  }
 
   useEffect(()=>{
     setParams(data.config);
+    processName(data.name)
+    setFullNodeName(data.name);
+    
   },[])
 
 
   return (
     <div style={{  borderRadius:"5%",padding:"10px" , border:"1px solid blue", backgroundColor:"#e0e9ff" , minHeight:"150px"}}> 
-     
+     <Handle
+        type="source"
+        position={Position.Left}
+        id="left"
+        style={{padding:"10px",border:"3px solid blue"}}
+        isConnectable={true}
+      />
       <div>
         <div className='base-node-header'>
-            <FontAwesomeIcon icon={faFile} /> Loader
+             <div className='node-title' title={fullNodeName}> {nodeName? nodeName:"Loader"} </div>
         </div>
         <div className='base-node-info-section'>
             <div className='base-node-info-section-container node-content-container'>    
-              {
-                Object.entries(params).map(([key, value]) => {
-                  console.log(key,value);
-                  if(value == "unique_selection"){  
-                    return (
-                  <div class="dropdown-container node-element">
-                       <label for="columns" className="dropdown-label exporter-font-color node-element-input-tag">{key}:</label>
-                     <select id="columns" className="dropdown-select export-dropdown-style input-element-node">
-                       <option value="1">One Column</option>
-                       <option value="2">Two Columns</option>
-                       <option value="3">Three Columns</option>
-                     </select>
-                   </div>
-                    );
-                  } else if(value == "multiple_selection"){
-
-
-                  } else if(value == "number"){
-                      return(
-                      <div className="node-element">
-                        <label for="numberInput" className="number-input-tag node-element-input-tag">Enter a Number:</label>
-                        <input type="number"  id="numberInput" className="input-element-node" name="numberInput"/>
-                      </div>
-                      );
-                  } else if(value == "text-field"){
-
-                  }
-                })
-              }
+             
             </div>
             <div className='base-node-bottom-toolbox'>
                 <button className='change-base-btn base-toolbox-btn' onClick={()=>{handleChangeDatasetButton()}}>View Data <FontAwesomeIcon icon={faChartSimple}/> </button>
@@ -113,7 +104,7 @@ export default memo(({ data, isConnectable }) => {
         position={Position.Right}
         id="right"
         style={{padding:"10px",border:"3px solid blue"}}
-        isConnectable={isConnectable}
+        isConnectable={true}
       />
       {selectDataDialog && <DataSelectDialog  open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
       {datasetInfoNodeDialog && <DataSetInfoNode open={datasetInfoNodeDialog} handleClose={()=>{handleDataInfoDialogNodeClose()}}></DataSetInfoNode>}

@@ -4,7 +4,7 @@ import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import { faSquareRootVariable } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -17,7 +17,7 @@ import NormalizationStandardization from '../dialogs/NormalizationStandardizatio
 import { useDispatch } from 'react-redux';
 import {resetNormalizationAndStandardization, setNodes} from "../../../reducers/nodeSlice";
 
-
+ 
 export default memo(({ data, isConnectable }) => {
   
   const dispatch = useDispatch();
@@ -27,6 +27,9 @@ export default memo(({ data, isConnectable }) => {
   const [allColumns, setAllColumns] = useState([]);
   const allNodes = useSelector((state)=>state.nodes);
   const [normalizationStandarizationOpen, setNormalizationStandardizationOpen] = useState(false);
+  const [variablesPresent, setVariablesPresent] = useState(false);
+  const [nodeName, setNodeName] = useState("");
+  const [fullNodeName, setFullNodeName] = useState("");
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -111,56 +114,72 @@ export default memo(({ data, isConnectable }) => {
     }
   }
 
+  const processName = (str)=>{
+    const truncateString = "...";
+    const maxLength = 29;
+    if(str.length > maxLength){
+       setNodeName(str.substring(0, maxLength) + truncateString);
+    } else {
+      setNodeName(str);
+    }
+  }
+
+
   useEffect(()=>{
     combineAndSet();
   },[standardizationColumns, normalizationColumns])
+ 
+  useEffect(()=>{
+    processName(data.name);
+    setFullNodeName(data.name)
+  },[])
 
   return (
-    <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #03fcbe" }}>
+    <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #000", backgroundColor:"#d6d6d4", minHeight:"200px" }}>
         <Handle
         type="target"
         position={Position.Left}
         id="left"
-        style={{padding:"10px",border:"3px solid #03fcbe"}}
+        style={{padding:"10px",border:"3px solid #737373"}}
         isConnectable={isConnectable}
       />
       <div>
-      <p className='remove-node-btn-container' onClick={()=>{deleteNode()}}><span className='remove-node-btn'>x</span></p>
-        <div className='dataset-node-header node-header-filter'>
-            <FontAwesomeIcon icon={faSquareRootVariable} /> Normalization and Standardization
+        <div className='custom-node-header node-header-filter' title={fullNodeName}>
+        {nodeName? nodeName:"Custom"}
         </div>
-        <div className='dataset-node-separator'>
-
-        </div>
-        <div className='dataset-node-info-section'>
-            <h3> Selected Rows</h3>
-            <hr/>
-            <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 200 }} aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Column Name</StyledTableCell>
-                    <StyledTableCell align="right">Algorithm applied</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {allColumns.map((row,index) => (
-                    <StyledTableRow key={index}>
-                      <StyledTableCell component="th" scope="row">
-                        {row.name}
-                      </StyledTableCell>
-                      <StyledTableCell align="right">{row.algType}</StyledTableCell>
-                
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <hr/>
-            <div className='dataset-node-bottom-toolbox'>
-                <button className='dataset-toolbox-btn applied-alg'onClick={()=>{checkDatasetSelectedAndGo()}}> See all applied algorithms <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
-            </div>
-        </div>
+        {variablesPresent && 
+          <div className='base-node-info-section-container'>
+                <h3> Variables</h3>
+                <TableContainer component={Paper}>
+                  <Table sx={{ minWidth: 200 }} aria-label="customized table">
+                    <TableHead>
+                      <TableRow>
+                        <StyledTableCell>Variable Name</StyledTableCell>
+                        <StyledTableCell align="right">Value</StyledTableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {allColumns.map((row,index) => (
+                        <StyledTableRow key={index}>
+                          <StyledTableCell component="th" scope="row">
+                            {row.name}
+                          </StyledTableCell>
+                          <StyledTableCell align="right">{row.algType}</StyledTableCell>
+                    
+                        </StyledTableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              
+              <div className='custom-node-bottom-toolbox'>
+                  <button className='custom-node-toolbox-btn'onClick={()=>{checkDatasetSelectedAndGo()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+              </div>
+          </div>
+         }
+        {
+          !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
+        }
         <div className='dataset-node-bottom'>
 
         </div>
@@ -169,7 +188,7 @@ export default memo(({ data, isConnectable }) => {
         type="source"
         position={Position.Right}
         id="right"
-        style={{padding:"10px",border:"3px solid #03fcbe"}}
+        style={{padding:"10px",border:"3px solid #737373"}}
         isConnectable={isConnectable}
       />
       {normalizationStandarizationOpen && <NormalizationStandardization open={normalizationStandarizationOpen} handleClose={()=>{setNormalizationStandardizationOpen(false)}} />}

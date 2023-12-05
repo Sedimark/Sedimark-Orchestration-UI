@@ -4,7 +4,8 @@ import Loader from './custom_nodes/Loader.js';
 import 'reactflow/dist/style.css';
 import Transformer from './custom_nodes/Transformer.js';
 import Exporter from './custom_nodes/Exporter.js';
-import CustomEdge from "./custom_edges/CustomEdge.js";
+import Custom from './custom_nodes/Custom.js';
+import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
 import {setMappedNodes, setMappedEdges} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
@@ -15,8 +16,8 @@ import axios from "axios";
 function Flow() {
 
   const selectedPipeline = useSelector((state)=> state.selectedPipeline);
-  const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter}), []);
-  const edgeTypes = useMemo(() => ({ special: CustomEdge }), []);
+  const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
+  const edgeTypes = useMemo(() => ({ }), []);
   const storedNodes = useSelector((state)=>state.nodes);
   const storedDataset = useSelector((state)=>state.selectedDataset);
   const edgeToDelete = useSelector((state)=>state.edgeToDelete);
@@ -39,7 +40,7 @@ function Flow() {
 
   const onConnect = useCallback(
     (params) =>
-      setEdges((eds) => addEdge({ ...params, animated: false, type:"special" }, eds)),
+      setEdges((eds) => addEdge({ ...params, animated: false }, eds)),
     []
   );
   const reactFlowStyle = {
@@ -55,7 +56,9 @@ function Flow() {
       case 'loader':
         return '#cff6ff';
       case  'exporter':
-        return '#dbd112'    
+        return '#dbd112'
+      case 'custom':
+        return '#7d7d7d'
       default:
           return '#c9c7c7'
     }
@@ -96,17 +99,16 @@ function Flow() {
 
   
 
-  const addNode = (nodeData) => {
+  const addNodes = (nodeData) => {
     const newNodes = [];
 
     for(let nodeType of nodeData){
       
       if(nodeType.type == "Loader"){
-      
         newNodes.push({
           id: nodeType.node_id,
           type: 'loader',
-          data: { label: 'Loader', config:nodeType.config},
+          data: { label: 'Loader', config:nodeType.config, name: nodeType.node_name},
           position: { x: 150, y: 25 },
        });
       
@@ -117,7 +119,7 @@ function Flow() {
           {
            id: nodeType.node_id,
            type: 'transformer',
-           data: { label: 'Transformer', config:nodeType.config },
+           data: { label: 'Transformer', config:nodeType.config, name: nodeType.node_name},
            position: { x: 850, y: 5 },
           });
         
@@ -128,8 +130,20 @@ function Flow() {
           {
             id: nodeType.node_id,
             type: 'exporter',
-            data: { label: 'Exporter', config:nodeType.config},
+            data: { label: 'Exporter', config:nodeType.config, name: nodeType.node_name},
             position: { x: 1550, y: 45 },
+          }
+        );
+        
+      } 
+      if (nodeType.type == "Custom"){
+      
+        newNodes.push(
+          {
+            id: nodeType.node_id,
+            type: 'custom',
+            data: { label: 'Custom', config:nodeType.config, name: nodeType.node_name},
+            position: { x: 2550, y: 45 },
           }
         );
         
@@ -164,21 +178,29 @@ function Flow() {
     const connectionEdges = [];
     for(const block of blocks){
       if(block.type == "data_loader"){
-        allNodes.push({type:"Loader", node_id:block.name,config:block.configuration});
+        allNodes.push({type:"Loader", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
         connectionEdges.push({
           node_id:block.name,
           upstream_blocks:block.upstream_blocks,
-          downstream_blocks:block.downstream_blocks
+          downstream_blocks:block.downstream_blocks,
+          
         });
       } else if(block.type == "transformer"){
-        allNodes.push({type:"Transformer", node_id:block.name,config:block.configuration});
+        allNodes.push({type:"Transformer", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
         connectionEdges.push({
           node_id:block.name,
           upstream_blocks:block.upstream_blocks,
           downstream_blocks:block.downstream_blocks
         });
       } else if(block.type == "data_exporter"){
-        allNodes.push({type:"Exporter", node_id:block.name,config:block.configuration});
+        allNodes.push({type:"Exporter", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
+        connectionEdges.push({
+          node_id:block.name,
+          upstream_blocks:block.upstream_blocks,
+          downstream_blocks:block.downstream_blocks
+        });
+      } else if(block.type == "custom"){
+        allNodes.push({type:"Custom", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
         connectionEdges.push({
           node_id:block.name,
           upstream_blocks:block.upstream_blocks,
@@ -187,7 +209,7 @@ function Flow() {
       }
     }
     setPipelineEdges(connectionEdges);
-    addNode(allNodes);
+    addNodes(allNodes);
   }
 
   const deleteOneEdge = (edgeToDelete) =>{
@@ -290,6 +312,7 @@ function Flow() {
           onConnect={null}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
+          
         >
           <MiniMap nodeColor={nodeColor} nodeStrokeWidth={3} zoomable pannable style={{
             border: "1px solid black"
