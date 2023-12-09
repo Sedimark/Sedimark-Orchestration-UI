@@ -97,10 +97,45 @@ function Flow() {
     setNodes(newNodeArr);
   }
 
-  
 
   const addNodes = (nodeData) => {
     const newNodes = [];
+    const positions = {};
+
+    const setPosition = (nodes, currentNode, x, y) => {
+      if (currentNode.upstream_blocks.length === 0) {
+        positions[currentNode.node_id] = [0, 0];
+      } else {
+        positions[currentNode.node_id] = [x, y];
+      }
+
+      currentNode.downstream_blocks.forEach((downStreamNode, index) => {
+        if (index % 2 === 0) {
+          if (index > 1) {
+            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y + (index - 1) * 500);
+          } else {
+            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y + index * 500);
+          }
+        } else {
+          if (index > 1) {
+            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y - (index - 1) * 500);
+          } else {
+            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y - index * 500);
+          }
+        }
+      })
+    }
+
+    let firstBlock = 0;
+
+    for (let i = 0; i < nodeData.length; i++) {
+      if (nodeData[i].upstream_blocks.length === 0) {
+        firstBlock = i;
+        break;
+      }
+    }
+
+    setPosition(nodeData, nodeData[firstBlock], 0, 0);
 
     for(let nodeType of nodeData){
       
@@ -109,7 +144,7 @@ function Flow() {
           id: nodeType.node_id,
           type: 'loader',
           data: { label: 'Loader', config:nodeType.config, name: nodeType.node_name},
-          position: { x: 150, y: 25 },
+          position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
        });
       
       } 
@@ -120,7 +155,7 @@ function Flow() {
            id: nodeType.node_id,
            type: 'transformer',
            data: { label: 'Transformer', config:nodeType.config, name: nodeType.node_name},
-           position: { x: 850, y: 5 },
+           position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           });
         
       }  
@@ -131,7 +166,7 @@ function Flow() {
             id: nodeType.node_id,
             type: 'exporter',
             data: { label: 'Exporter', config:nodeType.config, name: nodeType.node_name},
-            position: { x: 1550, y: 45 },
+            position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           }
         );
         
@@ -143,7 +178,7 @@ function Flow() {
             id: nodeType.node_id,
             type: 'custom',
             data: { label: 'Custom', config:nodeType.config, name: nodeType.node_name},
-            position: { x: 2550, y: 45 },
+            position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           }
         );
         
@@ -177,32 +212,32 @@ function Flow() {
     const allNodes = [];
     const connectionEdges = [];
     for(const block of blocks){
-      if(block.type == "data_loader"){
-        allNodes.push({type:"Loader", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
+      if(block.type === "data_loader"){
+        allNodes.push({type:"Loader", node_id:block.name.replace(/ /g, "_"),config:block.configuration, node_name: formatString(block.name), upstream_blocks: block.upstream_blocks, downstream_blocks: block.downstream_blocks});
         connectionEdges.push({
-          node_id:block.name,
+          node_id:block.name.replace(/ /g, "_"),
           upstream_blocks:block.upstream_blocks,
           downstream_blocks:block.downstream_blocks,
           
         });
-      } else if(block.type == "transformer"){
-        allNodes.push({type:"Transformer", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
+      } else if(block.type === "transformer"){
+        allNodes.push({type:"Transformer", node_id:block.name.replace(/ /g, "_"),config:block.configuration, node_name: formatString(block.name), upstream_blocks: block.upstream_blocks, downstream_blocks: block.downstream_blocks});
         connectionEdges.push({
-          node_id:block.name,
+          node_id:block.name.replace(/ /g, "_"),
           upstream_blocks:block.upstream_blocks,
           downstream_blocks:block.downstream_blocks
         });
-      } else if(block.type == "data_exporter"){
-        allNodes.push({type:"Exporter", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
+      } else if(block.type === "data_exporter"){
+        allNodes.push({type:"Exporter", node_id:block.name.replace(/ /g, "_"),config:block.configuration, node_name: formatString(block.name), upstream_blocks: block.upstream_blocks, downstream_blocks: block.downstream_blocks});
         connectionEdges.push({
-          node_id:block.name,
+          node_id:block.name.replace(/ /g, "_"),
           upstream_blocks:block.upstream_blocks,
           downstream_blocks:block.downstream_blocks
         });
-      } else if(block.type == "custom"){
-        allNodes.push({type:"Custom", node_id:block.name,config:block.configuration, node_name: formatString(block.name)});
+      } else if(block.type === "custom"){
+        allNodes.push({type:"Custom", node_id:block.name.replace(/ /g, "_"),config:block.configuration, node_name: formatString(block.name), upstream_blocks: block.upstream_blocks, downstream_blocks: block.downstream_blocks});
         connectionEdges.push({
-          node_id:block.name,
+          node_id:block.name.replace(/ /g, "_"),
           upstream_blocks:block.upstream_blocks,
           downstream_blocks:block.downstream_blocks
         });
@@ -227,7 +262,7 @@ function Flow() {
       const targetEdges = [];
       let lastEdgeSource = edges[edges.length-1].source;
       let lastEdgeTarget = edges[edges.length-1].target; 
-      if (lastEdgeSource == lastEdgeTarget){
+      if (lastEdgeSource === lastEdgeTarget){
         deleteOneEdge(edges[edges.length-1].id);
         return;
       }
@@ -285,7 +320,7 @@ function Flow() {
 
 
   useEffect(()=>{
-    if(nodes.length!=0){
+    if(nodes.length!==0){
       
       setTimeout(()=>{
         processAndPlaceEdges();
@@ -294,7 +329,7 @@ function Flow() {
   },[nodes])
 
   useEffect(()=>{
-    if(selectedPipeline.length != 0){
+    if(selectedPipeline.length !== 0){
       fetchPipelineData(selectedPipeline);
     }
   },[selectedPipeline])
