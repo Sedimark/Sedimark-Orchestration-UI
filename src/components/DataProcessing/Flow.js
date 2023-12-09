@@ -309,15 +309,15 @@ function Flow() {
           edges={edges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
-          onConnect={null}
+          onConnect={onConnect}
           nodeTypes={nodeTypes}
           edgeTypes={edgeTypes}
           
         >
-          <MiniMap nodeColor={nodeColor} nodeStrokeWidth={3} zoomable pannable style={{
+          {/* <MiniMap nodeColor={nodeColor} nodeStrokeWidth={3} zoomable pannable style={{
             border: "1px solid black"
           }}
-          maskColor="rgb(0,0,0, 0.1)" />
+          maskColor="rgb(0,0,0, 0.1)" /> */}
 
           <Background variant='dots' color="#000" />
           <Controls />

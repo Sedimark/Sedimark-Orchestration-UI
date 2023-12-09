@@ -27,7 +27,7 @@ export default memo(({ data, isConnectable }) => {
   const [allColumns, setAllColumns] = useState([]);
   const allNodes = useSelector((state)=>state.nodes);
   const [normalizationStandarizationOpen, setNormalizationStandardizationOpen] = useState(false);
-  const [variablesPresent, setVariablesPresent] = useState(false);
+  const [variablesPresent, setVariablesPresent] = useState(true);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -132,6 +132,11 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name)
+    if(Object.keys(data.config).length!=0){
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
+    }
   },[])
 
   return (
@@ -159,12 +164,12 @@ export default memo(({ data, isConnectable }) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {allColumns.map((row,index) => (
+                      {Object.keys(data.config).map((row,index) => (
                         <StyledTableRow key={index}>
                           <StyledTableCell component="th" scope="row">
-                            {row.name}
+                            {row}
                           </StyledTableCell>
-                          <StyledTableCell align="right">{row.algType}</StyledTableCell>
+                          <StyledTableCell align="right">{}</StyledTableCell>
                     
                         </StyledTableRow>
                       ))}

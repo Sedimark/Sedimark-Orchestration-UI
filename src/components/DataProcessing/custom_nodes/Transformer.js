@@ -84,11 +84,7 @@ export default memo(({ data, isConnectable }) => {
   }
 
   const checkDatasetSelectedAndGo = ()=>{
-    if(isDatasetSelected() == true){
-      openEditSelectedRowsDialog()
-    } else {
-      alert("There was no dataset selected!");
-    }
+    setDataFeaturingOpen(true);
   }
 
   const processName = (str)=>{
@@ -108,6 +104,11 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name);
+    if(Object.keys(data.config).length!=0){
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
+    }
   },[])
 
   return (
@@ -136,12 +137,12 @@ export default memo(({ data, isConnectable }) => {
                        </TableRow>
                      </TableHead>
                      <TableBody>
-                        {allColumns.map((row,index) => (
+                        {["columns","threshold","number of rows"].map((row,index) => (
                           <StyledTableRow key={index}>
                             <StyledTableCell component="th" scope="row">
-                             {row.name}
+                             {row}
                             </StyledTableCell>
-                          <StyledTableCell align="right">{row.algType}</StyledTableCell>
+                          <StyledTableCell align="right"></StyledTableCell>
                         </StyledTableRow>
                       ))}
                     </TableBody>
