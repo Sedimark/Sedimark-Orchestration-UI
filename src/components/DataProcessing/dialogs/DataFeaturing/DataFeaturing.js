@@ -21,6 +21,7 @@ import FormControl from '@mui/material/FormControl';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
+import FormHelperText from '@mui/material/FormHelperText';
 import { Typography } from '@mui/material';
 import {
   Unstable_NumberInput as BaseNumberInput,
@@ -207,18 +208,12 @@ export default function DataFeaturing(props){
     }
 
     const handleDone = ()=>{
-        
-        dispatch(setSelectedDataFeaturingColumns(checked));
         props.handleClose();
     }
 
     useEffect(()=>{
-        // parseAndSetData(dataset)
-    },[dataset])
-
-    useEffect(()=>{
-      setChecked(dataFeaturing);
-    },[dataFeaturing])
+      console.log(props.variablesData);
+    },[])
 
   
     return (
@@ -234,31 +229,33 @@ export default function DataFeaturing(props){
                       <h1>Variables</h1>
                   </div>  
                   
-                <FormControl sx={{ marginBottom:"20px" ,width: "60%" }}>
+                  <FormControl sx={{ marginBottom: "20px", width: "60%" }}>
                     <InputLabel id="demo-multiple-checkbox-label">Columns</InputLabel>
-                        <Select
-                          labelId="demo-multiple-checkbox-label"
-                          id="demo-multiple-checkbox"
-                          multiple
-                          value={personName}
-                          onChange={handleChange}
-                          input={<OutlinedInput label="Columns" />}
-                          renderValue={(selected) => selected.join(', ')}
-                          MenuProps={MenuProps}
-                        >
-                          {names.map((name) => (
-                            <MenuItem key={name} value={name}>
-                              <Checkbox checked={personName.indexOf(name) > -1} />
-                              <ListItemText primary={name} />
-                            </MenuItem>
-                          ))}
-                        </Select>      
-                             
-                        <TextField id="variable-input" label="Treshold" variant="outlined"  sx={{ marginTop: 5, marginBottom:8 }} />
-                        <InputLabel sx={{ marginTop: 21, marginBottom: 1 }}>Number of rows for prediction</InputLabel>
-                        <CustomNumberInput aria-label="Demo number input" placeholder="Type a number…" sx={{ marginTop: 5, marginBottom:1 }}/>
+                    <Select
+                      labelId="demo-multiple-checkbox-label"
+                      id="demo-multiple-checkbox"
+                      multiple
+                      value={personName}
+                      onChange={handleChange}
+                      input={<OutlinedInput label="Columns" />}
+                      renderValue={(selected) => selected.join(', ')}
+                      MenuProps={MenuProps}
+                    >
+                      {names.map((name) => (
+                        <MenuItem key={name} value={name}>
+                          <Checkbox checked={personName.indexOf(name) > -1} />
+                          <ListItemText primary={name} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+
+                    <TextField id="variable-input-text" label="Threshold" variant="outlined" sx={{ marginTop: 5, marginBottom: 5 }} />
+                    <FormHelperText sx={{ fontSize:"1rem" }}>Select one or more columns</FormHelperText>
+                    <CustomNumberInput  id="number-input-dialog" aria-label="Demo number input" placeholder="Type a number…" sx={{ marginTop: 5, marginBottom: 1 }}/>
+                    {/* <InputLabel id="variable-input-label"  sx={{ marginTop: 21, marginBottom: 1 }}>Number of rows for prediction</InputLabel> */}
+                    
                 </FormControl>
-                
+
                  </Box>
                 </DialogContent>
                 <DialogActions>

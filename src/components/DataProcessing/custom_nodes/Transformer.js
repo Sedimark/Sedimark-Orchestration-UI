@@ -28,6 +28,7 @@ export default memo(({ data, isConnectable }) => {
   const [allColumns , setAllColumns] = useState([]);
   const [fullNodeName, setFullNodeName] = useState("");
   const [nodeName, setNodeName] = useState("");
+  const [allVariables, setAllVariables] = useState([]);
   const allNodes = useSelector((state)=>state.nodes);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -103,6 +104,17 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name);
+    const allVars = Object.keys(data.config);
+    const allVarsType = Object.values(data.config);
+    const allVarsData = [];
+    for(let i = 0; i<allVars.length; i++){
+      const varObj = {
+        varName:allVars[i],
+        type:allVarsType[i]
+      }
+      allVarsData.push(varObj);
+    }
+    setAllVariables(allVarsData);
     if(Object.keys(data.config).length!=0){
       setVariablesPresent(true);
     } else {
@@ -136,10 +148,10 @@ export default memo(({ data, isConnectable }) => {
                        </TableRow>
                      </TableHead>
                      <TableBody>
-                        {["columns","threshold","number of rows"].map((row,index) => (
+                        {allVariables.map((row,index) => (
                           <StyledTableRow key={index}>
                             <StyledTableCell component="th" scope="row">
-                             {row}
+                             {row["varName"]}
                             </StyledTableCell>
                           <StyledTableCell align="right"></StyledTableCell>
                         </StyledTableRow>
@@ -156,7 +168,7 @@ export default memo(({ data, isConnectable }) => {
         {
           !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }
-        {dataFeaturingOpen && <DataFeaturing open={dataFeaturingOpen} handleClose={()=>{setDataFeaturingOpen(false);}} />}
+        {dataFeaturingOpen && <DataFeaturing variablesData={allVariables} open={dataFeaturingOpen} handleClose={()=>{setDataFeaturingOpen(false);}} />}
       </div>
       <Handle
         type="source"
