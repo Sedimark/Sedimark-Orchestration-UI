@@ -3,7 +3,6 @@ import { Handle, Position } from 'reactflow';
 import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faFilter } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import TableRow from '@mui/material/TableRow';

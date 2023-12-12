@@ -115,7 +115,7 @@ export default memo(({ data, isConnectable }) => {
   return (
     <div style={{  borderRadius:"5%",padding:"10px" , border:"1px solid blue", backgroundColor:"#e0e9ff" , minHeight:"150px"}}> 
      <Handle
-        type="source"
+        type="target"
         position={Position.Left}
         id="left"
         style={{padding:"10px",border:"3px solid blue"}}

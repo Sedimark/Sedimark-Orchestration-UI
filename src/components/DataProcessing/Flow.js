@@ -27,7 +27,9 @@ function Flow() {
   const [edges, setEdges] = useEdgesState(initialEdges);
   const [variant, setVariant] = useState('cross');
   const [pipelineEdges, setPipelineEdges] = useState([]);
+  const [wereEdgesPlaced, setWereEdgesPlaced] = useState(false);
   const dispatch = useDispatch();
+  let edgePlaced = false;
   
   const onNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -189,23 +191,27 @@ function Flow() {
   }
 
   const processAndPlaceEdges = ()=>{
-    const storedEdges = [...edges];
-    for(const processedEdge of pipelineEdges){
-      const connections = processedEdge.downstream_blocks;
-      for(const conn of connections){
-        const newEdge = {
-          id:uuidv4(),
-          source:processedEdge.node_id,
-          target:conn,
-          type:'default',
-          sourceHandle:'right',
-          targetHandle:'left',
-          animated: false,
+    if(edges.length==0){
+      const storedEdges = [];
+      for(const processedEdge of pipelineEdges){
+        const connections = processedEdge.downstream_blocks;
+        for(const conn of connections){
+          
+          const newEdge = {
+            id:uuidv4(),
+            source:processedEdge.node_id,
+            target:conn,
+            type:'default',
+            sourceHandle:'right',
+            targetHandle:'left',
+            animated: false,
+          }
+          storedEdges.push(newEdge);
+        
         }
-        storedEdges.push(newEdge);
       }
+      setEdges(storedEdges);
     }
-    setEdges(storedEdges);
   }
   
   const processAndPlaceNodes = (blocks) =>{ 
@@ -318,13 +324,15 @@ function Flow() {
     setTheEdges();
   },[edges])
 
+  useEffect(()=>{
+    if(wereEdgesPlaced){
+      processAndPlaceEdges();
+    }
+  },[wereEdgesPlaced])
 
   useEffect(()=>{
     if(nodes.length!==0){
-      
-      setTimeout(()=>{
-        processAndPlaceEdges();
-      },100)
+      setWereEdgesPlaced(true); 
     }
   },[nodes])
 
@@ -332,10 +340,9 @@ function Flow() {
     if(selectedPipeline.length !== 0){
       fetchPipelineData(selectedPipeline);
     }
+    console.log(selectedPipeline);
   },[selectedPipeline])
-  
-
- 
+   
     return (
       <div style={{ width: '96vw', height: '100vh' }}>
         <ReactFlow 

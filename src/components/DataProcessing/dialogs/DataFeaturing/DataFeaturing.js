@@ -228,13 +228,13 @@ export default function DataFeaturing(props){
     
                <DialogTitle> Anomaly Detection</DialogTitle>
                 <DialogContent sx={{textAlign:'center'}}>   
-                <Box sx={{ height: "40vh", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="black" >
+                <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="black" >
                   
                   <div className='section-title'>
                       <h1>Variables</h1>
                   </div>  
                   
-                <FormControl sx={{ m: 1, width: "60%" }}>
+                <FormControl sx={{ marginBottom:"20px" ,width: "60%" }}>
                     <InputLabel id="demo-multiple-checkbox-label">Columns</InputLabel>
                         <Select
                           labelId="demo-multiple-checkbox-label"
