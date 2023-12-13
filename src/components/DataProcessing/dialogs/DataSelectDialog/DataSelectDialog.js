@@ -27,11 +27,11 @@ import axios from "axios";
 import {addNode, addPipeline, setNodes, clearPipeline} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
+import { setDatasetColumns, setDatasetInfo,setIsPipelineFetching } from '../../../../reducers/nodeSlice';
 
 
 export default function DataSelectDialog(props) {
-  
+
   
   const dispatch = useDispatch();
   const nodes = useSelector((state)=>state.nodes);
@@ -68,16 +68,16 @@ export default function DataSelectDialog(props) {
 }
 
 const fetchAndParseMinioJson = async (bucket_name) => {
-    
+
     let jsonFileLink;
     let jsonFileData;
     try{
-        jsonFileLink = await axios.get(FETCH_MINIO_FILE(bucket_name));
+        jsonFileLink = await axios.get(FETCH_MINIO_FILE(bucket_name.split("_").join("-")));
         jsonFileLink = jsonFileLink.data.url;
     } catch(err){
         console.log(err);
     }
-
+    
     try{
         jsonFileData = await axios.get(jsonFileLink);
         parseAndSetColumns(jsonFileData.data);
@@ -133,7 +133,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     }
 
   }
-
   
   const fetchAllPipelines = async()=>{
      try{
@@ -143,7 +142,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         restoreChecksBasedOnStoredData(resp.data);
         setIsLoading(false);
       }
-      
      } catch(err){
       console.log(err);
      }

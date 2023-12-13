@@ -1,16 +1,18 @@
 .select-dropdown {
     background-color: #e8e8e8; /* Gray color */
     color: #000; /* Black color */
-  }
+}
   
-  .select-dropdown__option {
+.select-dropdown__option {
     color: #000; /* Black color */
-  }
+}
 
-   .section-title{
+.section-title{
     padding:10px;
-   }
+}
 
-   .variable-input{
-    
-   }
+.data-loading-container{
+  height: 300px;
+  padding:80px;
+}
+

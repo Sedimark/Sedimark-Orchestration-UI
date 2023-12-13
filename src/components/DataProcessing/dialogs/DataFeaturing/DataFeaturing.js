@@ -19,17 +19,8 @@ import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
-import { Typography } from '@mui/material';
-import {
-  Unstable_NumberInput as BaseNumberInput,
-  numberInputClasses,
-} from '@mui/base/Unstable_NumberInput';
 import TextField from '@mui/material/TextField';
-import {DATASET_FETCH_DATASET_INFO , DATASET_FETCH_DATASET_SNIPPET} from "../../../../utils/apiEndpoints";
 import { unstable_useForkRef as useForkRef } from '@mui/utils';
-import axios from "axios";
-
-
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -52,8 +43,6 @@ const CustomNumberInput = React.forwardRef(function CustomNumberInput(props, ref
   } = useNumberInput(props);
 
   const inputProps = getInputProps();
-
-  // Make sure that both the forwarded ref and the ref returned from the getInputProps are applied on the input element
   inputProps.ref = useForkRef(inputProps.ref, ref);
 
   return (
@@ -75,7 +64,8 @@ export default function DataFeaturing(props){
 
     const dispatch = useDispatch();
     const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
-  
+    const isDataFetching = useSelector((state)=>state.is_data_fetching);
+    const datasetColumns = useSelector((state)=> state.dataset_columns);
     const [datasetName, setDatasetName] = useState("");
     const [isLoadingId , setIsLoadingId] = useState(true);
     const [datasetId, setDatasetId] = useState(0);
@@ -86,24 +76,20 @@ export default function DataFeaturing(props){
     const selectedRows = [1,2,3];
     const dataset = useSelector((state)=>state.selectedDataset);
     const [checked, setChecked] = React.useState([]);
-
-    const [personName, setPersonName] = React.useState([]);
+    const [isDataLoading, setIsDataLoading] = React.useState(true);
+    const [selectedColumns, setSelectedColumns] = React.useState([]);
+    const [columns, setColumns] = React.useState([]);
 
     const handleChange = (event) => {
     const {
       target: { value },
       } = event;
-        setPersonName(
-      // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value,
-         );
+        setSelectedColumns(value);
     };
 
-    const [age, setAge] = React.useState('');
 
-    const handleChangeAge = (event) => {
-      setAge(event.target.value);
-    };
+
+ 
 
     const customStyles = {
       control: (base, state) => ({
@@ -148,79 +134,23 @@ export default function DataFeaturing(props){
         mode: 'dark',
       },
     });
-    const columns = [{field:"id", headerName:"ID", width:60},{field:"column_name", headerName:"Column Name", width:320},{field:"sample_data", headerName:"Sample Data", width:230}]
-
-    const parseAndSetData = (data)=>{
-      setDatasetName(data[0].dataset_name);
-      setDatasetId(data[0].id);
-      fetchDatasetInfo(data[0].id);
-      fetchDatasetSnippet(data[0].id);
-    }
-
-
-    const parseAndSetRows = (data)=>{
-      
-      const sampleObj = data[0];
-      const allColumns = Object.keys(sampleObj);
-      const rowsData = [];
-      let i = 1;
-      for(const columnName of allColumns){
-          const newObj = {
-            id:i,
-            column_name:columnName,
-            sample_data:data[0][columnName]
-          }
-          i++;
-          rowsData.push(newObj);
-      }
-      
-      setRows(rowsData);
-    } 
-
-    const handleToggle = (value) => () => {
-      const currentIndex = checked.findIndex((item,index) => {return item.column_name === value.column_name && item.sample_data === value.sample_data;});
-      const newChecked = [...checked];
-  
-      if (currentIndex === -1) {
-        newChecked.push(value);
-      } else {
-        newChecked.splice(currentIndex, 1);
-      }
-  
-      setChecked(newChecked);
-    };
-
     
-    const fetchDatasetInfo = (datasetId)=>{
-        axios.get(DATASET_FETCH_DATASET_INFO(datasetId))
-        .then(resp => {  setFetchedDatasetInfo(resp.data)})
-        .catch(err => {console.log(err)})
-      }
-  
-      const fetchDatasetSnippet = (datasetId) =>{
-        axios.get(DATASET_FETCH_DATASET_SNIPPET(datasetId))
-        .then(resp => { setSnippet(resp.data); parseAndSetRows(resp.data);})
-        .catch(err => {console.log(err)})
-      }
-
-    const handleSelection = (selection)=>{
-      
-      const selectedRows = [];
-      for(let itemID of selection)
-      {
-        selectedRows.push(rows[itemID-1]);
-      }
-      setSelectedColumnsFeaturing(selectedRows);
-    }
 
     const handleDone = ()=>{
         props.handleClose();
     }
 
-    useEffect(()=>{
-      console.log(props.variablesData);
-    },[])
+   useEffect(()=>{
+    if(isDataFetching == false){
+      setIsDataLoading(false);
+    } else {
+      setIsDataLoading(true);
+    }
+   },[isDataFetching])
 
+   useEffect(()=>{
+    setColumns(datasetColumns);
+   },[datasetColumns])
 
 
   
@@ -232,54 +162,67 @@ export default function DataFeaturing(props){
                <DialogTitle> Anomaly Detection</DialogTitle>
                 <DialogContent sx={{textAlign:'center'}}>   
                 <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="black" >
-                  
+                {!isDataLoading && 
+                 <>
                   <div className='section-title'>
-                      <h1>Variables</h1>
-                  </div>  
-            
-                  {props.variablesData.map((value, index)=>{
-                    if(value.type == "string"){
-                      return(
-                      <FormControl sx={{ marginBottom: "40px", width: "60%" }}>
-                         <TextField id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
-                      </FormControl>
-                       
-                      );
-                      
-                    } else if(value.type == "number"){
-                      return(
-                      <FormControl sx={{ marginBottom: "30px", width: "60%" }}>
-                        <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
-                        <CustomNumberInput aria-label={`${value.varName}`} placeholder="Type a number…" sx={{ marginTop: 5, marginBottom:1 }}/>
-                    </FormControl>
-                      );
-
-                    } else if(value.type == "multiple_selection"){
-                      return(
+                        <h1>Variables</h1>
+                    </div>  
+              
+                    {props.variablesData.map((value, index)=>{
+                      if(value.type == "string"){
+                        return(
                         <FormControl sx={{ marginBottom: "40px", width: "60%" }}>
-                            <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>
-                            <Select
-                              labelId="demo-multiple-checkbox-label"
-                              id="demo-multiple-checkbox"
-                              multiple
-                              value={personName}
-                              onChange={handleChange}
-                              input={<OutlinedInput label="Columns" />}
-                              renderValue={(selected) => selected.join(', ')}
-                              MenuProps={MenuProps}
-                            >
-                              {names.map((name) => (
-                                <MenuItem key={name} value={name}>
-                                  <Checkbox checked={personName.indexOf(name) > -1} />
-                                  <ListItemText primary={name} />
-                                </MenuItem>
-                              ))}
-                            </Select>
+                          <TextField id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
                         </FormControl>
-                      );
-                    }
-                  })}
-                  
+                        
+                        );
+                        
+                      } else if(value.type == "number"){
+                        return(
+                        <FormControl sx={{ marginBottom: "30px", width: "60%" }}>
+                          <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
+                          <CustomNumberInput aria-label={`${value.varName}`} placeholder="Type a number…" sx={{ marginTop: 5, marginBottom:1 }}/>
+                      </FormControl>
+                        );
+
+                      } else if(value.type == "multiple_selection"){
+                        return(
+                          <FormControl sx={{ marginBottom: "40px", width: "60%" }}>
+                              <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>
+                              <Select
+                                labelId="demo-multiple-checkbox-label"
+                                id="demo-multiple-checkbox"
+                                multiple
+                                value={selectedColumns}
+                                onChange={handleChange}
+                                input={<OutlinedInput label="Columns" />}
+                                renderValue={(selected) => selected.join(', ')}
+                                MenuProps={MenuProps}
+                              >
+                                {columns.map((column) => (
+                                  <MenuItem key={column} value={column}>
+                                    <Checkbox checked={selectedColumns.indexOf(column) > -1} />
+                                    <ListItemText primary={column} />
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                          </FormControl>
+                        );
+                      }
+                    })}
+                   
+                
+                   </>
+                  } 
+                  {
+                    isDataLoading &&
+                    <div className='data-loading-container'>
+                      <div className="loading-circle-container">
+                          <div className="loading-circle"></div>
+                          <p className="loading-text">Loading...</p>
+                      </div>
+                    </div>
+                  }
                  </Box>
                 </DialogContent>
                 <DialogActions>

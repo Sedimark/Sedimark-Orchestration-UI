@@ -16,7 +16,8 @@ const initialState = {
     mageAIOauthToken:"",
     dataset_info:[],
     dataset_columns:[],
-    is_data_fetching:false
+    is_data_fetching:false,
+    
 }
 
 export const nodeSlice = createSlice({
@@ -36,11 +37,11 @@ export const nodeSlice = createSlice({
             }
             
         },
+        setIsDataFetching:(state,action)=>{
+            state.is_data_fetching = action.payload;
+        },
         setDatasetColumns:(state,action)=>{
             state.dataset_columns = action.payload;
-        },
-        setIsDataFetching:(state, action)=>{
-            state.is_data_fetching = action.payload;
         },
         setDatasetInfo:(state,action)=>{
             state.dataset_info = action.payload;

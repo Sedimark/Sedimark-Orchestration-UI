@@ -1,4 +1,5 @@
 import React, { useCallback,useState, useMemo, useEffect } from 'react';
+import style from "./Flow.css";
 import ReactFlow, { MiniMap,Background, Controls, useNodesState, useEdgesState, addEdge, applyEdgeChanges, applyNodeChanges } from 'reactflow';
 import Loader from './custom_nodes/Loader.js';
 import 'reactflow/dist/style.css';
@@ -7,9 +8,9 @@ import Exporter from './custom_nodes/Exporter.js';
 import Custom from './custom_nodes/Custom.js';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
-import {setMappedNodes, setMappedEdges} from "../../reducers/nodeSlice";
+import {setMappedNodes, setMappedEdges, setIsPipelineFetching} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
-import { FETCH_PIPELINE_DATA, FETCH_MINIO_FILE } from '../../utils/apiEndpoints.js';
+import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
 import { v4 as uuidv4 } from 'uuid';
 import { setDatasetColumns, setDatasetInfo } from '../../reducers/nodeSlice';
 import axios from "axios";
@@ -17,6 +18,7 @@ import axios from "axios";
 function Flow() {
 
   const selectedPipeline = useSelector((state)=> state.selectedPipeline);
+  const pipelineFetching = useSelector((state)=> state.is_pipeline_fetching);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
   const edgeTypes = useMemo(() => ({ }), []);
   const storedNodes = useSelector((state)=>state.nodes);
@@ -24,6 +26,7 @@ function Flow() {
   const edgeToDelete = useSelector((state)=>state.edgeToDelete);
   const initialNodes = []; 
   const initialEdges = [];
+  const [isPipelineLoading, setIsPipelineLoading] = useState(false);
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useEdgesState(initialEdges);
   const [variant, setVariant] = useState('cross');
@@ -66,9 +69,6 @@ function Flow() {
           return '#c9c7c7'
     }
   };
-
-
-
 
   const containsNode = (nodeType, allNodes)=>{
    
@@ -314,11 +314,14 @@ function Flow() {
 
  
   const fetchPipelineData = async(pipeline_name)=>{
+    setIsPipelineLoading(true);
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
       processAndPlaceNodes(resp.data.pipeline.blocks);
+      setIsPipelineLoading(false);
     } catch(err){
       console.log(err);
+      setIsPipelineLoading(false);
     }
   }
 
@@ -343,15 +346,19 @@ function Flow() {
     if(selectedPipeline.length !== 0){
       fetchPipelineData(selectedPipeline);
     }
-    console.log(selectedPipeline);
   },[selectedPipeline])
 
-  useEffect(()=>{
-  
-  },[])
+
    
     return (
       <div style={{ width: '96vw', height: '100vh' }}>
+        {
+          isPipelineLoading && 
+          <div class="overlay" id="loadingOverlay">
+            <div class="loader"></div>
+         </div>
+        }
+         
         <ReactFlow 
           style={reactFlowStyle}
           nodes={nodes}
@@ -363,15 +370,15 @@ function Flow() {
           edgeTypes={edgeTypes}
           
         >
-          {/* <MiniMap nodeColor={nodeColor} nodeStrokeWidth={3} zoomable pannable style={{
+          <MiniMap nodeColor={nodeColor} nodeStrokeWidth={3} zoomable pannable style={{
             border: "1px solid black"
           }}
-          maskColor="rgb(0,0,0, 0.1)" /> */}
+          maskColor="rgb(0,0,0, 0.1)" />
 
           <Background variant='dots' color="#000" />
           <Controls />
-          
         </ReactFlow>
+       
       </div>
     );
   }
