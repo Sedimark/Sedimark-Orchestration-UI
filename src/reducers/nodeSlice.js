@@ -13,7 +13,10 @@ const initialState = {
     constant_value_imputation_columns:[],
     constant_value_imputation_values:[],
     edges:[],
-    mageAIOauthToken:""
+    mageAIOauthToken:"",
+    dataset_info:[],
+    dataset_columns:[],
+    is_data_fetching:false
 }
 
 export const nodeSlice = createSlice({
@@ -32,6 +35,15 @@ export const nodeSlice = createSlice({
                 state.nodes.push(newNode);
             }
             
+        },
+        setDatasetColumns:(state,action)=>{
+            state.dataset_columns = action.payload;
+        },
+        setIsDataFetching:(state, action)=>{
+            state.is_data_fetching = action.payload;
+        },
+        setDatasetInfo:(state,action)=>{
+            state.dataset_info = action.payload;
         },
         setConstantValueImputationColumns:(state,action)=>{
             state.constant_value_imputation_columns = action.payload
@@ -96,12 +108,15 @@ export const nodeSlice = createSlice({
         },
         setMageAIOauthToken:(state, action)=>{
             state.mageAIOauthToken = action.payload;
+        },
+        setDatasetInfo:(state,action)=>{
+            state.dataset_info = action.payload
         }
          
     }
 });
 
 
-export const {setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken} = nodeSlice.actions
+export const {setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken} = nodeSlice.actions
 
 export default nodeSlice.reducer;

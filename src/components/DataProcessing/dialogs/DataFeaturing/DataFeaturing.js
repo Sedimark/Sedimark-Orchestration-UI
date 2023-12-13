@@ -7,10 +7,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
 import { styled } from '@mui/system';
 import styles from "./DataFeaturing.css";
-import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid';
-import DataSetInfo from '../DataSelectDialog/DataSetInfo';
 import { unstable_useNumberInput as useNumberInput } from '@mui/base/unstable_useNumberInput';
-import {setSelectedDataFeaturingColumns} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -72,10 +69,13 @@ const CustomNumberInput = React.forwardRef(function CustomNumberInput(props, ref
   );
 });
 
+
+
 export default function DataFeaturing(props){
 
     const dispatch = useDispatch();
     const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
+  
     const [datasetName, setDatasetName] = useState("");
     const [isLoadingId , setIsLoadingId] = useState(true);
     const [datasetId, setDatasetId] = useState(0);
@@ -97,6 +97,12 @@ export default function DataFeaturing(props){
       // On autofill we get a stringified value.
       typeof value === 'string' ? value.split(',') : value,
          );
+    };
+
+    const [age, setAge] = React.useState('');
+
+    const handleChangeAge = (event) => {
+      setAge(event.target.value);
     };
 
     const customStyles = {
@@ -215,6 +221,8 @@ export default function DataFeaturing(props){
       console.log(props.variablesData);
     },[])
 
+
+
   
     return (
     <div>
@@ -228,34 +236,50 @@ export default function DataFeaturing(props){
                   <div className='section-title'>
                       <h1>Variables</h1>
                   </div>  
+            
+                  {props.variablesData.map((value, index)=>{
+                    if(value.type == "string"){
+                      return(
+                      <FormControl sx={{ marginBottom: "40px", width: "60%" }}>
+                         <TextField id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
+                      </FormControl>
+                       
+                      );
+                      
+                    } else if(value.type == "number"){
+                      return(
+                      <FormControl sx={{ marginBottom: "30px", width: "60%" }}>
+                        <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
+                        <CustomNumberInput aria-label={`${value.varName}`} placeholder="Type a number…" sx={{ marginTop: 5, marginBottom:1 }}/>
+                    </FormControl>
+                      );
+
+                    } else if(value.type == "multiple_selection"){
+                      return(
+                        <FormControl sx={{ marginBottom: "40px", width: "60%" }}>
+                            <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>
+                            <Select
+                              labelId="demo-multiple-checkbox-label"
+                              id="demo-multiple-checkbox"
+                              multiple
+                              value={personName}
+                              onChange={handleChange}
+                              input={<OutlinedInput label="Columns" />}
+                              renderValue={(selected) => selected.join(', ')}
+                              MenuProps={MenuProps}
+                            >
+                              {names.map((name) => (
+                                <MenuItem key={name} value={name}>
+                                  <Checkbox checked={personName.indexOf(name) > -1} />
+                                  <ListItemText primary={name} />
+                                </MenuItem>
+                              ))}
+                            </Select>
+                        </FormControl>
+                      );
+                    }
+                  })}
                   
-                  <FormControl sx={{ marginBottom: "20px", width: "60%" }}>
-                    <InputLabel id="demo-multiple-checkbox-label">Columns</InputLabel>
-                    <Select
-                      labelId="demo-multiple-checkbox-label"
-                      id="demo-multiple-checkbox"
-                      multiple
-                      value={personName}
-                      onChange={handleChange}
-                      input={<OutlinedInput label="Columns" />}
-                      renderValue={(selected) => selected.join(', ')}
-                      MenuProps={MenuProps}
-                    >
-                      {names.map((name) => (
-                        <MenuItem key={name} value={name}>
-                          <Checkbox checked={personName.indexOf(name) > -1} />
-                          <ListItemText primary={name} />
-                        </MenuItem>
-                      ))}
-                    </Select>
-
-                    <TextField id="variable-input-text" label="Threshold" variant="outlined" sx={{ marginTop: 5, marginBottom: 5 }} />
-                    <FormHelperText sx={{ fontSize:"1rem" }}>Select one or more columns</FormHelperText>
-                    <CustomNumberInput  id="number-input-dialog" aria-label="Demo number input" placeholder="Type a number…" sx={{ marginTop: 5, marginBottom: 1 }}/>
-                    {/* <InputLabel id="variable-input-label"  sx={{ marginTop: 21, marginBottom: 1 }}>Number of rows for prediction</InputLabel> */}
-                    
-                </FormControl>
-
                  </Box>
                 </DialogContent>
                 <DialogActions>

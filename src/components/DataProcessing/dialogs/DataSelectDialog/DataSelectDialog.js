@@ -22,11 +22,12 @@ import Paper from '@mui/material/Paper';
 import { Typography } from '@mui/material';
 import style from "./DataSelectDialog.css";
 import DataSetInfo from './DataSetInfo';
-import {DATASET_FETCH_ALL_DATASETS, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
+import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
 import {addNode, addPipeline, setNodes, clearPipeline} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
+import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
 
 
 export default function DataSelectDialog(props) {
@@ -56,6 +57,37 @@ export default function DataSelectDialog(props) {
     setDatasetSearch(!dataSetSearch);
   }
 
+  const parseAndSetColumns = (data_to_parse)=>{
+    
+    const allColumns = [];
+    for(const obj of data_to_parse){
+        allColumns.push(obj.column_name);
+    }
+
+    dispatch(setDatasetColumns(allColumns));
+}
+
+const fetchAndParseMinioJson = async (bucket_name) => {
+    
+    let jsonFileLink;
+    let jsonFileData;
+    try{
+        jsonFileLink = await axios.get(FETCH_MINIO_FILE(bucket_name));
+        jsonFileLink = jsonFileLink.data.url;
+    } catch(err){
+        console.log(err);
+    }
+
+    try{
+        jsonFileData = await axios.get(jsonFileLink);
+        parseAndSetColumns(jsonFileData.data);
+        dispatch(setDatasetInfo(jsonFileData.data));
+
+    } catch(err){
+        console.log(err);
+    }
+  };
+
   const handleToggle = (value) => () => {
     
     const currentIndex = checked.indexOf(value);
@@ -73,6 +105,11 @@ export default function DataSelectDialog(props) {
         newChecked.push(value);
       } 
     }
+
+    if(newChecked.length!=0){
+      fetchAndParseMinioJson(newChecked[0]);
+    }
+
     setChecked(newChecked);
   };
 
@@ -145,29 +182,7 @@ export default function DataSelectDialog(props) {
     }
        
   }
- 
-  // const addCorespondingNode = () =>{
-    
-  //  if(checked.length != 0){
-  //     for(let node of nodes){
-  //       if(node.nodeData.type == "Dataset"){
-  //         return;
-  //       } 
-  //     }
-  //     const newNode = {type:"Dataset"}
-  //     dispatch(addNode(newNode))  
-  //  } else if(checked.length == 0) {
-  //   dispatch(clearPipeline({}))
-  //    const newNodeList = [];
-  //    for(let node of nodes){
-  //     if(node.nodeData.type !== "Dataset"){
-  //       newNodeList.push(node);
-  //     } 
-  //   }
-  //   dispatch(setNodes(newNodeList));
-  //  }
-   
-  // }
+
   
   React.useEffect(()=>{
     fetchAllPipelines();

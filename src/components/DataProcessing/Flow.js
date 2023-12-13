@@ -9,8 +9,9 @@ import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
 import {setMappedNodes, setMappedEdges} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
-import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
+import { FETCH_PIPELINE_DATA, FETCH_MINIO_FILE } from '../../utils/apiEndpoints.js';
 import { v4 as uuidv4 } from 'uuid';
+import { setDatasetColumns, setDatasetInfo } from '../../reducers/nodeSlice';
 import axios from "axios";
 
 function Flow() {
@@ -65,6 +66,8 @@ function Flow() {
           return '#c9c7c7'
     }
   };
+
+
 
 
   const containsNode = (nodeType, allNodes)=>{
@@ -342,6 +345,10 @@ function Flow() {
     }
     console.log(selectedPipeline);
   },[selectedPipeline])
+
+  useEffect(()=>{
+  
+  },[])
    
     return (
       <div style={{ width: '96vw', height: '100vh' }}>
