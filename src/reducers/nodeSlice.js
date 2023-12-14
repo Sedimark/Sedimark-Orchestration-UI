@@ -1,4 +1,5 @@
 import {createSlice, nanoid} from '@reduxjs/toolkit'
+import { act } from 'react-dom/test-utils';
 
 const initialState = {
     nodes:[],
@@ -17,6 +18,7 @@ const initialState = {
     dataset_info:[],
     dataset_columns:[],
     is_data_fetching:false,
+    blocksVariables:[]
     
 }
 
@@ -36,6 +38,9 @@ export const nodeSlice = createSlice({
                 state.nodes.push(newNode);
             }
             
+        },
+        setBlocksVariables:(state,action)=>{
+            state.blocksVariables = action.payload;
         },
         setIsDataFetching:(state,action)=>{
             state.is_data_fetching = action.payload;
@@ -118,6 +123,6 @@ export const nodeSlice = createSlice({
 });
 
 
-export const {setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken} = nodeSlice.actions
+export const {setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken} = nodeSlice.actions
 
 export default nodeSlice.reducer;

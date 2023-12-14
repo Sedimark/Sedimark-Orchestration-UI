@@ -21,6 +21,7 @@ import Select, { SelectChangeEvent } from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
 import { unstable_useForkRef as useForkRef } from '@mui/utils';
+import { setBlocksVariables } from '../../../../reducers/nodeSlice';
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -79,55 +80,44 @@ export default function DataFeaturing(props){
     const [isDataLoading, setIsDataLoading] = React.useState(true);
     const [selectedColumns, setSelectedColumns] = React.useState([]);
     const [columns, setColumns] = React.useState([]);
-
-    const handleChange = (event) => {
-    const {
-      target: { value },
-      } = event;
-        setSelectedColumns(value);
-    };
+    const [variableValues, setVariableValues] = React.useState([]);
 
 
-
- 
-
-    const customStyles = {
-      control: (base, state) => ({
-        ...base,
-        background: "#023950",
-        // Overwrittes the different states of border
-        borderColor: state.isFocused ? "yellow" : "green",
-        // Removes weird border around container
-        boxShadow: state.isFocused ? null : null,
-        "&:hover": {
-          // Overwrittes the different states of border
-          borderColor: state.isFocused ? "red" : "blue"
-        }
-      })
-    };
-
-    const options = [
-      { label: "Apple", value: 1 },
-      { label: "Banana", value: 2 },
-      { label: "Orange", value: 3 }
-    ];
-
-    const [selectedOption, setselectedOption] = useState();
-
+    const updateObjectInArray = (arr, newObj)=>{
+      const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
+      if (indexToUpdate !== -1) {
+        return arr.map((obj, index) => (index === indexToUpdate ? newObj : obj));
+      } else {
+        return [...arr, newObj];
+      }
+    }
     
-    const names = [
-      'Oliver Hansen',
-      'Van Henry',
-      'April Tucker',
-      'Ralph Hubbard',
-      'Omar Alexander',
-      'Carlos Abbott',
-      'Miriam Wagner',
-      'Bradley Wilkerson',
-      'Virginia Andrews',
-      'Kelly Snyder',
-    ];
 
+    const handleChange = (event, type, variableName) => {
+      /*
+         de avut in minte ca vreau sa arate in felul urmator obiectul pe care vreau sa pun datele
+         {  
+            variable_name: aici evident pui numele variabilei
+            value: aici evident ca pui valoarea
+         }
+
+         voi vrea sa ai un vector in care sa stochezi mai multe obiecte si ce voi vrea este ca variableValues sa fie mereu updatat
+         cu noile valori
+      */
+      const { target: { value } } = event;
+      let inputedValuesVariables = [...variableValues];
+      let objToStore = {
+        variable_name:variableName,
+        value:value,
+        type:type
+      }
+      if(type == "multiple"){
+        setSelectedColumns(value);
+      } 
+
+      inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+      setVariableValues(inputedValuesVariables);
+    };
 
     const darkTheme = createTheme({
       palette: {
@@ -138,6 +128,10 @@ export default function DataFeaturing(props){
 
     const handleDone = ()=>{
         props.handleClose();
+        const blockVarsStoreObj = {
+          
+        }
+        dispatch(setBlocksVariables(variableValues));
     }
 
    useEffect(()=>{
@@ -152,7 +146,9 @@ export default function DataFeaturing(props){
     setColumns(datasetColumns);
    },[datasetColumns])
 
-
+   useEffect(()=>{
+    console.log(variableValues)
+   },[variableValues])
   
     return (
     <div>
@@ -171,30 +167,30 @@ export default function DataFeaturing(props){
                     {props.variablesData.map((value, index)=>{
                       if(value.type == "string"){
                         return(
-                        <FormControl sx={{ marginBottom: "40px", width: "60%" }}>
-                          <TextField id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
+                        <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
+                          <TextField   onChange={(event)=>handleChange(event,"text",value.varName)} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
                         </FormControl>
                         
                         );
                         
                       } else if(value.type == "number"){
                         return(
-                        <FormControl sx={{ marginBottom: "30px", width: "60%" }}>
+                        <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
                           <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
-                          <CustomNumberInput aria-label={`${value.varName}`} placeholder="Type a number…" sx={{ marginTop: 5, marginBottom:1 }}/>
+                          <CustomNumberInput   onChange={(event)=>handleChange(event,"number",value.varName)} aria-label={`${value.varName}`} placeholder="Type a number…" sx={{ marginTop: 5, marginBottom:1 }}/>
                       </FormControl>
                         );
 
                       } else if(value.type == "multiple_selection"){
                         return(
-                          <FormControl sx={{ marginBottom: "40px", width: "60%" }}>
+                          <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
                               <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>
                               <Select
                                 labelId="demo-multiple-checkbox-label"
                                 id="demo-multiple-checkbox"
                                 multiple
                                 value={selectedColumns}
-                                onChange={handleChange}
+                                onChange={(event)=>handleChange(event,"multiple",value.varName)}
                                 input={<OutlinedInput label="Columns" />}
                                 renderValue={(selected) => selected.join(', ')}
                                 MenuProps={MenuProps}

@@ -92,6 +92,7 @@ export default function MiniDrawer() {
   const [selectDataDialog, setSelectDataDialog] = React.useState(false);
   const [preProcessingAlgDialogOpen, setPreProcessingAlgDialogOpen] = React.useState(false);
   const [displayMLModels, setDisplayMLModels] = React.useState(false);
+  const [pipelineType, setPipelineType] = React.useState("");
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -101,7 +102,13 @@ export default function MiniDrawer() {
     setOpen(false);
   };
 
-  const handleClick = () => {
+  const openPipelineSelectMenu = (dialogType) => {
+    if(dialogType == "train"){
+      setPipelineType("train");
+    } else if(dialogType == "data_preprocessing"){
+      setPipelineType("data_preprocessing");
+    }
+
     setSelectDataDialog(true);
   }
 
@@ -143,7 +150,7 @@ export default function MiniDrawer() {
                     color:"white"
                   }}
                   key={0}
-                  onClick={()=>{ handleClick();}}
+                  onClick={()=>{ openPipelineSelectMenu("data_preprocessing");}}
                 >
                   <ListItemIcon
                     sx={{
@@ -160,7 +167,7 @@ export default function MiniDrawer() {
              
             </ListItem>
 
-            <ListItem key={"Training pipeline"} disablePadding sx={{ display: 'block' }} onClick={()=>{setPreProcessingAlgDialogOpen(true)}}>
+            <ListItem key={"Training pipeline"} disablePadding sx={{ display: 'block' }} onClick={()=>{openPipelineSelectMenu("train")}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -287,7 +294,7 @@ export default function MiniDrawer() {
       </Drawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
       </Box>
-     {selectDataDialog && <DataSelectDialog  open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
+     {selectDataDialog && <DataSelectDialog pipelineType={pipelineType} open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
      {preProcessingAlgDialogOpen && <PreProcessingAlgDialog open={preProcessingAlgDialogOpen} handleClose={handlePreprocessingAlgDialogClose} />}
      {displayMLModels && <AIModels open={displayMLModels} handleClose={handleDisplayMLModels} />}
     </Box>

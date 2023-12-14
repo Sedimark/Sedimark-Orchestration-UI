@@ -44,7 +44,8 @@ export default function DataSelectDialog(props) {
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
   const [searchedString, setSearchedString] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
-
+  const [allPipelines, setAllPipelines] = React.useState([]);
+  const [dialogName, setDialogName] = React.useState("");
 
   const handleDisplayDataSetInfo = (datasetId) =>{
     if(datasetId){
@@ -138,10 +139,13 @@ const fetchAndParseMinioJson = async (bucket_name) => {
      try{
       const resp = await axios.get(FETCH_PIPELINES);
       if(resp.data.length!=0){
-        setfilteredPipelines(resp.data);
+        const filteredData = resp.data.filter((item) => item.type == props.pipelineType);
+        setAllPipelines(filteredData);
+        setfilteredPipelines(filteredData);
         restoreChecksBasedOnStoredData(resp.data);
         setIsLoading(false);
       }
+      console.log(resp.data);
      } catch(err){
       console.log(err);
      }
@@ -150,10 +154,10 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
 
   const searchListByDatasetName = (list, str)=> {
-    
+    console.log(str)   ;
     const filteredList = list.filter(item => {
       const searchStr = str.toLowerCase();
-      const datasetName = item.dataset_name.toLowerCase();
+      const datasetName = item.name.toLowerCase();
   
       return datasetName.includes(searchStr);
     });
@@ -163,8 +167,9 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
   const updateSearch = (evt)=>{
     setSearchedString(evt.target.value);
-    const updatedDataset = searchListByDatasetName(dataSets,evt.target.value);
-    setfilteredPipelines(updatedDataset);
+    const updatedPipelines = searchListByDatasetName(allPipelines,evt.target.value);
+    console.log(updatedPipelines);
+    setfilteredPipelines(updatedPipelines);
   }
 
   const addCorespondingPipeline = ()=>{
@@ -181,9 +186,19 @@ const fetchAndParseMinioJson = async (bucket_name) => {
        
   }
 
+  const handleDialogTitle = ()=>{
+    if(props.pipelineType == "data_preprocessing"){
+      setDialogName("Pipelines - preprocessing");
+    } else if (props.pipelineType == "train"){
+      setDialogName("Pipelines - train");
+    }
+  }
+
   
   React.useEffect(()=>{
+    handleDialogTitle();
     fetchAllPipelines();
+    
   },[])
 
  
@@ -193,7 +208,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     <ThemeProvider theme={darkTheme}>
       <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth="true" >
 
-           <DialogTitle> Pipelines </DialogTitle>
+           <DialogTitle> {dialogName} </DialogTitle>
             <DialogContent>   
              {
                 dataSetSearch &&
@@ -250,16 +265,16 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                     
                    }
                    { !isLoading && filteredPipelines.map((value,index) => {
-                     const labelId = `checkbox-list-secondary-label-${value}`;
+                     const labelId = `checkbox-list-secondary-label-${value.name}`;
                       return (
                         <ListItem
-                          key={value.id}
+                          key={value.name}
                           secondaryAction={
                             <div className='dataset-select-toolbox'>
                               <Checkbox
                                 edge="end"
-                                onChange={handleToggle(value)}
-                                checked={checked.indexOf(value) !== -1}
+                                onChange={handleToggle(value.name)}
+                                checked={checked.indexOf(value.name) !== -1}
                                 inputProps={{ 'aria-labelledby': labelId }}
                               />
                               
@@ -272,7 +287,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                               <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                             </ListItemAvatar>
                             <ListItemText  id={labelId}  disableTypography
-                            primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value}</Typography>} />
+                            primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value.name}</Typography>} />
                           </ListItemButton>
                         </ListItem>
                       );
