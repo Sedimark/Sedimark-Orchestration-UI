@@ -14,7 +14,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {DATASET_FETCH_DATASET_INFO } from "../../../utils/apiEndpoints";
-import DataSelectDialog from '../dialogs/DataSelectDialog/DataSelectDialog';
 import {removeDataset, setNodes} from "../../../reducers/nodeSlice";
 import { useDispatch } from 'react-redux';
 import axios from "axios";
@@ -30,10 +29,6 @@ export default memo(({ data, isConnectable }) => {
       fontSize: 14,
     },
   }));
-
-  function createData(column_name, sample_data) {
-    return { column_name, sample_data };
-  }
 
   const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
@@ -64,10 +59,6 @@ export default memo(({ data, isConnectable }) => {
 
   const handleChangeDatasetButton = ()=>{
       setSelectDataDialog(true);
-  }
-
-  const handleDataSelectDialogClose = ()=>{
-    setSelectDataDialog(false);
   }
 
   const handleDataInfoDialogNodeClose = () =>{
@@ -127,27 +118,6 @@ export default memo(({ data, isConnectable }) => {
         </div>
         <div className='base-node-info-section'>
             <div className='base-node-info-section-container node-content-container'>    
-            {/* <TableContainer component={Paper}>
-              <Table sx={{ minWidth: 200 }} aria-label="customized table">
-                <TableHead>
-                  <TableRow>
-                    <StyledTableCell>Variable Name</StyledTableCell>
-                    <StyledTableCell align="right">Value</StyledTableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {Object.keys(data.config).map((row,index) => (
-                    <StyledTableRow key={index}>
-                      <StyledTableCell component="th" scope="row">
-                        {row}
-                      </StyledTableCell>
-                      <StyledTableCell align="right"></StyledTableCell>
-                
-                    </StyledTableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer> */}
             </div>
             <div className='base-node-bottom-toolbox'>
                 <button className='change-base-btn base-toolbox-btn' onClick={()=>{handleChangeDatasetButton()}}>View Data <FontAwesomeIcon icon={faChartSimple}/> </button>
@@ -162,7 +132,7 @@ export default memo(({ data, isConnectable }) => {
         style={{padding:"10px",border:"3px solid blue"}}
         isConnectable={true}
       />
-      {selectDataDialog && <DataSelectDialog  open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
+     
       {datasetInfoNodeDialog && <DataSetInfoNode open={datasetInfoNodeDialog} handleClose={()=>{handleDataInfoDialogNodeClose()}}></DataSetInfoNode>}
     </div>
   );

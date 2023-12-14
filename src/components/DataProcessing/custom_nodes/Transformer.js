@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import TableRow from '@mui/material/TableRow';
-import DataFeaturing from '../dialogs/DataFeaturing/DataFeaturing';
+import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
@@ -20,6 +20,7 @@ import { useDispatch } from 'react-redux';
 export default memo(({ data, isConnectable }) => {
   
   const dataset = useSelector((state)=>state.selectedDataset);
+  const variablesValues = useSelector((state)=> state.blocksVariables);
   const dispatch = useDispatch();
   const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
   const [dataFeaturingOpen, setDataFeaturingOpen] = useState(false);
@@ -122,6 +123,10 @@ export default memo(({ data, isConnectable }) => {
     }
   },[])
 
+  useEffect(()=>{
+    console.log(variablesValues);
+  },[variablesValues])
+
   return (
     <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px" }}>
         <Handle
@@ -168,7 +173,7 @@ export default memo(({ data, isConnectable }) => {
         {
           !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }
-        {dataFeaturingOpen && <DataFeaturing variablesData={allVariables} open={dataFeaturingOpen} handleClose={()=>{setDataFeaturingOpen(false);}} />}
+        {dataFeaturingOpen && <VariablesInput variablesData={allVariables} open={dataFeaturingOpen} handleClose={()=>{setDataFeaturingOpen(false);}} />}
       </div>
       <Handle
         type="source"

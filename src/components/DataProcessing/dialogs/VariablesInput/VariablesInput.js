@@ -6,7 +6,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
 import { styled } from '@mui/system';
-import styles from "./DataFeaturing.css";
+import styles from "./VariablesInput.css";
 import { unstable_useNumberInput as useNumberInput } from '@mui/base/unstable_useNumberInput';
 import {useDispatch} from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -61,22 +61,11 @@ const CustomNumberInput = React.forwardRef(function CustomNumberInput(props, ref
 
 
 
-export default function DataFeaturing(props){
+export default function VariablesInput(props){
 
     const dispatch = useDispatch();
-    const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
-    const [datasetName, setDatasetName] = useState("");
-    const [isLoadingId , setIsLoadingId] = useState(true);
-    const [datasetId, setDatasetId] = useState(0);
-    const [fetchedDatasetInfo, setFetchedDatasetInfo] = useState({});
-    const [snippet, setSnippet] = useState([]);
-    const [rows, setRows] = useState([]);
-    const [selectedColumnsFeaturing,setSelectedColumnsFeaturing] = useState();
-    const selectedRows = [1,2,3];
-    const dataset = useSelector((state)=>state.selectedDataset);
-    const [checked, setChecked] = React.useState([]);
     const [isDataLoading, setIsDataLoading] = React.useState(true);
     const [selectedColumns, setSelectedColumns] = React.useState([]);
     const [columns, setColumns] = React.useState([]);
@@ -206,8 +195,6 @@ export default function DataFeaturing(props){
                         );
                       }
                     })}
-                   
-                
                    </>
                   } 
                   {

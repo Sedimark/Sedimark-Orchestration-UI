@@ -20,7 +20,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons';
 import Paper from '@mui/material/Paper'; 
 import { Typography } from '@mui/material';
-import style from "./DataSelectDialog.css";
+import style from "./PipelineSelectDialog.css";
 import DataSetInfo from './DataSetInfo';
 import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
@@ -30,7 +30,7 @@ import { useSelector } from "react-redux/es/hooks/useSelector";
 import { setDatasetColumns, setDatasetInfo,setIsPipelineFetching } from '../../../../reducers/nodeSlice';
 
 
-export default function DataSelectDialog(props) {
+export default function PipelineSelectDialog(props) {
 
   
   const dispatch = useDispatch();
