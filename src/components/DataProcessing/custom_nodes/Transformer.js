@@ -23,13 +23,14 @@ export default memo(({ data, isConnectable }) => {
   const variablesValues = useSelector((state)=> state.blocksVariables);
   const dispatch = useDispatch();
   const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
-  const [dataFeaturingOpen, setDataFeaturingOpen] = useState(false);
+  const [variablesInputOpen, setVariablesInputOpen] = useState(false);
   const [rows,setRows] = useState([]);
   const [variablesPresent, setVariablesPresent] = useState(null);
   const [allColumns , setAllColumns] = useState([]);
   const [fullNodeName, setFullNodeName] = useState("");
   const [nodeName, setNodeName] = useState("");
   const [allVariables, setAllVariables] = useState([]);
+  const [variablesInputtedValues, setVariablesInputtedValues] = useState([]);
   const allNodes = useSelector((state)=>state.nodes);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -64,7 +65,7 @@ export default memo(({ data, isConnectable }) => {
   }
   
   const openEditSelectedRowsDialog = ()=>{
-    setDataFeaturingOpen(true);
+    setVariablesInputOpen(true);
   } 
 
   const deleteNode = ()=>{
@@ -85,7 +86,7 @@ export default memo(({ data, isConnectable }) => {
   }
 
   const checkDatasetSelectedAndGo = ()=>{
-    setDataFeaturingOpen(true);
+    setVariablesInputOpen(true);
   }
 
   const processName = (str)=>{
@@ -123,8 +124,23 @@ export default memo(({ data, isConnectable }) => {
     }
   },[])
 
+  const processVariablesValues = (varsVals)=>{
+    const storedVars = [];
+    for(let val of varsVals){
+      if(val.block_name == fullNodeName){
+        if(val.type == "multiple"){
+           storedVars.push(val.value.length);
+        } else {
+          storedVars.push(val.value);
+        }
+      }
+    }
+
+    console.log(storedVars);
+  }
+
   useEffect(()=>{
-    console.log(variablesValues);
+    processVariablesValues(variablesValues);
   },[variablesValues])
 
   return (
@@ -138,7 +154,7 @@ export default memo(({ data, isConnectable }) => {
       />  
       <div>
         <div className='base-node-header node-header-filter processing-node-header' title={fullNodeName}>
-            {nodeName? nodeName:"Custom"}
+            {nodeName? nodeName:"Transformer"}
         </div>
        
          {variablesPresent && 
@@ -173,7 +189,7 @@ export default memo(({ data, isConnectable }) => {
         {
           !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }
-        {dataFeaturingOpen && <VariablesInput variablesData={allVariables} open={dataFeaturingOpen} handleClose={()=>{setDataFeaturingOpen(false);}} />}
+        {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
       </div>
       <Handle
         type="source"

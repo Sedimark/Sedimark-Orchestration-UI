@@ -96,6 +96,7 @@ export default function VariablesInput(props){
       const { target: { value } } = event;
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
+        block_name:props.fullNodeName,
         variable_name:variableName,
         value:value,
         type:type
@@ -135,16 +136,13 @@ export default function VariablesInput(props){
     setColumns(datasetColumns);
    },[datasetColumns])
 
-   useEffect(()=>{
-    console.log(variableValues)
-   },[variableValues])
   
     return (
     <div>
         <ThemeProvider theme={darkTheme}>
           <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="300" fullWidth="true" >
     
-               <DialogTitle> Anomaly Detection</DialogTitle>
+               <DialogTitle> {props.fullNodeName} </DialogTitle>
                 <DialogContent sx={{textAlign:'center'}}>   
                 <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="black" >
                 {!isDataLoading && 

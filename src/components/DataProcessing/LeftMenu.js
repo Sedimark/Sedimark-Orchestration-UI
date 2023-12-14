@@ -10,7 +10,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import WidgetsIcon from '@mui/icons-material/Widgets';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import PipelineSelectDialog from './dialogs/DataSelectDialog/PipelineSelectDialog';
+import PipelineSelectDialog from './dialogs/PipelineSelect/PipelineSelectDialog';
 import PreProcessingAlgDialog from './dialogs/PreProcessingAlgDialog/PreProcessingAlgDialog';
 import AIModels from './dialogs/AIModels/AIModels';
 import HubIcon from '@mui/icons-material/Hub';

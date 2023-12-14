@@ -4,7 +4,7 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import DataSetInfo from '../DataSelectDialog/DataSetInfo';
+import DataSetInfo from '../PipelineSelect/DataSetInfo';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 

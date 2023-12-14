@@ -47,17 +47,6 @@ export default function PipelineSelectDialog(props) {
   const [allPipelines, setAllPipelines] = React.useState([]);
   const [dialogName, setDialogName] = React.useState("");
 
-  const handleDisplayDataSetInfo = (datasetId) =>{
-    if(datasetId){
-      setSelectedDatasetId(datasetId);
-      const  foundDataset = dataSets.filter(dt => dt.id === datasetId);
-      if(foundDataset.length !=0){
-        setSelectedDatasetName(foundDataset[0].dataset_name);;
-      }
-    }
-    setDatasetSearch(!dataSetSearch);
-  }
-
   const parseAndSetColumns = (data_to_parse)=>{
     
     const allColumns = [];
@@ -145,7 +134,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         restoreChecksBasedOnStoredData(resp.data);
         setIsLoading(false);
       }
-      console.log(resp.data);
      } catch(err){
       console.log(err);
      }
@@ -154,7 +142,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
 
   const searchListByDatasetName = (list, str)=> {
-    console.log(str)   ;
     const filteredList = list.filter(item => {
       const searchStr = str.toLowerCase();
       const datasetName = item.name.toLowerCase();
