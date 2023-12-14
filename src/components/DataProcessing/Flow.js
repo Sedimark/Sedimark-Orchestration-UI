@@ -8,7 +8,7 @@ import Exporter from './custom_nodes/Exporter.js';
 import Custom from './custom_nodes/Custom.js';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
-import {setMappedNodes, setMappedEdges, setIsPipelineFetching} from "../../reducers/nodeSlice";
+import {setMappedNodes, setMappedEdges, setIsPipelineFetching, setOrderedNodes} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -106,8 +106,10 @@ function Flow() {
   const addNodes = (nodeData) => {
     const newNodes = [];
     const positions = {};
+    let finalNodes = [];
 
     const setPosition = (nodes, currentNode, x, y) => {
+      finalNodes.push(currentNode.node_id);
       if (currentNode.upstream_blocks.length === 0) {
         positions[currentNode.node_id] = [0, 0];
       } else {
@@ -189,6 +191,7 @@ function Flow() {
         
       } 
     }
+    dispatch(setOrderedNodes(finalNodes));
     setNodes(newNodes);
     
   }
