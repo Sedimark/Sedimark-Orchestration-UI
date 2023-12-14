@@ -6,3 +6,6 @@ export const FETCH_PIPELINES = `http://localhost:7000/pipelines`;
 export const FETCH_MAGE_AI_OAUTH_KEY = `https://mage.sedimark.work/api/sessions`;
 export const FETCH_PIPELINE_DATA = (pipeline_name)=>`http://localhost:7000/pipeline/read?pipeline_name=${pipeline_name}`;
 export const FETCH_MINIO_FILE = (pipeline_name) => `http://62.72.21.79:10000/get_object?dataset_path=${pipeline_name}/statistics.json`;
+export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `http://localhost:7000/pipeline/run_data?pipeline_name=${pipeline_name}`;
+export const RUN_PIPELINE = "http://localhost:7000/pipeline/run";
+export const BLOCK_STATUS = (pipeline_id, block_name) => `http://localhost:7000/pipeline/status?pipeline_id${pipeline_id}&block_name=${block_name}`;

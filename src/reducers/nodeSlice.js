@@ -19,8 +19,8 @@ const initialState = {
     dataset_columns:[],
     is_data_fetching:false,
     blocksVariables:[],
-    orderedNodes: []
-    
+    orderedNodes: [],
+    selectedPipelineName: ""
 }
 
 export const nodeSlice = createSlice({
@@ -118,11 +118,14 @@ export const nodeSlice = createSlice({
         },
          setOrderedNodes:(state, action) => {
             state.orderedNodes = action.payload;
+         },
+         setSelectedPipelineName:(state, action) => {
+            state.selectedPipelineName = action.payload;
          }
     }
 });
 
 
-export const {setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes} = nodeSlice.actions
+export const {setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
 
 export default nodeSlice.reducer;

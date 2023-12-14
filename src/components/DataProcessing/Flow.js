@@ -8,7 +8,13 @@ import Exporter from './custom_nodes/Exporter.js';
 import Custom from './custom_nodes/Custom.js';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
-import {setMappedNodes, setMappedEdges, setIsPipelineFetching, setOrderedNodes} from "../../reducers/nodeSlice";
+import {
+  setMappedNodes,
+  setMappedEdges,
+  setIsPipelineFetching,
+  setOrderedNodes,
+  setSelectedPipelineName
+} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -320,6 +326,7 @@ function Flow() {
     setIsPipelineLoading(true);
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+      dispatch(setSelectedPipelineName(pipeline_name));
       processAndPlaceNodes(resp.data.pipeline.blocks);
       setIsPipelineLoading(false);
     } catch(err){

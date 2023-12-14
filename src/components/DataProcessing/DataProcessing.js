@@ -1,20 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Flow from "./Flow";
 import styles from './DataProcessing.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCirclePlay, faCircleStop } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
-import { FETCH_PIPELINES } from "../../utils/apiEndpoints";
+import {BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA, FETCH_PIPELINES, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
 import axios from "axios";
+import {setIsDataFetching} from "../../reducers/nodeSlice";
 
 function DataProcessing() {
 
   const constant_value_imputation_columns = useSelector((state)=>state.constant_value_imputation_columns);
   const constant_value_imputation_values = useSelector((state)=>state.constant_value_imputation_values)
   const pipelineNodes = useSelector((state)=>state.orderedNodes);
-  const pipelineEdges = useSelector((state)=>state.edges);
+  const pipelineName = useSelector((state) => state.selectedPipelineName);
   const selectedDataset = useSelector((state)=> state.selectedDataset);
   const selectedDataFeaturingColumns = useSelector((state)=> state.selectedDataFeaturingColumns);
   const normalizationColumns = useSelector((state)=> state.normalizationColumns);
@@ -23,60 +24,125 @@ function DataProcessing() {
   const circles = document.querySelectorAll(".circle"),
   progressBars = document.querySelectorAll("#indicators");
   const [isPipelineStarted, setIsPipelineStarted] = useState(false);
-  const [pipelineSteps, setPipelineSteps] = useState([]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [runData, setRunData] = useState(null);
+  const [shouldContinue, setShouldContinue] = useState(true);
 
-  const resetSteps = () => {
-    circles.forEach((circle)=>{
-      circle.classList.remove("active");
-    })
-    //progressBar.style.width = "0%";
-    setCurrentStep(0);
-  } 
-
-  const colorCircleForNextStep = ()=>{
-    circles.forEach((circle, index) => {
-      circle.classList[`${index < currentStep ? "add" : "remove"}`]("active");
-    });
-  }
-
-  const updateSteps = () => {
-    setCurrentStep(currentStep + 1);
-    //progressBar.style.width = `${((currentStep - 1) / (circles.length - 1)) * 100}%`;
-  };
 
   const blockAlert = (msg)=>{
     toast.error(msg,{
       duration:2000,
       position:'top-right',
     })
-  }
-  const startPipelineAndMakeRequests = ()=>{
+  };
 
+  const markStepCompleted = (index) => {
+      circles[index].style.backgroundColor = "green";
+      circles[index].style.color = "white";
+      if (index <= progressBars.length - 2) {
+          progressBars[index].style.backgroundColor = "green";
+      }
+  }
+
+  const markStepFailed = (index) => {
+      circles[index].style.backgroundColor = "red";
+      circles[index].style.color = "white";
+      if (index <= progressBars.length - 2) {
+          progressBars[index].style.backgroundColor = "red";
+      }
+  }
+
+  const markStepInitial = (index) => {
+      circles[index].style.backgroundColor = "white";
+      circles[index].style.color = "#999999";
+      if (index <= progressBars.length - 2) {
+          progressBars[index].style.backgroundColor = "#e0e0e0";
+      }
+  }
+
+  const handleStop = () => {
+      setIsPipelineStarted(false);
+
+      for (let i = 0; i < circles.length; i++) {
+        markStepInitial(i);
+      }
+  }
+
+  const startPipeline = async ()=>{
       if(pipelineNodes.length < 2){
         blockAlert("The pipeline does not meet the requirements!");
         return;
       }
 
+      if (runData === null) {
+          blockAlert("Run Data didn't load correctly!");
+          return;
+      }
+
+      try {
+          const response = await axios({
+              method: "POST",
+              url: RUN_PIPELINE,
+              headers: {
+                  "Content-Type": "application/json"
+              },
+              data: {
+                  "run_id": runData.run_id,
+                  "token": runData.token,
+                  "variables": {
+                      "1": 2
+                  }
+              }
+          })
+      } catch (e) {
+          blockAlert("Error starting the pipeline!");
+          return;
+      }
       setIsPipelineStarted(true);
 
-      console.log(circles);
-
+      for (let i = 0; i < pipelineNodes.length; i++) {
+          setCurrentStep(i);
+          if (!shouldContinue){
+              break;
+          }
+          try {
+              const response = await axios({
+                  method: "GET",
+                  url: BLOCK_STATUS(runData.run_id, pipelineNodes[i]),
+                  timeout: 1000 * 60 * 60 * 4
+              })
+              markStepCompleted(i);
+          } catch (e) {
+              markStepFailed(i);
+              blockAlert("Pipeline failed to finish!");
+              setShouldContinue(false);
+          }
+      }
   }
 
- 
+    useEffect(() => {
+        axios({
+            method: "GET",
+            url: FETCH_PIPELINE_RUN_DATA(pipelineName[0])
+        }).then((response) => {
+            setRunData(response.data);
+        }).catch((error) => {
+            blockAlert("Error loading pipeline run data!");
+        })
+    }, [pipelineName]);
+
 
     return (
       <div style={{ height: '100%' }}>        
         <div className="flow-container">
             <div className="container">
               {isPipelineStarted ? <div className="pipeline-controller pipeline-started">
-                <p className="play-btn" onClick={()=>{setIsPipelineStarted(false)}}><FontAwesomeIcon icon={faCircleStop} /></p>
+                <p className="play-btn" onClick={handleStop}><FontAwesomeIcon icon={faCircleStop} /></p>
                 <p>Running...</p>
               </div>
                : 
             <div className="pipeline-controller">
-               <p className="play-btn" onClick={()=>{startPipelineAndMakeRequests()}}><FontAwesomeIcon icon={faCirclePlay} /></p>
+               <p className="play-btn" onClick={()=>{startPipeline()}}><FontAwesomeIcon icon={faCirclePlay} /></p>
                <p>Start Pipeline</p>
              </div>
              }
