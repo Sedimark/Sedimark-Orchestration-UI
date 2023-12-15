@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from "react";
 import Flow from "./Flow";
 import styles from './DataProcessing.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCirclePlay, faCircleStop } from '@fortawesome/free-solid-svg-icons';
+import {faCirclePlay, faCircleStop, faSpinner, faTrash} from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
 import {BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA, FETCH_PIPELINES, RUN_PIPELINE} from "../../utils/apiEndpoints";
@@ -24,9 +24,9 @@ function DataProcessing() {
   const circles = document.querySelectorAll(".circle"),
   progressBars = document.querySelectorAll("#indicators");
   const [isPipelineStarted, setIsPipelineStarted] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
+  const [pipelineFinished, setPipelineFinished] = useState(false);
   const [runData, setRunData] = useState(null);
-  const [shouldContinue, setShouldContinue] = useState(true);
+  const [loading, setLoading] = useState(false);
 
 
   const blockAlert = (msg)=>{
@@ -39,7 +39,7 @@ function DataProcessing() {
   const markStepCompleted = (index) => {
       circles[index].style.backgroundColor = "green";
       circles[index].style.color = "white";
-      if (index <= progressBars.length - 2) {
+      if (index <= progressBars.length - 1) {
           progressBars[index].style.backgroundColor = "green";
       }
   }
@@ -47,7 +47,7 @@ function DataProcessing() {
   const markStepFailed = (index) => {
       circles[index].style.backgroundColor = "red";
       circles[index].style.color = "white";
-      if (index <= progressBars.length - 2) {
+      if (index <= progressBars.length - 1) {
           progressBars[index].style.backgroundColor = "red";
       }
   }
@@ -55,14 +55,13 @@ function DataProcessing() {
   const markStepInitial = (index) => {
       circles[index].style.backgroundColor = "white";
       circles[index].style.color = "#999999";
-      if (index <= progressBars.length - 2) {
+      if (index <= progressBars.length - 1) {
           progressBars[index].style.backgroundColor = "#e0e0e0";
       }
   }
 
   const handleStop = () => {
-      setIsPipelineStarted(false);
-
+      setPipelineFinished(false);
       for (let i = 0; i < circles.length; i++) {
         markStepInitial(i);
       }
@@ -79,6 +78,7 @@ function DataProcessing() {
           return;
       }
 
+      setLoading(true);
       try {
           const response = await axios({
               method: "POST",
@@ -94,17 +94,18 @@ function DataProcessing() {
                   }
               }
           })
+
+          await new Promise(resolve => setTimeout(resolve, 5000));
+
+          setLoading(false);
       } catch (e) {
+          setLoading(false);
           blockAlert("Error starting the pipeline!");
           return;
       }
       setIsPipelineStarted(true);
 
       for (let i = 0; i < pipelineNodes.length; i++) {
-          setCurrentStep(i);
-          if (!shouldContinue){
-              break;
-          }
           try {
               const response = await axios({
                   method: "GET",
@@ -115,20 +116,28 @@ function DataProcessing() {
           } catch (e) {
               markStepFailed(i);
               blockAlert("Pipeline failed to finish!");
-              setShouldContinue(false);
+              for (let j = i; j < pipelineNodes.length; j++) {
+                  markStepFailed(j);
+              }
+              break;
           }
       }
+
+      setIsPipelineStarted(false);
+      setPipelineFinished(true);
   }
 
     useEffect(() => {
-        axios({
-            method: "GET",
-            url: FETCH_PIPELINE_RUN_DATA(pipelineName[0])
-        }).then((response) => {
-            setRunData(response.data);
-        }).catch((error) => {
-            blockAlert("Error loading pipeline run data!");
-        })
+        if (pipelineName.length > 0) {
+            axios({
+                method: "GET",
+                url: FETCH_PIPELINE_RUN_DATA(pipelineName[0])
+            }).then((response) => {
+                setRunData(response.data);
+            }).catch((error) => {
+                blockAlert("Error loading pipeline run data!");
+            })
+        }
     }, [pipelineName]);
 
 
@@ -136,13 +145,22 @@ function DataProcessing() {
       <div style={{ height: '100%' }}>        
         <div className="flow-container">
             <div className="container">
-              {isPipelineStarted ? <div className="pipeline-controller pipeline-started">
-                <p className="play-btn" onClick={handleStop}><FontAwesomeIcon icon={faCircleStop} /></p>
-                <p>Running...</p>
+              {loading ? <div className="pipeline-controller pipeline-loading">
+                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                <p>Starting Pipeline...</p>
               </div>
-               : 
+               : isPipelineStarted ?
+                      <div className="pipeline-controller pipeline-started">
+                          <p className="play-btn"><FontAwesomeIcon icon={faCircleStop} /></p>
+                          <p>Running...</p>
+                      </div> : pipelineFinished ?
+                          <div className="pipeline-controller pipeline-started">
+                              <p className="play-btn" onClick={handleStop}><FontAwesomeIcon icon={faTrash} /></p>
+                              <p>Clear Run</p>
+                          </div>
+                          :
             <div className="pipeline-controller">
-               <p className="play-btn" onClick={()=>{startPipeline()}}><FontAwesomeIcon icon={faCirclePlay} /></p>
+               <p className="play-btn" onClick={startPipeline}><FontAwesomeIcon icon={faCirclePlay} /></p>
                <p>Start Pipeline</p>
              </div>
              }

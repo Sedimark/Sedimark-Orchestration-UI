@@ -107,6 +107,9 @@
   .pipeline-started{
     background-color:green;
   }
+.pipeline-loading{
+    background-color:#070b95;
+}
 
   .play-btn:hover{
     cursor: pointer;
