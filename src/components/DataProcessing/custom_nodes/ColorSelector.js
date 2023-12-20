@@ -8,7 +8,7 @@ export default memo(({ data, isConnectable }) => {
         type="target"
         position={Position.Left}
         style={{ background: '#555' }}
-        onConnect={(params) => console.log('handle onConnect', params)}
+        onConnect={(params) => console.log()}
         isConnectable={isConnectable}
       />
       <div >

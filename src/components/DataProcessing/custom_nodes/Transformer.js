@@ -133,7 +133,7 @@ export default memo(({ data, isConnectable }) => {
     } else {
       setVariablesPresent(false);
     }
-    
+  
   },[storedVariables])
 
 
@@ -150,8 +150,8 @@ export default memo(({ data, isConnectable }) => {
   }
 
   const getStoredVariableValue = (varName)=>{
-    
-    for(const variable of storedVariables){
+  
+    for(const variable of variablesValues){
       if(variable.variable_name == varName){
         if(Array.isArray(variable.value)){
           return parseArray(variable.value);
@@ -188,7 +188,7 @@ export default memo(({ data, isConnectable }) => {
                        </TableRow>
                      </TableHead>
                      <TableBody>
-                        {allVariables.map((row,index) => (
+                        {  allVariables.map((row,index) => (
                           <StyledTableRow key={index}>
                             <StyledTableCell component="th" scope="row">
                              {row["varName"]}

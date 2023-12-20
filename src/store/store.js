@@ -4,7 +4,10 @@ import {loadState, saveState} from "../utils/localStorage";
 
 
 const persistedStore = loadState();
-export const store = configureStore({reducer: nodeReducer}, persistedStore);
+const reducers = combineReducers({
+  node:nodeReducer
+})
+export const store = configureStore({reducer: nodeReducer, preloadedState:persistedStore});
 
 store.subscribe(()=>{
   const currentState = store.getState();

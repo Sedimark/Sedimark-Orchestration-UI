@@ -24,7 +24,7 @@ import style from "./PipelineSelectDialog.css";
 import DataSetInfo from './DataSetInfo';
 import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
-import {addNode, addPipeline, setNodes, clearPipeline} from "../../../../reducers/nodeSlice";
+import {addNode, addPipeline, setNodes, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { setDatasetColumns, setDatasetInfo,setIsPipelineFetching } from '../../../../reducers/nodeSlice';
@@ -79,7 +79,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   };
 
   const handleToggle = (value) => () => {
-    
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
     
@@ -95,7 +94,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         newChecked.push(value);
       } 
     }
-
     if(newChecked.length!=0){
       fetchAndParseMinioJson(newChecked[0]);
     }
@@ -116,10 +114,12 @@ const fetchAndParseMinioJson = async (bucket_name) => {
       return;
     }
     const filteredPipelines = data.filter((dt)=> {
-      return  dt == pipeline[0];
+      return  dt.name == pipeline[0] ;
     });
-    if(filteredPipelines.length !=0){
-      setChecked(filteredPipelines);
+    const filteredPipelinesNames = filteredPipelines.length!=0? filteredPipelines[0].name : [];
+    if(filteredPipelinesNames.length !=0){
+
+      setChecked([filteredPipelinesNames]);
     }
 
   }
@@ -127,7 +127,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   const fetchAllPipelines = async()=>{
      try{
       const resp = await axios.get(FETCH_PIPELINES);
-      console.log(resp);
       if(resp.data.length!=0){
         const filteredData = resp.data.filter((item) => item.type == props.pipelineType);
         setAllPipelines(filteredData);
@@ -156,20 +155,34 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   const updateSearch = (evt)=>{
     setSearchedString(evt.target.value);
     const updatedPipelines = searchListByDatasetName(allPipelines,evt.target.value);
-    console.log(updatedPipelines);
     setfilteredPipelines(updatedPipelines);
   }
 
   const addCorespondingPipeline = ()=>{
+    
+    //here we just perform a bunch of cleanup because at this point the user deselected the selected pipeline
+    // so he has no pipeline selected and we need to cleanup variables
+    if(checked.length == 0){
+      dispatch(setDatasetColumns([]));
+      dispatch(setDatasetInfo([]));
+      dispatch(setMappedEdges([]));
+      dispatch(setMappedNodes([]));
+      dispatch(setOrderedNodes([]));
+      dispatch(clearPipeline([]));
+      dispatch(setSelectedPipelineName(""));
+      dispatch(setStoredNodes([]));
+      return;
+    }
 
-    if(pipeline.length == 0){
+
+    if(pipeline.length == 0){ 
       dispatch(addPipeline(checked[0]));
       return;
     }
-   
     if(pipeline.length !=0 && pipeline[0] != checked[0])
     {
       dispatch(addPipeline(checked[0]));
+      return;
     }
        
   }
@@ -188,7 +201,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     fetchAllPipelines();
     
   },[])
-
  
   return (
     

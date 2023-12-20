@@ -128,6 +128,7 @@ function DataProcessing() {
   }
 
     useEffect(() => {
+      
         if (pipelineName.length > 0) {
             axios({
                 method: "GET",

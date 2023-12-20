@@ -79,38 +79,6 @@ function Flow() {
     }
   };
 
-  const containsNode = (nodeType, allNodes)=>{
-   
-    const foundNodeOfType = allNodes.find((node)=> node.data.label == nodeType);
-    if(foundNodeOfType){
-      return true;
-    }
-    return false;
-  }
-
-
-  const checkAndRemoveNode = (nodeData, nodes)=>{
-    const newNodeArr = [];
-    const nodeRemoved = [];
-    for(const node of nodes){
-      if(nodeData.includes(node.data.label)){
-        newNodeArr.push(node);
-      } else {
-        nodeRemoved.push(node);
-      }
-    }
-
-    const updatedEdges = [];
-    for(const edge of edges){
-      if(edge.source == nodeRemoved[0].id || edge.target == nodeRemoved[0].id){
-        continue;
-      }
-      updatedEdges.push(edge);
-    }
-    setEdges(updatedEdges);
-    setNodes(newNodeArr);
-  }
-
 
   const addNodes = (nodeData) => {
     const newNodes = [];
@@ -206,11 +174,6 @@ function Flow() {
     
   }
 
-  useEffect(()=>{
-    console.log("stored nodes are:");
-    console.log(storedNodes);
-  },[storedNodes])
-
   const processAndPlaceEdges = ()=>{
     if(edges.length==0){
       const storedEdges = [];
@@ -232,6 +195,7 @@ function Flow() {
         }
       }
       setEdges(storedEdges);
+      
     }
   }
   
@@ -366,21 +330,14 @@ function Flow() {
   useEffect(()=>{
     if(selectedPipeline.length !== 0){
       fetchPipelineData(selectedPipeline);
+    } else {
+      setNodes([]);
+      // setEdges([]);
     }
   },[selectedPipeline])
 
    
-  useEffect(()=>{
-   
-    if(nodes.length == 0){
-      setNodes(storedNodes);
-    }
-  },[storedNodes])
 
-  useEffect(()=>{
-    console.log("The block variables are:");
-    console.log(getVariablesForBlocks("anomaly_detection",blocksVariables));
-  },[blocksVariables])
 
    
     return (
