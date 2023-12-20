@@ -9,6 +9,7 @@ import {BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA, FETCH_PIPELINES, RUN_PIPELINE} fr
 import toast, { Toaster } from 'react-hot-toast';
 import axios from "axios";
 import {setIsDataFetching} from "../../reducers/nodeSlice";
+import {getVariablesForBlocks} from "../../utils/getVariablesForBlock";
 
 function DataProcessing() {
 
@@ -16,6 +17,7 @@ function DataProcessing() {
   const constant_value_imputation_values = useSelector((state)=>state.constant_value_imputation_values)
   const pipelineNodes = useSelector((state)=>state.orderedNodes);
   const pipelineName = useSelector((state) => state.selectedPipelineName);
+  const blockVariables = useSelector((state) => state.blocksVariables);
   const selectedDataset = useSelector((state)=> state.selectedDataset);
   const selectedDataFeaturingColumns = useSelector((state)=> state.selectedDataFeaturingColumns);
   const normalizationColumns = useSelector((state)=> state.normalizationColumns);
@@ -80,6 +82,10 @@ function DataProcessing() {
 
       setLoading(true);
       try {
+          const variables = {}
+          for (let block of blockVariables) {
+              variables[block.variable_name] = block.value;
+          }
           const response = await axios({
               method: "POST",
               url: RUN_PIPELINE,
@@ -89,13 +95,11 @@ function DataProcessing() {
               data: {
                   "run_id": runData.run_id,
                   "token": runData.token,
-                  "variables": {
-                      "1": 2
-                  }
+                  "variables": variables
               }
           })
 
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          //await new Promise(resolve => setTimeout(resolve, 2500));
 
           setLoading(false);
       } catch (e) {
@@ -106,20 +110,50 @@ function DataProcessing() {
       setIsPipelineStarted(true);
 
       for (let i = 0; i < pipelineNodes.length; i++) {
-          try {
-              const response = await axios({
-                  method: "GET",
-                  url: BLOCK_STATUS(runData.run_id, pipelineNodes[i]),
-                  timeout: 1000 * 60 * 60 * 4
-              })
+          const makeAPIRequest = async (node) => {
+              return new Promise((resolve) => {
+                  const retry = async () => {
+                      try {
+                          const response = await axios({
+                              method: 'GET',
+                              url: BLOCK_STATUS(runData.run_id, node),
+                          });
+
+                          const data = response.data;
+
+                          if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
+                              console.log('Satisfactory response received:', data);
+                              resolve(data);
+                          } else {
+                              console.log('Unsatisfactory response:', data);
+                              // If condition not met, retry after a timeout
+                              setTimeout(retry, 2000);
+                          }
+                      } catch (error) {
+                          console.error('Error:', error);
+                          // If there's an error, retry after a timeout
+                          setTimeout(retry, 2000);
+                      }
+                  };
+
+                  // Start the initial API request
+                  retry();
+              });
+          };
+
+          const node = pipelineNodes[i]
+          const result = await makeAPIRequest(node);
+          console.log("Block status: ", result);
+
+          if (result === "completed") {
               markStepCompleted(i);
-          } catch (e) {
-              markStepFailed(i);
-              blockAlert("Pipeline failed to finish!");
-              for (let j = i; j < pipelineNodes.length; j++) {
-                  markStepFailed(j);
-              }
-              break;
+          } else {
+                  markStepFailed(i);
+                  blockAlert("Pipeline failed to finish!");
+                  for (let j = i; j < pipelineNodes.length; j++) {
+                      markStepFailed(j);
+                  }
+                  break;
           }
       }
 
@@ -139,7 +173,6 @@ function DataProcessing() {
             })
         }
     }, [pipelineName]);
-
 
     return (
       <div style={{ height: '100%' }}>        

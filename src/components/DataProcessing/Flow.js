@@ -378,8 +378,8 @@ function Flow() {
   },[storedNodes])
 
   useEffect(()=>{
-    console.log("The block variables are:");
-    console.log(getVariablesForBlocks("anomaly_detection",blocksVariables));
+    //console.log("The block variables are:");
+    //console.log(getVariablesForBlocks("anomaly_detection",blocksVariables));
   },[blocksVariables])
 
    

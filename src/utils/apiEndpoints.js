@@ -8,4 +8,4 @@ export const FETCH_PIPELINE_DATA = (pipeline_name)=>`http://localhost:7000/pipel
 export const FETCH_MINIO_FILE = (pipeline_name) => `http://62.72.21.79:10000/get_object?dataset_path=${pipeline_name}/statistics.json`;
 export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `http://localhost:7000/pipeline/run_data?pipeline_name=${pipeline_name}`;
 export const RUN_PIPELINE = "http://localhost:7000/pipeline/run";
-export const BLOCK_STATUS = (pipeline_id, block_name) => `http://localhost:7000/pipeline/status?pipeline_id=${pipeline_id}&block_name=${block_name}`;
+export const BLOCK_STATUS = (pipeline_id, block_name) => `http://localhost:7000/pipeline/status_once?pipeline_id=${pipeline_id}&block_name=${block_name}`;
