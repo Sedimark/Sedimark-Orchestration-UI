@@ -234,6 +234,9 @@ function Flow() {
         });
       }
     }
+    console.log("connectionEdges are:");
+    console.log(connectionEdges);
+    setPipelineEdges([])
     setPipelineEdges(connectionEdges);
     addNodes(allNodes);
   }
@@ -313,6 +316,7 @@ function Flow() {
   useEffect(()=>{
     verifyAddedEdgeIsOk();
     setTheEdges();
+    processAndPlaceEdges();
   },[edges])
 
   useEffect(()=>{
@@ -332,7 +336,7 @@ function Flow() {
       fetchPipelineData(selectedPipeline);
     } else {
       setNodes([]);
-      // setEdges([]);
+      setEdges([]);
     }
   },[selectedPipeline])
 
@@ -343,11 +347,6 @@ function Flow() {
       setNodes(storedNodes);
     }
   },[storedNodes])
-
-  useEffect(()=>{
-    //console.log("The block variables are:");
-    //console.log(getVariablesForBlocks("anomaly_detection",blocksVariables));
-  },[blocksVariables])
 
    
     return (

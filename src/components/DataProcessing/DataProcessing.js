@@ -185,7 +185,6 @@ function DataProcessing() {
               </div>
                : isPipelineStarted ?
                       <div className="pipeline-controller pipeline-started">
-                          <p className="play-btn"><FontAwesomeIcon icon={faCircleStop} /></p>
                           <p>Running...</p>
                       </div> : pipelineFinished ?
                           <div className="pipeline-controller pipeline-started">
