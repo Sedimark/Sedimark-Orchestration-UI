@@ -337,7 +337,17 @@ function Flow() {
   },[selectedPipeline])
 
    
+  useEffect(()=>{
+   
+    if(nodes.length == 0){
+      setNodes(storedNodes);
+    }
+  },[storedNodes])
 
+  useEffect(()=>{
+    //console.log("The block variables are:");
+    //console.log(getVariablesForBlocks("anomaly_detection",blocksVariables));
+  },[blocksVariables])
 
    
     return (
