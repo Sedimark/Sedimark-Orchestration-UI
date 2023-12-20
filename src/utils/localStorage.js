@@ -1,0 +1,24 @@
+
+// we use this function to get the saved state of the application from the local storage
+
+export const loadState = () => {
+    try {
+      const serializedState = localStorage.getItem('state');
+      if (serializedState === null) {
+        return undefined;
+      }
+      return JSON.parse(serializedState);
+    } catch (err) {
+      return undefined;
+    }
+  }; 
+
+
+  export const saveState = (state) => {
+    try {
+      const serializedState = JSON.stringify(state);
+      localStorage.setItem('state', serializedState);
+    } catch {
+      console.log("There was an error while trying to save the state of the application!");
+    }
+  };

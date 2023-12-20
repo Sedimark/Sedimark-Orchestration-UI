@@ -8,12 +8,14 @@ import Exporter from './custom_nodes/Exporter.js';
 import Custom from './custom_nodes/Custom.js';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
+import { getVariablesForBlocks } from '../../utils/getVariablesForBlock.js';
 import {
   setMappedNodes,
   setMappedEdges,
   setIsPipelineFetching,
   setOrderedNodes,
-  setSelectedPipelineName
+  setSelectedPipelineName,
+  setStoredNodes
 } from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
@@ -24,10 +26,11 @@ import axios from "axios";
 function Flow() {
 
   const selectedPipeline = useSelector((state)=> state.selectedPipeline);
+  const blocksVariables = useSelector((state)=> state.blocksVariables);
   const pipelineFetching = useSelector((state)=> state.is_pipeline_fetching);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
   const edgeTypes = useMemo(() => ({ }), []);
-  const storedNodes = useSelector((state)=>state.nodes);
+  const storedNodes = useSelector((state)=>state.storedNodes);
   const storedDataset = useSelector((state)=>state.selectedDataset);
   const edgeToDelete = useSelector((state)=>state.edgeToDelete);
   const initialNodes = []; 
@@ -198,9 +201,15 @@ function Flow() {
       } 
     }
     dispatch(setOrderedNodes(finalNodes));
+    dispatch(setStoredNodes(newNodes));
     setNodes(newNodes);
     
   }
+
+  useEffect(()=>{
+    console.log("stored nodes are:");
+    console.log(storedNodes);
+  },[storedNodes])
 
   const processAndPlaceEdges = ()=>{
     if(edges.length==0){
@@ -324,11 +333,13 @@ function Flow() {
  
   const fetchPipelineData = async(pipeline_name)=>{
     setIsPipelineLoading(true);
+
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
-      dispatch(setSelectedPipelineName(pipeline_name));
+      
       processAndPlaceNodes(resp.data.pipeline.blocks);
       setIsPipelineLoading(false);
+      dispatch(setSelectedPipelineName(pipeline_name));
     } catch(err){
       console.log(err);
       setIsPipelineLoading(false);
@@ -358,6 +369,18 @@ function Flow() {
     }
   },[selectedPipeline])
 
+   
+  useEffect(()=>{
+   
+    if(nodes.length == 0){
+      setNodes(storedNodes);
+    }
+  },[storedNodes])
+
+  useEffect(()=>{
+    console.log("The block variables are:");
+    console.log(getVariablesForBlocks("anomaly_detection",blocksVariables));
+  },[blocksVariables])
 
    
     return (

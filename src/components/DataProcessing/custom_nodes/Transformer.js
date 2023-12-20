@@ -30,7 +30,7 @@ export default memo(({ data, isConnectable }) => {
   const [fullNodeName, setFullNodeName] = useState("");
   const [nodeName, setNodeName] = useState("");
   const [allVariables, setAllVariables] = useState([]);
-  const [variablesInputtedValues, setVariablesInputtedValues] = useState([]);
+  const [storedVariables, setStoredVariables] = useState([]);
   const allNodes = useSelector((state)=>state.nodes);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -64,26 +64,6 @@ export default memo(({ data, isConnectable }) => {
     setRows(newRows);
   }
   
-  const openEditSelectedRowsDialog = ()=>{
-    setVariablesInputOpen(true);
-  } 
-
-  const deleteNode = ()=>{
-    let newNodeList = [...allNodes];
-    newNodeList = newNodeList.filter((node)=> node.nodeData.type!=="Data featuring");
-    dispatch(setNodes(newNodeList));
-    setTimeout(()=>{
-      dispatch(removeDataFeaturingColumns());
-    },100);
-  }
-
-  const isDatasetSelected = ()=>{
-    if( !dataset || dataset.length == 0){
-      return false;
-    } else {
-      return true;
-    }
-  }
 
   const checkDatasetSelectedAndGo = ()=>{
     setVariablesInputOpen(true);
@@ -117,11 +97,7 @@ export default memo(({ data, isConnectable }) => {
       allVarsData.push(varObj);
     }
     setAllVariables(allVarsData);
-    if(Object.keys(data.config).length!=0){
-      setVariablesPresent(true);
-    } else {
-      setVariablesPresent(false);
-    }
+    
   },[])
 
   const processVariablesValues = (varsVals)=>{
@@ -129,19 +105,62 @@ export default memo(({ data, isConnectable }) => {
     for(let val of varsVals){
       if(val.block_name == fullNodeName){
         if(val.type == "multiple"){
-           storedVars.push(val.value.length);
+           storedVars.push(
+          {
+            "variable_name":val.variable_name,
+            "value":val.value.length
+          }
+         );
         } else {
-          storedVars.push(val.value);
+          storedVars.push({
+            "variable_name":val.variable_name,
+            "value":val.value
+          });
         }
       }
     }
-
-    console.log(storedVars);
+    setStoredVariables(storedVars);
   }
 
   useEffect(()=>{
     processVariablesValues(variablesValues);
   },[variablesValues])
+
+
+  useEffect(()=>{
+    if(Object.keys(data.config).length!=0){
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
+    }
+    
+  },[storedVariables])
+
+
+  const parseArray = (arr)=>{
+    if (arr.length > 0) {
+        let result = arr.join(', ');
+        if (result.length > 30) {
+            result = result.substring(0, 30) + '...';
+        }
+      return result;
+    } else {
+        return '';
+    }
+  }
+
+  const getStoredVariableValue = (varName)=>{
+    
+    for(const variable of storedVariables){
+      if(variable.variable_name == varName){
+        if(Array.isArray(variable.value)){
+          return parseArray(variable.value);
+        } 
+        return variable.value;
+      }
+    }
+    return "";
+  }
 
   return (
     <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px" }}>
@@ -174,7 +193,7 @@ export default memo(({ data, isConnectable }) => {
                             <StyledTableCell component="th" scope="row">
                              {row["varName"]}
                             </StyledTableCell>
-                          <StyledTableCell align="right"></StyledTableCell>
+                          <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                         </StyledTableRow>
                       ))}
                     </TableBody>

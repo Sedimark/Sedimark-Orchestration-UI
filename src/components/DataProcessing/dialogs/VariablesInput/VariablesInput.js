@@ -20,6 +20,10 @@ import Checkbox from '@mui/material/Checkbox';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
+import {
+  Unstable_NumberInput as BaseNumberInput,
+  numberInputClasses,
+} from '@mui/base/Unstable_NumberInput';
 import { unstable_useForkRef as useForkRef } from '@mui/utils';
 import { setBlocksVariables } from '../../../../reducers/nodeSlice';
 
@@ -34,28 +38,26 @@ const MenuProps = {
   },
 };
  
-const CustomNumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
-  const {
-    getRootProps,
-    getInputProps,
-    getIncrementButtonProps,
-    getDecrementButtonProps,
-    focused,
-  } = useNumberInput(props);
-
-  const inputProps = getInputProps();
-  inputProps.ref = useForkRef(inputProps.ref, ref);
-
+const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
   return (
-    <StyledInputRoot {...getRootProps()} className={focused ? 'focused' : null}>
-      <StyledStepperButton {...getIncrementButtonProps()} className="increment">
-        ▴
-      </StyledStepperButton>
-      <StyledStepperButton {...getDecrementButtonProps()} className="decrement">
-        ▾
-      </StyledStepperButton>
-      <StyledInputElement {...inputProps} />
-    </StyledInputRoot>
+    <BaseNumberInput
+      slots={{
+        root: StyledInputRoot,
+        input: StyledInputElement,
+        incrementButton: StyledButton,
+        decrementButton: StyledButton,
+      }}
+      slotProps={{
+        incrementButton: {
+          children: '▴',
+        },
+        decrementButton: {
+          children: '▾',
+        },
+      }}
+      {...props}
+      ref={ref}
+    />
   );
 });
 
@@ -70,8 +72,12 @@ export default function VariablesInput(props){
     const [selectedColumns, setSelectedColumns] = React.useState([]);
     const [columns, setColumns] = React.useState([]);
     const [variableValues, setVariableValues] = React.useState([]);
-
-
+    const [variablesInput, setVariablesInput] = React.useState({});
+    const [valueData, setValue] = React.useState();
+    const [nodeNameId, setNodeNameId] = React.useState();
+    const [hasMultipleSelection, setHasMultipleSelection] = React.useState(false);
+    let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
+    let values; 
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
       if (indexToUpdate !== -1) {
@@ -80,7 +86,28 @@ export default function VariablesInput(props){
         return [...arr, newObj];
       }
     }
-    
+
+
+    const handleChangeNumber = (variableName, event, type)=>{
+      const { target: { value } } = event;
+      if (!isNaN(value)) {
+        const newValue = {...variablesInput};
+          newValue[variableName] = value;
+        setVariablesInput(newValue);
+      }
+
+      let inputedValuesVariables = [...variableValues];
+      let objToStore = {
+        block_name:props.fullNodeName,
+        variable_name:variableName,
+        value:value,
+        type:type
+      }
+
+      inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+      setVariableValues(inputedValuesVariables);
+      
+    }
 
     const handleChange = (event, type, variableName) => {
       /*
@@ -99,14 +126,15 @@ export default function VariablesInput(props){
         block_name:props.fullNodeName,
         variable_name:variableName,
         value:value,
-        type:type
       }
-      if(type == "multiple"){
-        setSelectedColumns(value);
-      } 
-
+    
+      //pe variablesInput ai datele
+      const newValue = {...variablesInput};
+      newValue[variableName] = value;
+      setVariablesInput(newValue);
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
+      
     };
 
     const darkTheme = createTheme({
@@ -114,14 +142,45 @@ export default function VariablesInput(props){
         mode: 'dark',
       },
     });
+
+    const parseAndSet = (oldValues,newValues)=>{
+      let parsedArray = [];
+       for(const value of oldValues){
+        if(value.block_name !== props.fullNodeName){
+            parsedArray.push(value);
+        }
+       }
+       parsedArray = [parsedArray, ...newValues];
+    }
     
+    const createObjToStore = ()=>{
+      
+      let inputedValuesVariables = [...variableValues];
+      let objToStore;
+      for(const key in variablesInput){
+         objToStore = {
+          block_name:props.fullNodeName,
+          variable_name:key,
+          value:variablesInput[key],
+          nodeId:nodeNameId
+        }
+        inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+        setVariableValues(inputedValuesVariables);
+      }
+      blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
+      dispatch(setBlocksVariables(inputedValuesVariables)); 
+    }
 
     const handleDone = ()=>{
         props.handleClose();
-        const blockVarsStoreObj = {
-          
-        }
-        dispatch(setBlocksVariables(variableValues));
+        createObjToStore();
+           
+    }
+
+    const convertToSnakeCase = (inputString)=>{
+      let lowercaseString = inputString.toLowerCase();
+      let snakeCaseString = lowercaseString.replace(/\s+/g, '_');
+       return snakeCaseString;
     }
 
    useEffect(()=>{
@@ -136,7 +195,45 @@ export default function VariablesInput(props){
     setColumns(datasetColumns);
    },[datasetColumns])
 
+
+   const createVariableInputObjects = (data, storedVars)=>{
+    
+      const obj = {...variablesInput};
+      for(const value of data){
+        if(value.type == "multiple_selection"){
+          obj[value.varName] = [];
+        } else if(value.type == "number"){
+          obj[value.varName] = "";
+        } else {
+          obj[value.varName] = "";
+        }
+      }
+
+    let foundBlocks = [];
+    for(const block of storedVars){
+       if(block.block_name == props.fullNodeName){
+         foundBlocks.push(block);
+       }
+     }
+
+     if(foundBlocks.length != 0){
+      for(const block of foundBlocks){
+        obj[block.variable_name] = block.value;
+      }
+     }
+      setVariablesInput(obj);
+   }
+
+   useEffect(()=>{
+      createVariableInputObjects(props.variablesData, blocksVariablesStored); 
+   },[blocksVariablesStored])
   
+
+   useEffect(()=>{
+    setNodeNameId(convertToSnakeCase(props.fullNodeName));
+   },[])
+   
+
     return (
     <div>
         <ThemeProvider theme={darkTheme}>
@@ -155,20 +252,27 @@ export default function VariablesInput(props){
                       if(value.type == "string"){
                         return(
                         <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
-                          <TextField   onChange={(event)=>handleChange(event,"text",value.varName)} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
+                          <TextField value={variablesInput[value.varName] || ''}  onChange={(event)=>handleChange(event,"text",value.varName)} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
                         </FormControl>
                         
                         );
                         
                       } else if(value.type == "number"){
+                        
                         return(
                         <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
                           <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
-                          <CustomNumberInput   onChange={(event)=>handleChange(event,"number",value.varName)} aria-label={`${value.varName}`} placeholder="Type a number…" sx={{ marginTop: 5, marginBottom:1 }}/>
+                          <TextField
+                            aria-label={`${value.varName}`}
+                            placeholder="Type a number…"
+                            value={variablesInput[value.varName]}
+                            onChange={(event)=>handleChangeNumber(value.varName,event,"number")}
+                          />
                       </FormControl>
                         );
 
                       } else if(value.type == "multiple_selection"){
+                       
                         return(
                           <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
                               <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>
@@ -176,15 +280,15 @@ export default function VariablesInput(props){
                                 labelId="demo-multiple-checkbox-label"
                                 id="demo-multiple-checkbox"
                                 multiple
-                                value={selectedColumns}
+                                value={variablesInput[value.varName]}
                                 onChange={(event)=>handleChange(event,"multiple",value.varName)}
                                 input={<OutlinedInput label="Columns" />}
                                 renderValue={(selected) => selected.join(', ')}
                                 MenuProps={MenuProps}
                               >
-                                {columns.map((column) => (
+                                {(datasetColumns || []).map((column) => (
                                   <MenuItem key={column} value={column}>
-                                    <Checkbox checked={selectedColumns.indexOf(column) > -1} />
+                                    <Checkbox checked={variablesInput[value.varName].indexOf(column) > -1} />
                                     <ListItemText primary={column} />
                                   </MenuItem>
                                 ))}
@@ -218,14 +322,13 @@ export default function VariablesInput(props){
 }
 
 
+
 const blue = {
   100: '#DAECFF',
-  200: '#B6DAFF',
+  200: '#80BFFF',
   400: '#3399FF',
   500: '#007FFF',
   600: '#0072E5',
-  700: '#0059B2',
-  900: '#003A75',
 };
 
 const grey = {
@@ -241,6 +344,7 @@ const grey = {
   900: '#1C2025',
 };
 
+
 const StyledInputRoot = styled('div')(
   ({ theme }) => `
   font-family: 'IBM Plex Sans', sans-serif;
@@ -249,9 +353,7 @@ const StyledInputRoot = styled('div')(
   color: ${theme.palette.mode === 'dark' ? grey[300] : grey[900]};
   background: ${theme.palette.mode === 'dark' ? grey[900] : '#fff'};
   border: 1px solid ${theme.palette.mode === 'dark' ? grey[700] : grey[200]};
-  box-shadow: 0px 2px 4px ${
-    theme.palette.mode === 'dark' ? 'rgba(0,0,0, 0.5)' : 'rgba(0,0,0, 0.05)'
-  };
+  box-shadow: 0px 2px 2px ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
   display: grid;
   grid-template-columns: 1fr 19px;
   grid-template-rows: 1fr 1fr;
@@ -259,18 +361,20 @@ const StyledInputRoot = styled('div')(
   column-gap: 8px;
   padding: 4px;
 
-    &.focused {
-      border-color: ${blue[400]};
-      box-shadow: 0 0 0 3px ${theme.palette.mode === 'dark' ? blue[700] : blue[200]};
+  &.${numberInputClasses.focused} {
+    border-color: ${blue[400]};
+    box-shadow: 0 0 0 3px ${theme.palette.mode === 'dark' ? blue[600] : blue[200]};
+  }
 
-      & button:hover {
-        background: ${blue[400]};
-      }
-      // firefox
-      &:focus-visible {
-        outline: 0;
-    }
-  `,
+  &:hover {
+    border-color: ${blue[400]};
+  }
+
+  // firefox
+  &:focus-visible {
+    outline: 0;
+  }
+`,
 );
 
 const StyledInputElement = styled('input')(
@@ -290,7 +394,7 @@ const StyledInputElement = styled('input')(
 `,
 );
 
-const StyledStepperButton = styled('button')(
+const StyledButton = styled('button')(
   ({ theme }) => `
   display: flex;
   flex-flow: row nowrap;
@@ -311,41 +415,49 @@ const StyledStepperButton = styled('button')(
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 120ms;
 
-    &.increment {
-      grid-column: 2/3;
-      grid-row: 1/2;
-      border-top-left-radius: 4px;
-      border-top-right-radius: 4px;
-      border: 1px solid;
-      border-bottom: 0;
-      border-color: ${theme.palette.mode === 'dark' ? grey[800] : grey[200]};
-      background: ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
-      color: ${theme.palette.mode === 'dark' ? grey[200] : grey[900]};
+  &:hover {
+    background: ${theme.palette.mode === 'dark' ? grey[800] : grey[50]};
+    border-color: ${theme.palette.mode === 'dark' ? grey[600] : grey[300]};
+    cursor: pointer;
+  }
 
-      &:hover {
-        cursor: pointer;
-        color: #FFF;
-        background: ${theme.palette.mode === 'dark' ? blue[600] : blue[500]};
-        border-color: ${theme.palette.mode === 'dark' ? blue[400] : blue[600]};
-      }
+  &.${numberInputClasses.incrementButton} {
+    grid-column: 2/3;
+    grid-row: 1/2;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    border: 1px solid;
+    border-bottom: 0;
+    &:hover {
+      cursor: pointer;
+      background: ${blue[400]};
+      color: ${grey[50]};
     }
 
-    &.decrement {
-      grid-column: 2/3;
-      grid-row: 2/3;
-      border-bottom-left-radius: 4px;
-      border-bottom-right-radius: 4px;
-      border: 1px solid;
-      border-color: ${theme.palette.mode === 'dark' ? grey[800] : grey[200]};
-      background: ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
-      color: ${theme.palette.mode === 'dark' ? grey[200] : grey[900]};
-
-      &:hover {
-        cursor: pointer;
-        color: #FFF;
-        background: ${theme.palette.mode === 'dark' ? blue[600] : blue[500]};
-        border-color: ${theme.palette.mode === 'dark' ? blue[400] : blue[600]};
-      }
+  border-color: ${theme.palette.mode === 'dark' ? grey[800] : grey[200]};
+  background: ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
+  color: ${theme.palette.mode === 'dark' ? grey[200] : grey[900]};
   }
-  `,
+
+  &.${numberInputClasses.decrementButton} {
+    grid-column: 2/3;
+    grid-row: 2/3;
+    border-bottom-left-radius: 4px;
+    border-bottom-right-radius: 4px;
+    border: 1px solid;
+    &:hover {
+      cursor: pointer;
+      background: ${blue[400]};
+      color: ${grey[50]};
+    }
+
+  border-color: ${theme.palette.mode === 'dark' ? grey[800] : grey[200]};
+  background: ${theme.palette.mode === 'dark' ? grey[900] : grey[50]};
+  color: ${theme.palette.mode === 'dark' ? grey[200] : grey[900]};
+  }
+  & .arrow {
+    transform: translateY(-1px);
+  }
+`,
 );
+

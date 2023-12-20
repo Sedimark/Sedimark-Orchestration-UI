@@ -127,6 +127,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   const fetchAllPipelines = async()=>{
      try{
       const resp = await axios.get(FETCH_PIPELINES);
+      console.log(resp);
       if(resp.data.length!=0){
         const filteredData = resp.data.filter((item) => item.type == props.pipelineType);
         setAllPipelines(filteredData);
