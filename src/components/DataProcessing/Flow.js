@@ -8,7 +8,6 @@ import Exporter from './custom_nodes/Exporter.js';
 import Custom from './custom_nodes/Custom.js';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
-import { getVariablesForBlocks } from '../../utils/getVariablesForBlock.js';
 import {
   setMappedNodes,
   setMappedEdges,
@@ -20,7 +19,6 @@ import {
 import {useDispatch} from 'react-redux';
 import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
 import { v4 as uuidv4 } from 'uuid';
-import { setDatasetColumns, setDatasetInfo } from '../../reducers/nodeSlice';
 import axios from "axios";
 
 function Flow() {
@@ -96,15 +94,27 @@ function Flow() {
       currentNode.downstream_blocks.forEach((downStreamNode, index) => {
         if (index % 2 === 0) {
           if (index > 1) {
-            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y + (index - 1) * 500);
+            const foundNode = nodes.find(node => node.node_id === downStreamNode);
+            if(foundNode){
+              setPosition(nodes, foundNode, x + 700, y + (index - 1) * 500);
+            }
           } else {
-            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y + index * 500);
+            const foundNode = nodes.find(node => node.node_id === downStreamNode);
+            if(foundNode){
+              setPosition(nodes, foundNode, x + 700, y + index * 500);
+            }
           }
         } else {
           if (index > 1) {
-            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y - (index - 1) * 500);
+            const foundNode = nodes.find(node => node.node_id === downStreamNode);
+            if(foundNode){
+              setPosition(nodes, foundNode, x + 700, y - (index - 1) * 500);
+            }
           } else {
-            setPosition(nodes, nodes.find(node => node.node_id === downStreamNode), x + 700, y - index * 500);
+            const foundNode = nodes.find(node => node.node_id === downStreamNode);
+            if(foundNode){
+              setPosition(nodes, foundNode, x + 700, y - index * 500);
+            }
           }
         }
       })
@@ -118,7 +128,7 @@ function Flow() {
         break;
       }
     }
-
+    
     setPosition(nodeData, nodeData[firstBlock], 0, 0);
 
     for(let nodeType of nodeData){
@@ -200,6 +210,8 @@ function Flow() {
   }
   
   const processAndPlaceNodes = (blocks) =>{ 
+    setPipelineEdges([]);
+    setEdges([]);
     const allNodes = [];
     const connectionEdges = [];
     for(const block of blocks){
@@ -234,9 +246,10 @@ function Flow() {
         });
       }
     }
-    console.log("connectionEdges are:");
-    console.log(connectionEdges);
-    setPipelineEdges([])
+
+    
+    setPipelineEdges([...connectionEdges]);
+
     setPipelineEdges(connectionEdges);
     addNodes(allNodes);
   }
@@ -300,10 +313,9 @@ function Flow() {
  
   const fetchPipelineData = async(pipeline_name)=>{
     setIsPipelineLoading(true);
-
+  
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
-      
       processAndPlaceNodes(resp.data.pipeline.blocks);
       setIsPipelineLoading(false);
       dispatch(setSelectedPipelineName(pipeline_name));
@@ -312,6 +324,22 @@ function Flow() {
       setIsPipelineLoading(false);
     }
   }
+
+  const parseSelectedPipelineName = (inputString)=>{
+    if (inputString.includes('-')) {
+      inputString = inputString.split("_").join("-");
+    } 
+    if (inputString.includes(' ')) {
+      inputString = inputString.split(' ').join('_');
+    } 
+
+    return inputString;
+  }
+
+  useEffect(()=>{
+    processAndPlaceEdges();
+    processAndPlaceEdges();
+   },[pipelineEdges])
 
   useEffect(()=>{
     verifyAddedEdgeIsOk();
@@ -332,8 +360,10 @@ function Flow() {
   },[nodes])
 
   useEffect(()=>{
+    
     if(selectedPipeline.length !== 0){
-      fetchPipelineData(selectedPipeline);
+      const parsedSelectedPipeline = parseSelectedPipelineName(selectedPipeline[0]);
+      fetchPipelineData(parsedSelectedPipeline);
     } else {
       setNodes([]);
       setEdges([]);
@@ -353,8 +383,8 @@ function Flow() {
       <div style={{ width: '96vw', height: '100vh' }}>
         {
           isPipelineLoading && 
-          <div class="overlay" id="loadingOverlay">
-            <div class="loader"></div>
+          <div className="overlay" id="loadingOverlay">
+            <div className="loader"></div>
          </div>
         }
          

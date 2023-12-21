@@ -1,4 +1,4 @@
-import {combineReducers, configureStore, applyMiddleware} from "@reduxjs/toolkit";
+import {combineReducers, configureStore} from "@reduxjs/toolkit";
 import nodeReducer from "../reducers/nodeSlice";
 import {loadState, saveState} from "../utils/localStorage";
 

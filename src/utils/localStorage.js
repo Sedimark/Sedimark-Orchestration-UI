@@ -1,6 +1,3 @@
-
-// we use this function to get the saved state of the application from the local storage
-
 export const loadState = () => {
     try {
       const serializedState = localStorage.getItem('state');

@@ -46,6 +46,7 @@ export default function PipelineSelectDialog(props) {
   const [isLoading, setIsLoading] = React.useState(true);
   const [allPipelines, setAllPipelines] = React.useState([]);
   const [dialogName, setDialogName] = React.useState("");
+  const [wasRunned, setWasRunned] = React.useState(false);
 
   const parseAndSetColumns = (data_to_parse)=>{
     
@@ -57,15 +58,32 @@ export default function PipelineSelectDialog(props) {
     dispatch(setDatasetColumns(allColumns));
 }
 
+const parseBucketName = (inputString)=>{
+  if (inputString.includes('_')) {
+    inputString = inputString.split("_").join("-");
+  } 
+
+  if (inputString.includes(' ')) {
+    inputString =  inputString.split(' ').join("-");
+  } 
+
+  return inputString;
+}
+
+
 const fetchAndParseMinioJson = async (bucket_name) => {
 
     let jsonFileLink;
     let jsonFileData;
+  
     try{
-        jsonFileLink = await axios.get(FETCH_MINIO_FILE(bucket_name.split("_").join("-")));
+        jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
         jsonFileLink = jsonFileLink.data.url;
     } catch(err){
+        parseAndSetColumns([]);
+        dispatch(setDatasetInfo([]));
         console.log(err);
+        return;
     }
     
     try{
@@ -109,7 +127,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   });
 
   const restoreChecksBasedOnStoredData = (data)=>{
-    
     if(data.length == 0 || pipeline.length == 0){
       return;
     }
@@ -160,8 +177,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
   const addCorespondingPipeline = ()=>{
     
-    //here we just perform a bunch of cleanup because at this point the user deselected the selected pipeline
-    // so he has no pipeline selected and we need to cleanup variables
     if(checked.length == 0){
       dispatch(setDatasetColumns([]));
       dispatch(setDatasetInfo([]));
@@ -195,18 +210,24 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     }
   }
 
-  
   React.useEffect(()=>{
-    handleDialogTitle();
-    fetchAllPipelines();
-    
+    if(wasRunned){
+      fetchAllPipelines();
+    }
+  },[wasRunned])
+
+  React.useEffect(()=>{
+    if(!wasRunned){
+      handleDialogTitle();
+    }
+    setWasRunned(true);
   },[])
  
   return (
     
   <div>
     <ThemeProvider theme={darkTheme}>
-      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth="true" >
+      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth={true} >
 
            <DialogTitle> {dialogName} </DialogTitle>
             <DialogContent>   
