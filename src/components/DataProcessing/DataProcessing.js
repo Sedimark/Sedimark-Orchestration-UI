@@ -2,27 +2,19 @@ import React, { useEffect, useRef, useState } from "react";
 import Flow from "./Flow";
 import styles from './DataProcessing.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCirclePlay, faCircleStop, faSpinner, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faCirclePlay, faSpinner, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
-import { BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA, FETCH_PIPELINES, RUN_PIPELINE } from "../../utils/apiEndpoints";
+import { BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA,  RUN_PIPELINE } from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
 import axios from "axios";
-import { setIsDataFetching } from "../../reducers/nodeSlice";
-import { getVariablesForBlocks } from "../../utils/getVariablesForBlock";
+
 
 function DataProcessing() {
 
-    const constant_value_imputation_columns = useSelector((state) => state.constant_value_imputation_columns);
-    const constant_value_imputation_values = useSelector((state) => state.constant_value_imputation_values)
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const pipelineName = useSelector((state) => state.selectedPipelineName);
     const blockVariables = useSelector((state) => state.blocksVariables);
-    const selectedDataset = useSelector((state) => state.selectedDataset);
-    const selectedDataFeaturingColumns = useSelector((state) => state.selectedDataFeaturingColumns);
-    const normalizationColumns = useSelector((state) => state.normalizationColumns);
-    const standardizationColumns = useSelector((state) => state.standardizationColumns);
-    const imputationAlgs = useSelector((state) => state.imputationAlgs);
     const circles = document.querySelectorAll(".circle"),
         progressBars = document.querySelectorAll("#indicators");
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
@@ -99,8 +91,6 @@ function DataProcessing() {
                 }
             })
 
-            //await new Promise(resolve => setTimeout(resolve, 2500));
-
             setLoading(false);
         } catch (e) {
             setLoading(false);
@@ -126,17 +116,13 @@ function DataProcessing() {
                                 resolve(data);
                             } else {
                                 console.log('Unsatisfactory response:', data);
-                                // If condition not met, retry after a timeout
                                 setTimeout(retry, 2000);
                             }
                         } catch (error) {
                             console.error('Error:', error);
-                            // If there's an error, retry after a timeout
                             setTimeout(retry, 2000);
                         }
                     };
-
-                    // Start the initial API request
                     retry();
                 });
             };
@@ -175,15 +161,15 @@ function DataProcessing() {
     }, [pipelineName]);
 
     const calculateProgressBarWidth = (totalCircles, circleWidth) => {
-        // Set a fixed width for each circle
-        const fixedCircleWidth = circleWidth || 20; // Adjust as needed
-
-        // Calculate the total width of all circles and progress bars
+        if(totalCircles < 5){
+            circleWidth = 40;
+        } else {
+            circleWidth = 30;
+        }
+        
+        const fixedCircleWidth = circleWidth || 20;
         const totalWidth = totalCircles * fixedCircleWidth;
-
-        // Calculate the width of each progress bar
         const progressBarWidth = (totalWidth / totalCircles) * (totalCircles - 1);
-
         return progressBarWidth;
     };
 
@@ -218,7 +204,7 @@ function DataProcessing() {
                                     <span
                                         className="progress-bar"
                                         id="indicators"
-                                        style={{ width: `${calculateProgressBarWidth(pipelineNodes.length, 30)}px` }}
+                                        style={{ width: `${calculateProgressBarWidth(pipelineNodes.length, 40)}px` }}
                                     ></span>
                                 )}
                             </div>

@@ -14,24 +14,18 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import Paper from '@mui/material/Paper';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import {setNodes, removeDataFeaturingColumns} from "../../../reducers/nodeSlice";
-import { useDispatch } from 'react-redux';
 
 export default memo(({ data, isConnectable }) => {
   
-  const dataset = useSelector((state)=>state.selectedDataset);
   const variablesValues = useSelector((state)=> state.blocksVariables);
-  const dispatch = useDispatch();
   const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
   const [rows,setRows] = useState([]);
   const [variablesPresent, setVariablesPresent] = useState(null);
-  const [allColumns , setAllColumns] = useState([]);
   const [fullNodeName, setFullNodeName] = useState("");
   const [nodeName, setNodeName] = useState("");
   const [allVariables, setAllVariables] = useState([]);
   const [storedVariables, setStoredVariables] = useState([]);
-  const allNodes = useSelector((state)=>state.nodes);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -65,7 +59,7 @@ export default memo(({ data, isConnectable }) => {
   }
   
 
-  const checkDatasetSelectedAndGo = ()=>{
+  const openVariablesEditMenu = ()=>{
     setVariablesInputOpen(true);
   }
 
@@ -137,6 +131,14 @@ export default memo(({ data, isConnectable }) => {
   },[storedVariables])
 
 
+  const parseString = (str)=>{
+    if(str.length > 20){
+       return str.substring(0,20) + '...';
+    } else {
+      return str;
+    }
+  }
+
   const parseArray = (arr)=>{
     if (arr.length > 0) {
         let result = arr.join(', ');
@@ -155,8 +157,9 @@ export default memo(({ data, isConnectable }) => {
       if(variable.variable_name == varName){
         if(Array.isArray(variable.value)){
           return parseArray(variable.value);
-        } 
-        return variable.value;
+        } else {
+          return parseString(variable.value);
+        }
       }
     }
     return "";
@@ -201,10 +204,10 @@ export default memo(({ data, isConnectable }) => {
                 </TableContainer>
               
               <div className='custom-node-bottom-toolbox'>
-   			        <button className='processing-node-toolbox-btn' onClick={()=>{checkDatasetSelectedAndGo()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+   			        <button className='processing-node-toolbox-btn' onClick={()=>{openVariablesEditMenu()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
 		         </div>
           </div>
-         }
+         } 
         {
           !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }

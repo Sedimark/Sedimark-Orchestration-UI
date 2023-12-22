@@ -13,23 +13,20 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import NormalizationStandardization from '../dialogs/NormalizationStandardization/NormalizationStandardization';
-import { useDispatch } from 'react-redux';
-import {resetNormalizationAndStandardization, setNodes} from "../../../reducers/nodeSlice";
+import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
 
  
 export default memo(({ data, isConnectable }) => {
-  
-  const dispatch = useDispatch();
-  const dataset = useSelector((state)=>state.selectedDataset);
+
+  const variablesValues = useSelector((state)=> state.blocksVariables);
   const normalizationColumns = useSelector((state)=>state.normalizationColumns);
   const standardizationColumns = useSelector((state)=>state.standardizationColumns);
-  const [allColumns, setAllColumns] = useState([]);
-  const allNodes = useSelector((state)=>state.nodes);
-  const [normalizationStandarizationOpen, setNormalizationStandardizationOpen] = useState(false);
   const [variablesPresent, setVariablesPresent] = useState(true);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
+  const [storedVariables, setStoredVariables] = useState([]);
+  const [variablesInputOpen, setVariablesInputOpen] = useState(false);
+  const [allVariables, setAllVariables] = useState([]);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -52,16 +49,10 @@ export default memo(({ data, isConnectable }) => {
   }));
 
   
-  function createData(name, calories, fat, carbs, protein) {
-    return { name, calories, fat, carbs, protein };
-  }
 
   const shuffleArray = (array)=>{
     for (let i = array.length - 1; i > 0; i--) {
-      // Generate a random index between 0 and i
       const j = Math.floor(Math.random() * (i + 1));
-  
-      // Swap the elements at positions i and j
       [array[i], array[j]] = [array[j], array[i]];
     }
   }
@@ -85,33 +76,19 @@ export default memo(({ data, isConnectable }) => {
     }
     shuffleArray(finalResult);
     finalResult = finalResult.slice(0,5);
-    setAllColumns(finalResult);
+    
   }
 
+  const parseString = (str)=>{
+    if(str.length > 20){
+       return str.substring(0,20) + '...';
+    } else {
+      return str;
+    }
+  }
   
-  const deleteNode = ()=>{
-    let newNodeList = [...allNodes];
-    newNodeList = newNodeList.filter((node)=> node.nodeData.type!=="Normalization");
-    dispatch(setNodes(newNodeList));
-    setTimeout(()=>{
-      dispatch(resetNormalizationAndStandardization());
-    },100)
-  }
-
-  const isDatasetSelected = ()=>{
-    if( !dataset || dataset.length == 0){
-      return false;
-    } else {
-      return true;
-    }
-  } 
-
-  const checkDatasetSelectedAndGo = ()=>{
-    if(isDatasetSelected() == true){
-      setNormalizationStandardizationOpen(true)
-    } else {
-      alert("There was no dataset selected!");
-    }
+  const openVariablesEditMenu = ()=>{
+    setVariablesInputOpen(true);
   }
 
   const processName = (str)=>{
@@ -124,6 +101,27 @@ export default memo(({ data, isConnectable }) => {
     }
   }
 
+  const processVariablesValues = (varsVals)=>{
+    const storedVars = [];
+    for(let val of varsVals){
+      if(val.block_name == fullNodeName){
+        if(val.type == "multiple"){
+           storedVars.push(
+          {
+            "variable_name":val.variable_name,
+            "value":val.value.length
+          }
+         );
+        } else {
+          storedVars.push({
+            "variable_name":val.variable_name,
+            "value":val.value
+          });
+        }
+      }
+    }
+    setStoredVariables(storedVars);
+  }
 
   useEffect(()=>{
     combineAndSet();
@@ -137,7 +135,62 @@ export default memo(({ data, isConnectable }) => {
     } else {
       setVariablesPresent(false);
     }
+
+    const allVars = Object.keys(data.config);
+    const allVarsType = Object.values(data.config);
+    const allVarsData = [];
+    for(let i = 0; i<allVars.length; i++){
+      const varObj = {
+        varName:allVars[i],
+        type:allVarsType[i]
+      }
+      allVarsData.push(varObj);
+    }
+    setAllVariables(allVarsData);
   },[])
+
+
+
+  useEffect(()=>{
+    if(Object.keys(data.config).length!=0){
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
+    }
+  
+  },[storedVariables])
+
+
+  useEffect(()=>{
+    processVariablesValues(variablesValues);
+  },[variablesValues])
+
+
+  const parseArray = (arr)=>{
+    if (arr.length > 0) {
+        let result = arr.join(', ');
+        if (result.length > 30) {
+            result = result.substring(0, 30) + '...';
+        }
+      return result;
+    } else {
+        return '';
+    }
+  }
+
+  const getStoredVariableValue = (varName)=>{
+  
+    for(const variable of variablesValues){
+      if(variable.variable_name == varName){
+        if(Array.isArray(variable.value)){
+          return parseArray(variable.value);
+        } else {
+          return parseString(variable.value);
+        }
+      }
+    }
+    return "";
+  }
 
   return (
     <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #000", backgroundColor:"#d6d6d4", minHeight:"200px" }}>
@@ -164,12 +217,12 @@ export default memo(({ data, isConnectable }) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {Object.keys(data.config).map((row,index) => (
+                      {allVariables.map((row,index) => (
                         <StyledTableRow key={index}>
                           <StyledTableCell component="th" scope="row">
-                            {row}
+                            {row["varName"]}
                           </StyledTableCell>
-                          <StyledTableCell align="right">{}</StyledTableCell>
+                          <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                     
                         </StyledTableRow>
                       ))}
@@ -178,16 +231,17 @@ export default memo(({ data, isConnectable }) => {
                 </TableContainer>
               
               <div className='custom-node-bottom-toolbox'>
-                  <button className='custom-node-toolbox-btn'onClick={()=>{checkDatasetSelectedAndGo()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+                  <button className='custom-node-toolbox-btn'onClick={()=>{openVariablesEditMenu()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
               </div>
           </div>
          }
         {
           !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }
-        <div className='dataset-node-bottom'>
-
-        </div>
+        {
+          variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />
+        }
+      
       </div>
       <Handle
         type="source"
@@ -196,7 +250,6 @@ export default memo(({ data, isConnectable }) => {
         style={{padding:"10px",border:"3px solid #737373"}}
         isConnectable={isConnectable}
       />
-      {normalizationStandarizationOpen && <NormalizationStandardization open={normalizationStandarizationOpen} handleClose={()=>{setNormalizationStandardizationOpen(false)}} />}
     </div>
   );
 });

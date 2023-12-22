@@ -473,3 +473,17 @@
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     z-index: 1;
   }
+
+  .edit-variables-btn-loader{
+    margin-top:9px;
+    width:150px;
+    height: 40px;
+    background-color: #80bbe0;
+    border: 2px solid #0000ff;
+    border-radius: 5px;
+    color:blue;
+  }
+
+  .edit-variables-btn-loader:hover{
+    cursor: pointer;
+  }

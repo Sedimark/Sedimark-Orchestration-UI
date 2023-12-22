@@ -11,8 +11,6 @@ import ListItemText from '@mui/material/ListItemText';
 import WidgetsIcon from '@mui/icons-material/Widgets';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import PipelineSelectDialog from './dialogs/PipelineSelect/PipelineSelectDialog';
-import PreProcessingAlgDialog from './dialogs/PreProcessingAlgDialog/PreProcessingAlgDialog';
-import AIModels from './dialogs/AIModels/AIModels';
 import HubIcon from '@mui/icons-material/Hub';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -90,17 +88,8 @@ export default function MiniDrawer() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(true);
   const [selectDataDialog, setSelectDataDialog] = React.useState(false);
-  const [preProcessingAlgDialogOpen, setPreProcessingAlgDialogOpen] = React.useState(false);
   const [displayMLModels, setDisplayMLModels] = React.useState(false);
   const [pipelineType, setPipelineType] = React.useState("");
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
 
   const openPipelineSelectMenu = (dialogType) => {
     if(dialogType == "train"){
@@ -116,13 +105,6 @@ export default function MiniDrawer() {
     setSelectDataDialog(false);
   }
 
-  const handlePreprocessingAlgDialogClose = ()=>{
-      setPreProcessingAlgDialogOpen(false);
-  }
-
-  const handleDisplayMLModels = () =>{
-    setDisplayMLModels(false);
-  }
 
   return (
     <Box sx={{ display: 'flex' , width:"20px !important"}}>
@@ -190,7 +172,7 @@ export default function MiniDrawer() {
                   <ListItemText primary={"Training pipeline"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-            <ListItem key={"Trained Models"} disablePadding sx={{ display: 'block' }} onClick={()=>{setDisplayMLModels(true);}}>
+            <ListItem key={"Trained Models"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -295,8 +277,6 @@ export default function MiniDrawer() {
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
       </Box>
      {selectDataDialog && <PipelineSelectDialog pipelineType={pipelineType} open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
-     {preProcessingAlgDialogOpen && <PreProcessingAlgDialog open={preProcessingAlgDialogOpen} handleClose={handlePreprocessingAlgDialogClose} />}
-     {displayMLModels && <AIModels open={displayMLModels} handleClose={handleDisplayMLModels} />}
     </Box>
   );
 }

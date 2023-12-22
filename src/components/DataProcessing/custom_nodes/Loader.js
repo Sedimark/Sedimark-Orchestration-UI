@@ -1,4 +1,4 @@
-import React, { memo , useEffect, useState} from 'react';
+import React, { memo, useEffect, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
@@ -9,13 +9,12 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import DataSetInfoNode from '../dialogs/DatasetInfo/DatasetInfoNode';
+import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import {DATASET_FETCH_DATASET_INFO } from "../../../utils/apiEndpoints";
-import {removeDataset, setNodes} from "../../../reducers/nodeSlice";
-import { useDispatch } from 'react-redux';
+import { DATASET_FETCH_DATASET_INFO } from "../../../utils/apiEndpoints";
+import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import axios from "axios";
 
 export default memo(({ data, isConnectable }) => {
@@ -39,101 +38,197 @@ export default memo(({ data, isConnectable }) => {
     },
   }));
 
-
+  const variablesValues = useSelector((state) => state.blocksVariables);
+  const [variablesPresent, setVariablesPresent] = useState(null);
   const [publishDate, setPublishDate] = useState("");
-  const [selectDataDialog, setSelectDataDialog] = useState(false);
-  const [datasetInfoNodeDialog, setDatasetInfoNodeDialog] = useState(false);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
-  const dispatch = useDispatch();
-  const datasetSelected = useSelector((state)=>state.selectedDataset);
-  const allNodes = useSelector((state)=>state.nodes);
-  const [params,setParams] = useState({});
-  const [rows, setRows] = useState([]);
+  const datasetSelected = useSelector((state) => state.selectedDataset);
+  const [params, setParams] = useState({});
+  const [allVariables, setAllVariables] = useState([]);
+  const [storedVariables, setStoredVariables] = useState([]);
+  const [variablesInputOpen, setVariablesInputOpen] = useState(false);
 
-  const fetchDatasetInfo = (datasetId)=>{
+  const fetchDatasetInfo = (datasetId) => {
     axios.get(DATASET_FETCH_DATASET_INFO(datasetId))
-    .then(resp => {setPublishDate(resp.data.publish)})
-    .catch(err => {console.log(err)})
+      .then(resp => { setPublishDate(resp.data.publish) })
+      .catch(err => { console.log(err) })
   }
 
-  const handleChangeDatasetButton = ()=>{
-      setSelectDataDialog(true);
-  }
-
-  const handleDataInfoDialogNodeClose = () =>{
-    setDatasetInfoNodeDialog(false);
-  }
-
- 
-  const deleteNode = ()=>{
-    let newNodeList = [...allNodes];
-    newNodeList = newNodeList.filter((node)=> node.nodeData.type!=="Dataset");
-    dispatch(setNodes(newNodeList));
-    setTimeout(()=>{
-      dispatch(removeDataset())
-    },100)
-    
-  }
-
-  useEffect(()=>{
-    if(datasetSelected && datasetSelected.length!=0){
-      fetchDatasetInfo(datasetSelected[0].id);
+  const parseString = (str) => {
+    if (str.length > 20) {
+      return str.substring(0, 20) + '...';
+    } else {
+      return str;
     }
-  },[datasetSelected])
+  }
 
-  const processName = (str)=>{
+  const processName = (str) => {
     const truncateString = "...";
     const maxLength = 29;
-    if(str.length > maxLength){
-       setNodeName(str.substring(0, maxLength) + truncateString);
+    if (str.length > maxLength) {
+      setNodeName(str.substring(0, maxLength) + truncateString);
     } else {
       setNodeName(str);
     }
   }
 
-  useEffect(()=>{
+  const processVariablesValues = (varsVals) => {
+    const storedVars = [];
+    for (let val of varsVals) {
+      if (val.block_name == fullNodeName) {
+        if (val.type == "multiple") {
+          storedVars.push(
+            {
+              "variable_name": val.variable_name,
+              "value": val.value.length
+            }
+          );
+        } else {
+          storedVars.push({
+            "variable_name": val.variable_name,
+            "value": val.value
+          });
+        }
+      }
+    }
+    setStoredVariables(storedVars);
+  }
+
+
+  // this function is used for the name of a block because we may need
+  // to parse it 
+  const parseArray = (arr) => {
+    if (arr.length > 0) {
+      let result = arr.join(', ');
+      if (result.length > 30) {
+        result = result.substring(0, 30) + '...';
+      }
+      return result;
+    } else {
+      return '';
+    }
+  }
+
+
+  const getStoredVariableValue = (varName) => {
+
+    for (const variable of variablesValues) {
+      if (variable.variable_name == varName) {
+        if (Array.isArray(variable.value)) {
+          return parseArray(variable.value);
+        } else {
+          return parseString(variable.value);
+        }
+      }
+    }
+    return "";
+  }
+
+  const openVariablesEditMenu = () => {
+    setVariablesInputOpen(true);
+  }
+
+  useEffect(() => {
     setParams(data.config);
     processName(data.name)
     setFullNodeName(data.name);
-    
-  },[])
 
-  useEffect(()=>{
-  },[])
+  }, [])
+
+  useEffect(() => {
+    processName(data.name);
+    setFullNodeName(data.name);
+    const allVars = Object.keys(data.config);
+    const allVarsType = Object.values(data.config);
+    const allVarsData = [];
+    for (let i = 0; i < allVars.length; i++) {
+      const varObj = {
+        varName: allVars[i],
+        type: allVarsType[i]
+      }
+      allVarsData.push(varObj);
+    }
+    setAllVariables(allVarsData);
+
+  }, [])
+
+  useEffect(() => {
+    processVariablesValues(variablesValues);
+  }, [variablesValues])
+
+
+  useEffect(() => {
+    if (Object.keys(data.config).length != 0) {
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
+    }
+  }, [storedVariables])
+
+  useEffect(() => {
+    if (datasetSelected && datasetSelected.length != 0) {
+      fetchDatasetInfo(datasetSelected[0].id);
+    }
+  }, [datasetSelected])
 
 
   return (
-    <div style={{  borderRadius:"5%",padding:"10px" , border:"1px solid blue", backgroundColor:"#e0e9ff" , minHeight:"150px"}}> 
-     <Handle
+    <div style={{ borderRadius: "5%", padding: "20px", border: "1px solid blue", backgroundColor: "#e0e9ff", minHeight: "150px" }}>
+      <Handle
         type="target"
         position={Position.Left}
         id="left"
-        style={{padding:"10px",border:"3px solid blue"}}
+        style={{ padding: "10px", border: "3px solid blue" }}
         isConnectable={true}
       />
       <div>
         <div className='base-node-header'>
-             <div className='node-title' title={fullNodeName}> {nodeName? nodeName:"Loader"} </div>
+          <div className='node-title' title={fullNodeName}> {nodeName ? nodeName : "Loader"} </div>
         </div>
+        {variablesPresent &&
+          <div className='base-node-info-section-container'>
+            <h3> Variables</h3>
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 200 }} aria-label="customized table">
+                <TableHead>
+                  <TableRow>
+                    <StyledTableCell>Variable Name</StyledTableCell>
+                    <StyledTableCell align="right">Value</StyledTableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {allVariables.map((row, index) => (
+                    <StyledTableRow key={index}>
+                      <StyledTableCell component="th" scope="row">
+                        {row["varName"]}
+                      </StyledTableCell>
+                      <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
+                    </StyledTableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+
+          </div>
+        }
         <div className='base-node-info-section'>
-            <div className='base-node-info-section-container node-content-container'>    
-            </div>
-            <div className='base-node-bottom-toolbox'>
-                <button className='change-base-btn base-toolbox-btn' onClick={()=>{handleChangeDatasetButton()}}>View Data <FontAwesomeIcon icon={faChartSimple}/> </button>
-            </div>
+          <div className='base-node-bottom-toolbox'>
+            <button className='change-base-btn base-toolbox-btn' onClick={() => { }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button>
+            <button className='edit-variables-btn-loader' onClick={() => { openVariablesEditMenu() }}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare} /></button>
+          </div>
         </div>
-        
+
       </div>
       <Handle
         type="source"
         position={Position.Right}
         id="right"
-        style={{padding:"10px",border:"3px solid blue"}}
+        style={{ padding: "10px", border: "3px solid blue" }}
         isConnectable={true}
       />
-     
-      {datasetInfoNodeDialog && <DataSetInfoNode open={datasetInfoNodeDialog} handleClose={()=>{handleDataInfoDialogNodeClose()}}></DataSetInfoNode>}
+      {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={() => { setVariablesInputOpen(false); }} />}
     </div>
   );
 });

@@ -150,7 +150,9 @@ export default function VariablesInput(props){
             parsedArray.push(value);
         }
        }
-       parsedArray = [parsedArray, ...newValues];
+    
+       parsedArray = [...parsedArray, ...newValues];
+       return parsedArray;
     }
     
     const createObjToStore = ()=>{
@@ -167,8 +169,9 @@ export default function VariablesInput(props){
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
       }
+    
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
-      dispatch(setBlocksVariables(inputedValuesVariables)); 
+      dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
     const handleDone = ()=>{

@@ -21,13 +21,12 @@ import { faCodeBranch } from '@fortawesome/free-solid-svg-icons';
 import Paper from '@mui/material/Paper'; 
 import { Typography } from '@mui/material';
 import style from "./PipelineSelectDialog.css";
-import DataSetInfo from './DataSetInfo';
 import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
-import {addNode, addPipeline, setNodes, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
+import {addPipeline, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { setDatasetColumns, setDatasetInfo,setIsPipelineFetching } from '../../../../reducers/nodeSlice';
+import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
 
 
 export default function PipelineSelectDialog(props) {
@@ -38,9 +37,6 @@ export default function PipelineSelectDialog(props) {
   const pipeline = useSelector((state)=>state.selectedPipeline);
   const [checked, setChecked] = React.useState([]);
   const [dataSetSearch,setDatasetSearch] = React.useState(true);
-  const [dataSets, setDataSets] = React.useState([]);
-  const [selectedDatasetId,setSelectedDatasetId] = React.useState("");
-  const [selectedDatasetName, setSelectedDatasetName] = React.useState("");
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
   const [searchedString, setSearchedString] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
@@ -231,8 +227,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
            <DialogTitle> {dialogName} </DialogTitle>
             <DialogContent>   
-             {
-                dataSetSearch &&
+           
                 <Paper
                   component="form"
                   onSubmit={(evt)=>{evt.preventDefault()}}
@@ -253,9 +248,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                   </IconButton> 
                 </Paper>
               
-              } 
-              {
-                dataSetSearch &&
+             
                    <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px" }}>
                      <ListItem
                         key={"my-key"}
@@ -315,8 +308,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                      
                    })}
                  </List>
-              }
-
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>

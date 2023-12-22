@@ -316,6 +316,7 @@ function Flow() {
   
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+      console.log(resp);
       processAndPlaceNodes(resp.data.pipeline.blocks);
       setIsPipelineLoading(false);
       dispatch(setSelectedPipelineName(pipeline_name));

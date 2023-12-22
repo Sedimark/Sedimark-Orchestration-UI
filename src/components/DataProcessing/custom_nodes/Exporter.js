@@ -10,21 +10,20 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { useDispatch } from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import { setNodes, resetSelectedModelType} from "../../../reducers/nodeSlice";
-
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
  
 export default memo(({ data, isConnectable }) => {
  
+  const variablesValues = useSelector((state)=> state.blocksVariables);
+  const [storedVariables, setStoredVariables] = useState([]);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
+  const [allVariables, setAllVariables] = useState([]);
+  const [variablesPresent, setVariablesPresent] = useState(false);
+  const [variablesInputOpen, setVariablesInputOpen] = useState(false);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -40,36 +39,11 @@ export default memo(({ data, isConnectable }) => {
     '&:nth-of-type(odd)': {
       backgroundColor: theme.palette.action.hover,
     },
-    // hide last border
+  
     '&:last-child td, &:last-child th': {
       border: 0,
     },
   }));
-
-  const dispatch = useDispatch();
-  const allNodes = useSelector((state)=>state.nodes);
-  const [variablesPresent, setVariablesPresent] = useState(false);
-  const [allColumns, setAllColumns] = useState([]);
-  const rows = [
-    createData('Training loss', 159),
-    createData('Validation Loss', 237),
-    createData('Training Accuracy', 262)
-  ];
-
-  const darkTheme = createTheme({
-    palette: {
-      mode: 'dark',
-    },
-  });
-
-  const deleteNode = ()=>{
-    let newNodeList = [...allNodes];
-    newNodeList = newNodeList.filter((node)=> node.nodeData.type!=="Model Training");
-    dispatch(setNodes(newNodeList));
-    setTimeout(()=>{
-      dispatch(resetSelectedModelType());
-    },100)
-  }
 
   const processName = (str)=>{
     const truncateString = "...";
@@ -87,6 +61,95 @@ export default memo(({ data, isConnectable }) => {
     setFullNodeName(data.name);
   },[])
 
+  const parseArray = (arr)=>{
+    if (arr.length > 0) {
+        let result = arr.join(', ');
+        if (result.length > 20) {
+            result = result.substring(0, 20) + '...';
+        }
+      return result;
+    } else {
+        return '';
+    }
+  }
+
+  const parseString = (str)=>{
+    if(str.length > 20){
+       return str.substring(0,20) + '...';
+    } else {
+      return str;
+    }
+  }
+
+  const processVariablesValues = (varsVals)=>{
+    const storedVars = [];
+    for(let val of varsVals){
+      if(val.block_name == fullNodeName){
+        if(val.type == "multiple"){
+           storedVars.push(
+          {
+            "variable_name":val.variable_name,
+            "value":val.value.length
+          }
+         );
+        } else {
+          storedVars.push({
+            "variable_name":val.variable_name,
+            "value":val.value
+          });
+        }
+      }
+    }
+    setStoredVariables(storedVars);
+  }
+
+  const getStoredVariableValue = (varName)=>{
+  
+    for(const variable of variablesValues){
+      if(variable.variable_name == varName){
+        if(Array.isArray(variable.value)){
+          return parseArray(variable.value);
+        } else {
+          return parseString(variable.value);
+        }
+      }
+    }
+    return "";
+  }
+
+  const openVariablesEditMenu = ()=>{
+    setVariablesInputOpen(true);
+  }
+
+  useEffect(()=>{
+    processVariablesValues(variablesValues);
+  },[variablesValues])
+
+  useEffect(()=>{
+    if(Object.keys(data.config).length!=0){
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
+    }
+  
+  },[storedVariables])
+
+  useEffect(()=>{
+    processName(data.name);
+    setFullNodeName(data.name);
+    const allVars = Object.keys(data.config);
+    const allVarsType = Object.values(data.config);
+    const allVarsData = [];
+    for(let i = 0; i<allVars.length; i++){
+      const varObj = {
+        varName:allVars[i],
+        type:allVarsType[i]
+      }
+      allVarsData.push(varObj);
+    }
+    setAllVariables(allVarsData);
+    
+  },[])
 
  
   return (
@@ -116,13 +179,12 @@ export default memo(({ data, isConnectable }) => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {allColumns.map((row,index) => (
-                        <StyledTableRow key={index}>
-                          <StyledTableCell component="th" scope="row">
-                            {row.name}
-                          </StyledTableCell>
-                          <StyledTableCell align="right">{row.algType}</StyledTableCell>
-                    
+                      {  allVariables.map((row,index) => (
+                          <StyledTableRow key={index}>
+                            <StyledTableCell component="th" scope="row">
+                             {row["varName"]}
+                            </StyledTableCell>
+                          <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                         </StyledTableRow>
                       ))}
                     </TableBody>
@@ -130,14 +192,14 @@ export default memo(({ data, isConnectable }) => {
                 </TableContainer>
               
               <div className='custom-node-bottom-toolbox'>
-                  <button className='custom-node-toolbox-btn'onClick={()=>{}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+                  <button className='custom-node-toolbox-btn'onClick={()=>{openVariablesEditMenu()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
               </div>
           </div>
          }
         {
           !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }
-
+        {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
 
       </div>
       <Handle
