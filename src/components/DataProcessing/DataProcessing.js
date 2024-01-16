@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from "react";
 import Flow from "./Flow";
 import styles from './DataProcessing.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCirclePlay, faSpinner, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
+import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
 import { BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA,  RUN_PIPELINE } from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
 import axios from "axios";
@@ -21,6 +22,7 @@ function DataProcessing() {
     const [pipelineFinished, setPipelineFinished] = useState(false);
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isAreYouSureOpen, setIsAreYouSureOpen] = useState(false);
 
 
     const blockAlert = (msg) => {
@@ -173,6 +175,10 @@ function DataProcessing() {
         return progressBarWidth;
     };
 
+    const closAreYouSure = ()=>{
+        setIsAreYouSureOpen(false);
+    }
+
     return (
         <div style={{ height: '100%' }}>
             <div className="flow-container">
@@ -210,10 +216,21 @@ function DataProcessing() {
                             </div>
                         ))}
                     </div>
+                 {
+                    pipelineName.length!=0 &&
+                    <div className="side-info-container">
+                        <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/> 
+                        <FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   
+                    </div>  
+                 }
+                    
                 </div>
+                
                 <Toaster />
                 <LeftMenu />
                 <Flow />
+                { isAreYouSureOpen && <AreYouSure open={isAreYouSureOpen} handleClose={closAreYouSure}></AreYouSure>}
+                
             </div>
         </div>
     );

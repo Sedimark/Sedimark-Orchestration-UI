@@ -10,7 +10,6 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
-import Checkbox from '@mui/material/Checkbox';
 import InputBase from '@mui/material/InputBase';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -20,13 +19,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCodeBranch } from '@fortawesome/free-solid-svg-icons';
 import Paper from '@mui/material/Paper'; 
 import { Typography } from '@mui/material';
+import RadioGroup from '@mui/material/RadioGroup';
 import style from "./PipelineSelectDialog.css";
+import Radio from '@mui/material/Radio';
 import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
 import {addPipeline, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
+import FormControlLabel from '@mui/material/FormControlLabel';
 
 
 export default function PipelineSelectDialog(props) {
@@ -43,6 +45,8 @@ export default function PipelineSelectDialog(props) {
   const [allPipelines, setAllPipelines] = React.useState([]);
   const [dialogName, setDialogName] = React.useState("");
   const [wasRunned, setWasRunned] = React.useState(false);
+  const [selectedPipeline,setSelectedPipeline] = React.useState("");
+  const [onlyOneOptionSelected, setOnlyOneOptionSelected] = React.useState(false);
 
   const parseAndSetColumns = (data_to_parse)=>{
     
@@ -172,8 +176,12 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   }
 
   const addCorespondingPipeline = ()=>{
+    if(isLoading){
+      return;
+    }
+    console.log("The coresponding pipeline was added!")
     
-    if(checked.length == 0){
+     if(selectedPipeline.length == 0){
       dispatch(setDatasetColumns([]));
       dispatch(setDatasetInfo([]));
       dispatch(setMappedEdges([]));
@@ -185,18 +193,25 @@ const fetchAndParseMinioJson = async (bucket_name) => {
       return;
     }
 
-
+    
     if(pipeline.length == 0){ 
-      dispatch(addPipeline(checked[0]));
+      dispatch(addPipeline(selectedPipeline));
       return;
     }
-    if(pipeline.length !=0 && pipeline[0] != checked[0])
+
+
+    if(pipeline.length !=0 && pipeline[0] != selectedPipeline)
     {
-      dispatch(addPipeline(checked[0]));
+      dispatch(addPipeline(selectedPipeline));
       return;
     }
        
   }
+
+
+  const handleRadioClick = (value)=>{
+    setSelectedPipeline(value.target.value);
+ }
 
   const handleDialogTitle = ()=>{
     if(props.pipelineType == "data_preprocessing"){
@@ -219,103 +234,231 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     setWasRunned(true);
   },[])
  
-  return (
+  // return (
     
-  <div>
-    <ThemeProvider theme={darkTheme}>
-      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth={true} >
+  // <div>
+  //   <ThemeProvider theme={darkTheme}>
+  //     <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth={true} >
 
-           <DialogTitle> {dialogName} </DialogTitle>
-            <DialogContent>   
+  //          <DialogTitle> {dialogName} </DialogTitle>
+  //           <DialogContent>   
            
-                <Paper
-                  component="form"
-                  onSubmit={(evt)=>{evt.preventDefault()}}
-                  sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: "100%" }}
-                >
-                  <IconButton sx={{ p: '10px' }} aria-label="menu">
-                    <MenuIcon />
-                  </IconButton>
-                  <InputBase
-                    sx={{ ml: 1, flex: 1 }}
-                    placeholder="Search Pipeline"
-                    inputProps={{ 'aria-label': 'search google maps' }}
-                    onChange={(evt)=>{updateSearch(evt)}}
-                  />
-                    <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-                  <IconButton onClick={()=>{}} type="button" sx={{ p: '10px' }} aria-label="search">
-                    <SearchIcon />
-                  </IconButton> 
-                </Paper>
+  //               <Paper
+  //                 component="form"
+  //                 onSubmit={(evt)=>{evt.preventDefault()}}
+  //                 sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: "100%" }}
+  //               >
+  //                 <IconButton sx={{ p: '10px' }} aria-label="menu">
+  //                   <MenuIcon />
+  //                 </IconButton>
+  //                 <InputBase
+  //                   sx={{ ml: 1, flex: 1 }}
+  //                   placeholder="Search Pipeline"
+  //                   inputProps={{ 'aria-label': 'search google maps' }}
+  //                   onChange={(evt)=>{updateSearch(evt)}}
+  //                 />
+  //                   <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+  //                 <IconButton onClick={()=>{}} type="button" sx={{ p: '10px' }} aria-label="search">
+  //                   <SearchIcon />
+  //                 </IconButton> 
+  //               </Paper>
               
              
-                   <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px" }}>
-                     <ListItem
-                        key={"my-key"}
-                        secondaryAction={
-                          <div className='dataset-select-toolbox'>
-                            <p>Select</p>
+  //                  <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px" }}>
+  //                    <ListItem
+  //                       key={"my-key"}
+  //                       secondaryAction={
+  //                         <div className='dataset-select-toolbox'>
+  //                           <p>Select</p>
                           
-                          </div>
-                        }
-                        disablePadding
-                        sx={{
-                         padding:"15px",
-                         pointerEvents:"none"
-                        }}
-                      >
-                        <ListItemButton>
+  //                         </div>
+  //                       }
+  //                       disablePadding
+  //                       sx={{
+  //                        padding:"15px",
+  //                        pointerEvents:"none"
+  //                       }}
+  //                     >
+  //                       <ListItemButton>
                           
-                          <ListItemText  id={'fd3432'}  disableTypography
-                          primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>Pipeline Name</Typography>} />
-                        </ListItemButton>
-                      </ListItem>
-                   {
-                    isLoading &&
-                    <div className="loading-circle-container">
-                      <div className="loading-circle"></div>
-                      <p className="loading-text">Loading...</p>
-                    </div>
+  //                         <ListItemText  id={'fd3432'}  disableTypography
+  //                         primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>Pipeline Name</Typography>} />
+  //                       </ListItemButton>
+  //                     </ListItem>
+  //                  {
+  //                   isLoading &&
+  //                   <div className="loading-circle-container">
+  //                     <div className="loading-circle"></div>
+  //                     <p className="loading-text">Loading...</p>
+  //                   </div>
                     
-                   }
-                   { !isLoading && filteredPipelines.map((value,index) => {
-                     const labelId = `checkbox-list-secondary-label-${value.name}`;
-                      return (
-                        <ListItem
-                          key={value.name}
+  //                  }
+  //                  { !isLoading && filteredPipelines.map((value,index) => {
+  //                    const labelId = `checkbox-list-secondary-label-${value.name}`;
+  //                     return (
+  //                       <ListItem
+  //                         key={value.name}
+  //                         secondaryAction={
+  //                           <div className='dataset-select-toolbox'>
+  //                             <Checkbox
+  //                               edge="end"
+  //                               onChange={handleToggle(value.name)}
+  //                               checked={checked.indexOf(value.name) !== -1}
+  //                               inputProps={{ 'aria-labelledby': labelId }}
+  //                             />
+                              
+  //                           </div>
+  //                         }
+  //                         disablePadding
+  //                       > 
+  //                         <ListItemButton>
+  //                           <ListItemAvatar>
+  //                             <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
+  //                           </ListItemAvatar>
+  //                           <ListItemText  id={labelId}  disableTypography
+  //                           primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value.name}</Typography>} />
+  //                         </ListItemButton>
+  //                       </ListItem>
+  //                     );
+                     
+  //                  })}
+  //                </List>
+  //           </DialogContent>
+  //           <DialogActions>
+  //             <Button onClick={props.handleClose}>Close</Button>
+  //             <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}}>Apply</Button>
+  //           </DialogActions>
+          
+  //     </Dialog>
+  //     </ThemeProvider>
+  //   </div> 
+  // );
+
+
+
+
+  React.useEffect(()=>{
+    
+      if(filteredPipelines.length == 1 && filteredPipelines[0].name == pipeline[0]){
+        setOnlyOneOptionSelected(true);
+      }
+  },[filteredPipelines])
+
+  return (
+    
+    <div>
+      <ThemeProvider theme={darkTheme}>
+        <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth={true} >
+  
+             <DialogTitle> {dialogName} </DialogTitle>
+              <DialogContent>   
+             
+                  <Paper
+                    component="form"
+                    onSubmit={(evt)=>{evt.preventDefault()}}
+                    sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: "100%" }}
+                  >
+                    <IconButton sx={{ p: '10px' }} aria-label="menu">
+                      <MenuIcon />
+                    </IconButton>
+                    <InputBase
+                      sx={{ ml: 1, flex: 1 }}
+                      placeholder="Search Pipeline"
+                      inputProps={{ 'aria-label': 'search google maps' }}
+                      onChange={(evt)=>{updateSearch(evt)}}
+                    />
+                      <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
+                    <IconButton onClick={()=>{}} type="button" sx={{ p: '10px' }} aria-label="search">
+                      <SearchIcon />
+                    </IconButton> 
+                  </Paper>
+                
+               
+                     <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px" }}>
+                       <ListItem
+                          key={"my-key"}
                           secondaryAction={
                             <div className='dataset-select-toolbox'>
-                              <Checkbox
-                                edge="end"
-                                onChange={handleToggle(value.name)}
-                                checked={checked.indexOf(value.name) !== -1}
-                                inputProps={{ 'aria-labelledby': labelId }}
-                              />
-                              
+                              <p>Select</p>
+                            
                             </div>
                           }
                           disablePadding
-                        > 
+                          sx={{
+                           padding:"15px",
+                           pointerEvents:"none"
+                          }}
+                        >
                           <ListItemButton>
-                            <ListItemAvatar>
-                              <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
-                            </ListItemAvatar>
-                            <ListItemText  id={labelId}  disableTypography
-                            primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value.name}</Typography>} />
+                            
+                            <ListItemText  id={'fd3432'}  disableTypography
+                            primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>Pipeline Name</Typography>} />
                           </ListItemButton>
                         </ListItem>
-                      );
+                     {
+                      isLoading &&
+                      <div className="loading-circle-container">
+                        <div className="loading-circle"></div>
+                        <p className="loading-text">Loading...</p>
+                      </div>
+                      
+                     }
+                     { !isLoading && 
+                        
+                     <RadioGroup onClick={(val)=>{handleRadioClick(val)}}>
+  
+                      {
+                           filteredPipelines.map((value,index) => {
+                            const labelId = `checkbox-list-secondary-label-${value.name}`;
+                        
+                             return (
+                               <ListItem
+                                 key={value.name}
+                                 secondaryAction={
+                                   <div className='dataset-select-toolbox'>
+                                     {/* <Checkbox
+                                       edge="end"
+                                       onChange={handleToggle(value.name)}
+                                       checked={checked.indexOf(value.name) !== -1}
+                                       inputProps={{ 'aria-labelledby': labelId }}
+                                     /> */}
+                                     {value.name != pipeline[0] ?
+                                      <FormControlLabel value={value.name} control={<Radio />}  /> :
+                                      <p className='pipeline-selected-text'>Selected</p>
+                                     }
+                                     
+                                   </div>
+                                 }
+                                 disablePadding
+                               > 
+                                 <ListItemButton>
+                                   <ListItemAvatar>
+                                     <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
+                                   </ListItemAvatar>
+                                   <ListItemText  id={labelId}  disableTypography
+                                   primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value.name}</Typography>} />
+                                 </ListItemButton>
+                               </ListItem>
+                             );
+                            
+                          })
+                          
+                      }
+  
+                     </RadioGroup>
+                  
+                     }
                      
-                   })}
-                 </List>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={props.handleClose}>Close</Button>
-              <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}}>Apply</Button>
-            </DialogActions>
-          
-      </Dialog>
-      </ThemeProvider>
-    </div> 
-  );
+                   </List>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={props.handleClose}>Close</Button>
+                <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}} disabled={onlyOneOptionSelected || isLoading}>Apply</Button>
+              </DialogActions>
+            
+        </Dialog>
+        </ThemeProvider>
+      </div> 
+    );
+
 }
