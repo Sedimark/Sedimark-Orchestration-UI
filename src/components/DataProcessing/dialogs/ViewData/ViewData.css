@@ -1,0 +1,15 @@
+.truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Set your desired maximum width */
+  }
+  
+  .truncate-text:hover {
+    white-space: normal;
+    overflow: visible;
+  }
+
+  .loading-text-view-data{
+    margin-left: 100%;
+  }

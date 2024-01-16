@@ -7,7 +7,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
 import { styled } from '@mui/system';
 import styles from "./VariablesInput.css";
-import { unstable_useNumberInput as useNumberInput } from '@mui/base/unstable_useNumberInput';
 import {useDispatch} from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -77,7 +76,6 @@ export default function VariablesInput(props){
     const [nodeNameId, setNodeNameId] = React.useState();
     const [hasMultipleSelection, setHasMultipleSelection] = React.useState(false);
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
-    let values; 
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
       if (indexToUpdate !== -1) {

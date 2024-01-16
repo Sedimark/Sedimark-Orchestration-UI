@@ -10,6 +10,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
+import ViewData from '../dialogs/ViewData/ViewData';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -48,6 +49,7 @@ export default memo(({ data, isConnectable }) => {
   const [allVariables, setAllVariables] = useState([]);
   const [storedVariables, setStoredVariables] = useState([]);
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
+  const [viewDataDialog, setViewDataDialog] = useState(false);
 
   const fetchDatasetInfo = (datasetId) => {
     axios.get(DATASET_FETCH_DATASET_INFO(datasetId))
@@ -127,6 +129,10 @@ export default memo(({ data, isConnectable }) => {
 
   const openVariablesEditMenu = () => {
     setVariablesInputOpen(true);
+  }
+
+  const handleCloseViewData = ()=>{
+    setViewDataDialog(false);
   }
 
   useEffect(() => {
@@ -215,7 +221,7 @@ export default memo(({ data, isConnectable }) => {
         }
         <div className='base-node-info-section'>
           <div className='base-node-bottom-toolbox'>
-            <button className='change-base-btn base-toolbox-btn' onClick={() => { }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button>
+            <button className='change-base-btn base-toolbox-btn' onClick={() => { setViewDataDialog(true) }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button>
             <button className='edit-variables-btn-loader' onClick={() => { openVariablesEditMenu() }}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare} /></button>
           </div>
         </div>
@@ -229,6 +235,7 @@ export default memo(({ data, isConnectable }) => {
         isConnectable={true}
       />
       {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={() => { setVariablesInputOpen(false); }} />}
+      {viewDataDialog && <ViewData open={viewDataDialog} handleClose={handleCloseViewData}></ViewData>}
     </div>
   );
 });

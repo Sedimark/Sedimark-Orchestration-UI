@@ -179,7 +179,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     if(isLoading){
       return;
     }
-    console.log("The coresponding pipeline was added!")
+   
     
      if(selectedPipeline.length == 0){
       dispatch(setDatasetColumns([]));
@@ -401,7 +401,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                         <div className="loading-circle"></div>
                         <p className="loading-text">Loading...</p>
                       </div>
-                      
                      }
                      { !isLoading && 
                         
