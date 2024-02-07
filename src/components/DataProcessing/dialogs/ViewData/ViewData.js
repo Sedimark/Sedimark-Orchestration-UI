@@ -293,16 +293,14 @@ export default function ViewData(props) {
                                         {allColumnsData && allColumnsData.map((row,index)=>{
                                          
                                             if(row.type == "unique_values"){
-                                                return(<div style={{  width: '300px' ,  borderLeft: '1px solid #e0e0e0', height:"150px" , fontSize:"1.2rem" ,textAlign:"center", paddingTop:"40px",paddingRight:"40px"}}>
+                                                return(<div style={{  width: '300px' ,  borderLeft: '1px solid #e0e0e0', height:"150px" , fontSize:"1.2rem" ,textAlign:"center", paddingTop:"40px"}}>
                                                         <p >{row.unique_values} </p>
                                                         <p style={{fontWeight:"bold"}}> UNIQUE VALUES </p>
                                                     </div>);
                                             } else if(row.type == "hist"){
-                                               const dataValues = transformObjectToArray(row.hist);
-                                            // row.columnName - cu acesta faci fetch
-                                            const fetchedData = allHistValues[row.column_name];
                                           
-                                                
+                                            const fetchedData = allHistValues[row.column_name];
+                    
                                                 return(    
                                                     <TableCell  style={{ border: '1px solid #e0e0e0' }}>
                                                         <div style={{ width: '300px', marginLeft:"60px" }}>
