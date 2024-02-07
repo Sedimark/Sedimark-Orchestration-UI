@@ -6,15 +6,14 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 import {addPipeline, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
 import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
 
 export default function AreYouSure(props) {
 
-
-
   const dispatch = useDispatch();
+  const selectedPipeline = useSelector((state)=> state.selectedPipeline);
   const darkTheme = createTheme({
     palette: {
       mode: 'dark',
@@ -34,6 +33,10 @@ export default function AreYouSure(props) {
     props.handleClose();
   }
 
+  React.useEffect(()=>{
+    
+  },[ ])
+
   return (
     
     <ThemeProvider theme={darkTheme}>
@@ -48,7 +51,7 @@ export default function AreYouSure(props) {
             </DialogTitle>
             <DialogContent>
             <DialogContentText id="alert-dialog-description">
-                Are you sure you want to remove pipeline name from the view?
+                Are you sure you want to remove {selectedPipeline} from the view?
             </DialogContentText>
             </DialogContent>
             <DialogActions>

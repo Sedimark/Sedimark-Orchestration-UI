@@ -6,8 +6,12 @@ import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan } from '@for
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
 import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
+import { styled } from '@mui/material/styles';
 import { BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA,  RUN_PIPELINE } from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
+import Button from '@mui/material/Button';
+import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
+import Typography from '@mui/material/Typography';
 import axios from "axios";
 
 
@@ -24,6 +28,18 @@ function DataProcessing() {
     const [loading, setLoading] = useState(false);
     const [isAreYouSureOpen, setIsAreYouSureOpen] = useState(false);
 
+    const HtmlTooltip = styled(({ className, ...props }) => (
+        <Tooltip {...props} classes={{ popper: className }} />
+      ))(({ theme }) => ({
+        [`& .${tooltipClasses.tooltip}`]: {
+          backgroundColor: '#f5f5f9',
+          color: 'rgba(0, 0, 0, 0.87)',
+          maxWidth: 220,
+          fontSize: theme.typography.pxToRem(12),
+          border: '1px solid #dadde9',
+        },
+      }));
+      
 
     const blockAlert = (msg) => {
         toast.error(msg, {
@@ -219,8 +235,18 @@ function DataProcessing() {
                  {
                     pipelineName.length!=0 &&
                     <div className="side-info-container">
-                        <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/> 
-                        <FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   
+                        <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
+                                            <HtmlTooltip
+                            title={
+                            <React.Fragment>
+                                <Typography color="inherit"><h6>Selected Pipeline</h6></Typography>
+                                <em>{pipelineName}</em>
+                            </React.Fragment>
+                            }
+                        >
+                            <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
+                        </HtmlTooltip> 
+                        
                     </div>  
                  }
                     

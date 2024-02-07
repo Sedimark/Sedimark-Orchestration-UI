@@ -232,17 +232,17 @@ export default function VariablesInput(props){
 
    useEffect(()=>{
     setNodeNameId(convertToSnakeCase(props.fullNodeName));
-   },[])
+   },[]) 
    
 
     return (
     <div>
-        <ThemeProvider theme={darkTheme}>
+        
           <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="300" fullWidth="true" >
     
                <DialogTitle> {props.fullNodeName} </DialogTitle>
                 <DialogContent sx={{textAlign:'center'}}>   
-                <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="black" >
+                <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="#f0f0f0" >
                 {!isDataLoading && 
                  <>
                   <div className='section-title'>
@@ -317,7 +317,6 @@ export default function VariablesInput(props){
                 </DialogActions>
               
           </Dialog>
-          </ThemeProvider>
         </div> 
       );
 }
