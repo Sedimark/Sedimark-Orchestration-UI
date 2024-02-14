@@ -429,7 +429,10 @@ function Flow() {
 
 
   useEffect(()=>{
-    fetchAndParseMinioJson(selectedPipeline[0]);
+    if(selectedPipeline.length!=0){
+      fetchAndParseMinioJson(selectedPipeline[0]);
+    }
+    
   },[selectedPipeline])
 
    

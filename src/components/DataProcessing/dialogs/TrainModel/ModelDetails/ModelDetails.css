@@ -13,3 +13,18 @@
     font-size: 1.2rem;
     font-weight: bold;
 }
+
+.model-details-container{
+    padding:20px;
+}
+
+.left-icon{
+    font-size: 1.9rem;
+    float:left;
+    padding-top:10px;
+    padding-left:10px;
+}
+
+.left-icon:hover{
+    cursor:pointer
+}

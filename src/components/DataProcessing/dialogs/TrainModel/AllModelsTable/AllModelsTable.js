@@ -41,6 +41,11 @@ export const AllModelsTable = (props)=>{
         }
       }
 
+      const handleSeeMore = (model_data)=>{
+          props.handleSwitch();
+          props.selectModel(model_data);
+      }
+
     return(
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 700 }} aria-label="customized table">
@@ -53,16 +58,16 @@ export const AllModelsTable = (props)=>{
                        </TableHead>
                       <TableBody>
                       { props.allModelsData.length!=0 &&  props.allModelsData.map((row) => (
-                           <StyledTableRow key={row.model_name}>
+                           <StyledTableRow key={row.name}>
                              <StyledTableCell align="left">
-                               <p title={row.model_name}>{truncateString(row.model_name,21)}</p>
+                               <p title={row.name}>{truncateString(row.name,21)}</p>
                              </StyledTableCell>
-                             <StyledTableCell align="left">{row.date}</StyledTableCell>
+                             <StyledTableCell align="left">{row.creation_date}</StyledTableCell>
                              <StyledTableCell align="right"><Button variant="contained"   sx={{ width: 150,
                                                                                                 color: 'white',
                                                                                                 backgroundColor:"#2431bd"
                                                                                       }}
-                                     onClick={props.handleSwitch} 
+                                     onClick={()=>{handleSeeMore({model_name:row.name, model_date:row.creation_date})}} 
                                      endIcon={<OpenInNewIcon/>}>See more</Button></StyledTableCell>
 
                            </StyledTableRow>

@@ -15,10 +15,11 @@ import { styled } from '@mui/system';
 import Paper from '@mui/material/Paper';
 import styles from "./TrainModelDialog.css";
 import {useDispatch} from 'react-redux';
+import axios from "axios";
 import { AllModelsTable } from './AllModelsTable/AllModelsTable';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {ModelDetails} from "./ModelDetails/ModelDetails";
-
+import { GET_ALL_MODELS } from '../../../../utils/apiEndpoints';
 
 
 const ITEM_HEIGHT = 48;
@@ -49,12 +50,12 @@ const rows = [
 
 export default function TrainModelDialog(props){
 
-    const [isDataLoading, setIsDataLoading] = React.useState(false);
+    const [isDataLoading, setIsDataLoading] = React.useState(true);
     const [wasSomethingChanged, setWasSomethingChanged] = React.useState(false);
     const [allModelsData, setAllModelsData] = React.useState([]);
     const [allModelsPage, setModelsPage] = React.useState(true);
     const [modelsDetailsPage, setModelsDetailPage] = React.useState(false);
-
+    const [selectedModelData, setSelectedModelData] = React.useState({});
     
     const darkTheme = createTheme({
       palette: {
@@ -68,53 +69,17 @@ export default function TrainModelDialog(props){
     }
 
 
-    const fetchAllModelsAndSet = ()=>{
+    const fetchAllModelsAndSet = async()=>{
 
-
-      setAllModelsData(
-        [
-          {
-              "model_name": "My model no. 1 fdsfdsfsd",
-              "date": "06/20/2022"
-          },
-          {
-              "model_name": "My model no. 2",
-              "date": "05/11/2022"
-          },
-          {
-              "model_name": "My model no. 3",
-              "date": "02/16/2022"
-          },
-          {
-              "model_name": "My model no. 4",
-              "date": "03/09/2020"
-          },
-          {
-              "model_name": "My model no. 5",
-              "date": "05/01/2020"
-          },
-          {
-              "model_name": "My model no. 6",
-              "date": "09/06/2020"
-          },
-          {
-              "model_name": "My model no. 7",
-              "date": "10/21/2022"
-          },
-          {
-              "model_name": "My model no. 8",
-              "date": "06/27/2021"
-          },
-          {
-              "model_name": "My model no. 9",
-              "date": "02/05/2020"
-          },
-          {
-              "model_name": "My model no. 10",
-              "date": "02/24/2020"
-          }
-      ]
-     )
+      try{
+        const response = await axios.get(GET_ALL_MODELS);
+        setAllModelsData(response.data);
+        setIsDataLoading(false);
+      } catch(err){
+        console.log(err);
+        setIsDataLoading(false);
+      }
+      
    }
 
    const handleSwitch = ()=>{
@@ -135,6 +100,7 @@ export default function TrainModelDialog(props){
       fetchAllModelsAndSet();
     },[]);
 
+
     return ( 
     <div>
       <ThemeProvider theme={darkTheme}>
@@ -146,7 +112,7 @@ export default function TrainModelDialog(props){
             {!isDataLoading && allModelsPage && 
               <>
                
-                  <AllModelsTable allModelsData={allModelsData} handleSwitch={handleSwitch}></AllModelsTable>
+                  <AllModelsTable allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData}></AllModelsTable>
               </>
               } 
               {
@@ -159,7 +125,7 @@ export default function TrainModelDialog(props){
                 </div>
               }
               {
-                !isDataLoading && modelsDetailsPage && <ModelDetails handleSwitch={handleSwitch} />
+                !isDataLoading && modelsDetailsPage && <ModelDetails handleSwitch={handleSwitch} model_data={selectedModelData} />
               }
               
               </Box>
