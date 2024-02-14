@@ -7,7 +7,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import {useDispatch, useSelector} from 'react-redux';
-import {addPipeline, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
+import {addPipeline, clearPipeline, setBlocksVariables, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
 import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
 
 export default function AreYouSure(props) {
@@ -29,6 +29,7 @@ export default function AreYouSure(props) {
     dispatch(clearPipeline([]));
     dispatch(setSelectedPipelineName(""));
     dispatch(setStoredNodes([]));
+    dispatch(setBlocksVariables([]));
     localStorage.clear();
     props.handleClose();
   }

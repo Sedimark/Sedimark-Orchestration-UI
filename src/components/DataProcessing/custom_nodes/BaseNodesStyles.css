@@ -70,9 +70,9 @@
 }
 
 .change-base-btn{
-    background-color: #80bbe0;;
+    background-color: blue;
     border: 2px solid blue;
-    color:blue;
+    color:white;
 }
 
 .node-header-filter{
@@ -478,12 +478,16 @@
     margin-top:9px;
     width:150px;
     height: 40px;
-    background-color: #80bbe0;
+    background-color: blue;
     border: 2px solid #0000ff;
     border-radius: 5px;
-    color:blue;
+    color:white;
   }
 
   .edit-variables-btn-loader:hover{
     cursor: pointer;
+  }
+
+  .no-variables-container{
+    padding:15px;
   }

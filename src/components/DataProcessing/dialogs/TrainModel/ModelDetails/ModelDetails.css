@@ -1,0 +1,15 @@
+.params-container{
+    text-align: left;
+    padding:20px;
+}
+
+.param-title{
+    padding-bottom: 10px;
+    padding-top:10px;
+}
+
+.param-name{
+    padding:10px;
+    font-size: 1.2rem;
+    font-weight: bold;
+}

@@ -135,7 +135,7 @@
   flex-direction: row;
   justify-content: space-around;
   width: 150px;
-  background-color: #e7eeff;
+  background-color: #f0f5fd;
   border-radius: 10px;
   -webkit-box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
 -moz-box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
@@ -166,4 +166,8 @@ box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
 
 .trash-icon-side:hover{
   cursor: pointer;
+}
+
+.tooltip-container{
+  padding:20px;
 }

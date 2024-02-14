@@ -18,8 +18,7 @@ import Paper from '@mui/material/Paper';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { FETCH_MINIO_FILE , FETCH_MINIO_SAMPLE} from '../../../../utils/apiEndpoints';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import Typography from '@mui/material/Typography';
+import { BarChart, Bar,  Tooltip } from 'recharts';
 import axios from 'axios';
 
 
@@ -36,7 +35,6 @@ export default function ViewData(props) {
     const initialized = useRef(false);
 
    
-
     const CustomTooltip = ({ active, payload, label }) => {
       if (active) {
         const males = payload.find((entry) => entry.name === 'males');
@@ -47,7 +45,7 @@ export default function ViewData(props) {
            <p style={{
             backgroundColor:"#fff",
             color:"#000", 
-            border:"1px solid #e0e0e0",
+            border:"1px solid #000",
             boxShadow:"10px 10px 5px -10px rgba(77,77,77,1)",
             WebkitBoxShadow:"10px 10px 5px -10px rgba(77,77,77,1)", 
             borderRadius:"5px",
@@ -106,18 +104,7 @@ export default function ViewData(props) {
         return inputString;
       }
 
-      
-   /* 
-   {
-      "numeColoana":[
-      ]
-    }
-    {
-      name: 'Page A',
-      value: 4000,
-      
-    }
-     */
+    
       const parseHistogram = (histObj)=>{
    
         const resArr = [];
@@ -187,18 +174,6 @@ export default function ViewData(props) {
         }
       }
 
-      const transformObjectToArray = (obj)=>{
-        const resultedArray = [];
-        for (const [key, value] of Object.entries(obj)) {
-          const parsedKey = parseInt(key,10);
-          const newArr = [key,value];
-          resultedArray.push(newArr);
-        }
-    
-        return resultedArray;
-      }
-      
-
       const fetchSampleData = async(bucket_name)=>{
       
         let jsonFileLink, jsonFileData;
@@ -240,7 +215,7 @@ export default function ViewData(props) {
     return (
       
       <React.Fragment>
-         
+         <ThemeProvider theme={darkTheme}>
           <BootstrapDialog
                     onClose={props.handleClose}
                     aria-labelledby="customized-dialog-title"
@@ -278,7 +253,7 @@ export default function ViewData(props) {
                                     <TableRow>
                                         {columnNames.map((colName, index)=>{
                                             return(
-                                                <TableCell style={{ border: '1px solid #e0e0e0' }}><p style={{ fontSize:"1.1rem", textAlign:"center"}} className='truncate-text' title={colName}>{truncateString(colName)}</p></TableCell>
+                                                <TableCell style={{ border: '1px solid #000' }}><p style={{ fontSize:"1.1rem", textAlign:"center"}} className='truncate-text' title={colName}>{truncateString(colName)}</p></TableCell>
                                             );
                                         })}
                                         
@@ -293,7 +268,7 @@ export default function ViewData(props) {
                                         {allColumnsData && allColumnsData.map((row,index)=>{
                                          
                                             if(row.type == "unique_values"){
-                                                return(<div style={{  width: '300px' ,  borderLeft: '1px solid #e0e0e0', height:"150px" , fontSize:"1.2rem" ,textAlign:"center", paddingTop:"40px"}}>
+                                                return(<div style={{  width: '300px' ,  borderLeft: '1px solid #000', height:"150px" , fontSize:"1.2rem" ,textAlign:"center", paddingTop:"40px"}}>
                                                         <p >{row.unique_values} </p>
                                                         <p style={{fontWeight:"bold"}}> UNIQUE VALUES </p>
                                                     </div>);
@@ -302,7 +277,7 @@ export default function ViewData(props) {
                                             const fetchedData = allHistValues[row.column_name];
                     
                                                 return(    
-                                                    <TableCell  style={{ border: '1px solid #e0e0e0' }}>
+                                                    <TableCell  style={{ border: '1px solid #000' }}>
                                                         <div style={{ width: '300px', marginLeft:"60px" }}>
                                                             <BarChart width={150} height={80} data={fetchedData}>
                                                                 <Tooltip   content={<CustomTooltip />}/>
@@ -323,7 +298,7 @@ export default function ViewData(props) {
                                         <TableRow>
                                               { columnNames.map((data, index)=>{
                                                      return(
-                                                     <TableCell style={{ border: '1px solid #e0e0e0', textAlign:"center" }}>
+                                                     <TableCell style={{ border: '1px solid #000', textAlign:"center" }}>
                                                           {allColumnsSamples[data][indexLoop]}
                                                      </TableCell>
                                                      )
@@ -332,8 +307,7 @@ export default function ViewData(props) {
                                         </TableRow>
                                       )
                                     })
-                                    
-                                     
+                                  
                                    }     
 
                                 </TableBody>
@@ -348,7 +322,7 @@ export default function ViewData(props) {
                         </Button>
                     </DialogActions>
                 </BootstrapDialog>
-
+                </ThemeProvider>
         </React.Fragment>
     );
 }

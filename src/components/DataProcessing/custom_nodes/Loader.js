@@ -14,8 +14,9 @@ import ViewData from '../dialogs/ViewData/ViewData';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { DATASET_FETCH_DATASET_INFO } from "../../../utils/apiEndpoints";
+
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import axios from "axios";
 
 export default memo(({ data, isConnectable }) => {
@@ -51,11 +52,7 @@ export default memo(({ data, isConnectable }) => {
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
   const [viewDataDialog, setViewDataDialog] = useState(false);
 
-  const fetchDatasetInfo = (datasetId) => {
-    axios.get(DATASET_FETCH_DATASET_INFO(datasetId))
-      .then(resp => { setPublishDate(resp.data.publish) })
-      .catch(err => { console.log(err) })
-  }
+ 
 
   const parseString = (str) => {
     if (str.length > 20) {
@@ -172,11 +169,7 @@ export default memo(({ data, isConnectable }) => {
     }
   }, [storedVariables])
 
-  useEffect(() => {
-    if (datasetSelected && datasetSelected.length != 0) {
-      fetchDatasetInfo(datasetSelected[0].id);
-    }
-  }, [datasetSelected])
+ 
 
 
   return (
@@ -194,7 +187,7 @@ export default memo(({ data, isConnectable }) => {
         </div>
         {variablesPresent &&
           <div className='base-node-info-section-container'>
-            <h3> Variables</h3>
+            <h3> Variables</h3> 
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 200 }} aria-label="customized table">
                 <TableHead>
@@ -216,15 +209,25 @@ export default memo(({ data, isConnectable }) => {
               </Table>
             </TableContainer>
 
-
+ 
+          </div> 
+        }
+        {
+          !variablesPresent && 
+          <div className="no-variables-container">
+              <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
+          </div> 
+        }
+        {
+          variablesPresent && 
+          <div className='base-node-info-section'>
+              <div className='base-node-bottom-toolbox'>
+                <button className='change-base-btn base-toolbox-btn' onClick={() => { setViewDataDialog(true) }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button>
+                <button className='edit-variables-btn-loader' onClick={() => { openVariablesEditMenu() }}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare} /></button>
+              </div>
           </div>
         }
-        <div className='base-node-info-section'>
-          <div className='base-node-bottom-toolbox'>
-            <button className='change-base-btn base-toolbox-btn' onClick={() => { setViewDataDialog(true) }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button>
-            <button className='edit-variables-btn-loader' onClick={() => { openVariablesEditMenu() }}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare} /></button>
-          </div>
-        </div>
+       
 
       </div>
       <Handle

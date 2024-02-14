@@ -11,13 +11,13 @@ import {useSelector} from "react-redux/es/hooks/useSelector";
 import {
   setMappedNodes,
   setMappedEdges,
-  setIsPipelineFetching,
   setOrderedNodes,
   setSelectedPipelineName,
   setStoredNodes
 } from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
-import { FETCH_PIPELINE_DATA } from '../../utils/apiEndpoints.js';
+import { FETCH_PIPELINE_DATA, FETCH_MINIO_FILE } from '../../utils/apiEndpoints.js';
+import { setDatasetColumnNames } from '../../reducers/nodeSlice';
 import { v4 as uuidv4 } from 'uuid';
 import axios from "axios";
 
@@ -208,6 +208,18 @@ function Flow() {
       
     }
   }
+
+  const parseBucketName = (inputString)=>{
+    if (inputString.includes('_')) {
+      inputString = inputString.split("_").join("-");
+    } 
+  
+    if (inputString.includes(' ')) {
+      inputString =  inputString.split(' ').join("-");
+    } 
+  
+    return inputString;
+  }
   
   const processAndPlaceNodes = (blocks) =>{ 
     setPipelineEdges([]);
@@ -258,6 +270,39 @@ function Flow() {
     
     setEdges((eds) => eds.filter((e) => e.id !== edgeToDelete));
   }
+  
+
+  const parseAndSetColumnNames = (allColumnsData)=>{
+    const allColumnNames = [];
+    for(const column of allColumnsData){
+      allColumnNames.push(column.column_name);
+    }
+    
+    dispatch(setDatasetColumnNames(allColumnNames));
+  } 
+
+  const fetchAndParseMinioJson = async (bucket_name) => {
+
+    let jsonFileLink;
+    let jsonFileData;
+  
+    try{
+        jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
+        jsonFileLink = jsonFileLink.data.url;
+    } catch(err){
+       
+        console.log(err);
+        return;
+    }
+    
+    try{
+        jsonFileData = await axios.get(jsonFileLink);
+        parseAndSetColumnNames(jsonFileData.data);
+
+    } catch(err){
+        console.log(err);
+    }
+  };
 
   const verifyAddedEdgeIsOk = ()=>{
     
@@ -316,7 +361,7 @@ function Flow() {
   
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
-      console.log(resp);
+    
       processAndPlaceNodes(resp.data.pipeline.blocks);
       setIsPipelineLoading(false);
       dispatch(setSelectedPipelineName(pipeline_name));
@@ -360,6 +405,8 @@ function Flow() {
     }
   },[nodes])
 
+  
+
   useEffect(()=>{
     
     if(selectedPipeline.length !== 0){
@@ -378,6 +425,12 @@ function Flow() {
       setNodes(storedNodes);
     }
   },[storedNodes])
+
+
+
+  useEffect(()=>{
+    fetchAndParseMinioJson(selectedPipeline[0]);
+  },[selectedPipeline])
 
    
     return (

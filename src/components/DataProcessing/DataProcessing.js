@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Flow from "./Flow";
 import styles from './DataProcessing.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
@@ -27,6 +27,7 @@ function DataProcessing() {
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isAreYouSureOpen, setIsAreYouSureOpen] = useState(false);
+    const totalStepsWidth = 100;
 
     const HtmlTooltip = styled(({ className, ...props }) => (
         <Tooltip {...props} classes={{ popper: className }} />
@@ -34,8 +35,8 @@ function DataProcessing() {
         [`& .${tooltipClasses.tooltip}`]: {
           backgroundColor: '#f5f5f9',
           color: 'rgba(0, 0, 0, 0.87)',
-          maxWidth: 220,
-          fontSize: theme.typography.pxToRem(12),
+          maxWidth: 420,
+          fontSize: theme.typography.pxToRem(15),
           border: '1px solid #dadde9',
         },
       }));
@@ -178,16 +179,19 @@ function DataProcessing() {
         }
     }, [pipelineName]);
 
-    const calculateProgressBarWidth = (totalCircles, circleWidth) => {
-        if(totalCircles < 5){
-            circleWidth = 40;
+    const calculateProgressBarWidth = (totalCircles) => {
+        let factor;
+        if (factor > 5) {
+            factor = 1;
         } else {
-            circleWidth = 30;
+            if (totalCircles % 2 === 0) {
+                factor = 2;
+            } else {
+                factor = 3;
+            }
         }
         
-        const fixedCircleWidth = circleWidth || 20;
-        const totalWidth = totalCircles * fixedCircleWidth;
-        const progressBarWidth = (totalWidth / totalCircles) * (totalCircles - 1);
+        const progressBarWidth = (totalStepsWidth / totalCircles) * (totalCircles - 1) * factor;
         return progressBarWidth;
     };
 
@@ -220,13 +224,13 @@ function DataProcessing() {
 
                     <div className="steps">
                         {pipelineNodes.map((data, index) => (
-                            <div key={index} style={{ maxWidth: 100, display: "flex", flexDirection: "row", alignItems: "center" }}>
+                            <div key={index} style={{ maxWidth: totalStepsWidth, display: "flex", flexDirection: "row", alignItems: "center" }}>
                                 <span className="circle">{index + 1}</span>
                                 {index === pipelineNodes.length - 1 ? "" : (
                                     <span
                                         className="progress-bar"
                                         id="indicators"
-                                        style={{ width: `${calculateProgressBarWidth(pipelineNodes.length, 40)}px` }}
+                                        style={{ width: `${calculateProgressBarWidth(pipelineNodes.length)}px` }}
                                     ></span>
                                 )}
                             </div>
@@ -239,8 +243,10 @@ function DataProcessing() {
                                             <HtmlTooltip
                             title={
                             <React.Fragment>
-                                <Typography color="inherit"><h6>Selected Pipeline</h6></Typography>
-                                <em>{pipelineName}</em>
+                                <div>
+                                    <Typography color="inherit"><h3>Selected Pipeline</h3></Typography>
+                                    <em>{pipelineName}</em>
+                                </div>
                             </React.Fragment>
                             }
                         >

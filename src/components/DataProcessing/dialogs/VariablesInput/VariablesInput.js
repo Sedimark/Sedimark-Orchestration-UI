@@ -19,12 +19,13 @@ import Checkbox from '@mui/material/Checkbox';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
+import { FETCH_MINIO_FILE } from '../../../../utils/apiEndpoints';
 import {
   Unstable_NumberInput as BaseNumberInput,
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
-import { unstable_useForkRef as useForkRef } from '@mui/utils';
 import { setBlocksVariables } from '../../../../reducers/nodeSlice';
+import axios from "axios";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
@@ -65,6 +66,8 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
 export default function VariablesInput(props){
 
     const dispatch = useDispatch();
+    const storedColumnNames = useSelector((state)=> state.datasetColumnNames);
+    const selectedPipeline = useSelector((state) => state.selectedPipeline);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
     const [isDataLoading, setIsDataLoading] = React.useState(true);
@@ -74,6 +77,8 @@ export default function VariablesInput(props){
     const [variablesInput, setVariablesInput] = React.useState({});
     const [valueData, setValue] = React.useState();
     const [nodeNameId, setNodeNameId] = React.useState();
+    const [columnNames, setColumnNames] = useState([]);
+    const [wasSomethingChanged, setWasSomethingChanged] = React.useState(false);
     const [hasMultipleSelection, setHasMultipleSelection] = React.useState(false);
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -84,6 +89,47 @@ export default function VariablesInput(props){
         return [...arr, newObj];
       }
     }
+
+    const parseBucketName = (inputString)=>{
+      if (inputString.includes('_')) {
+        inputString = inputString.split("_").join("-");
+      } 
+    
+      if (inputString.includes(' ')) {
+        inputString =  inputString.split(' ').join("-");
+      } 
+    
+      return inputString;
+    }
+
+    const parseAndSetColumnNames = (allColumnsData)=>{
+      const allColumnNames = [];
+      for(const column of allColumnsData){
+        allColumnNames.push(column.column_name);
+      }
+      setColumnNames(allColumnNames);
+    } 
+
+    const fetchAndParseMinioJson = async (bucket_name) => {
+      let jsonFileLink;
+      let jsonFileData;
+ 
+      try{
+          jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
+          jsonFileLink = jsonFileLink.data.url;
+      } catch(err){
+          console.log(err);
+          return;
+      }
+      
+      try{
+          jsonFileData = await axios.get(jsonFileLink);
+          parseAndSetColumnNames(jsonFileData.data);
+      } catch(err){
+          console.log(err);
+      }
+    };
+
 
 
     const handleChangeNumber = (variableName, event, type)=>{
@@ -108,16 +154,7 @@ export default function VariablesInput(props){
     }
 
     const handleChange = (event, type, variableName) => {
-      /*
-         de avut in minte ca vreau sa arate in felul urmator obiectul pe care vreau sa pun datele
-         {  
-            variable_name: aici evident pui numele variabilei
-            value: aici evident ca pui valoarea
-         }
-
-         voi vrea sa ai un vector in care sa stochezi mai multe obiecte si ce voi vrea este ca variableValues sa fie mereu updatat
-         cu noile valori
-      */
+    
       const { target: { value } } = event;
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
@@ -125,8 +162,7 @@ export default function VariablesInput(props){
         variable_name:variableName,
         value:value,
       }
-    
-      //pe variablesInput ai datele
+  
       const newValue = {...variablesInput};
       newValue[variableName] = value;
       setVariablesInput(newValue);
@@ -232,92 +268,93 @@ export default function VariablesInput(props){
 
    useEffect(()=>{
     setNodeNameId(convertToSnakeCase(props.fullNodeName));
+    fetchAndParseMinioJson(selectedPipeline[0]); 
    },[]) 
-   
 
+ 
     return (
     <div>
-        
-          <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="300" fullWidth="true" >
+      <ThemeProvider theme={darkTheme}>
+      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg" fullWidth="true" >
     
-               <DialogTitle> {props.fullNodeName} </DialogTitle>
-                <DialogContent sx={{textAlign:'center'}}>   
-                <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="#f0f0f0" >
-                {!isDataLoading && 
-                 <>
-                  <div className='section-title'>
-                        <h1>Variables</h1>
-                    </div>  
-              
-                    {props.variablesData.map((value, index)=>{
-                      if(value.type == "string"){
-                        return(
-                        <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
-                          <TextField value={variablesInput[value.varName] || ''}  onChange={(event)=>handleChange(event,"text",value.varName)} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
-                        </FormControl>
-                        
-                        );
-                        
-                      } else if(value.type == "number"){
-                        
-                        return(
-                        <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
-                          <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
-                          <TextField
-                            aria-label={`${value.varName}`}
-                            placeholder="Type a number…"
-                            value={variablesInput[value.varName]}
-                            onChange={(event)=>handleChangeNumber(value.varName,event,"number")}
-                          />
-                      </FormControl>
-                        );
+            <DialogTitle> {props.fullNodeName} </DialogTitle>
+            <DialogContent sx={{textAlign:'center'}}>   
+            <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="#000" >
+            {!isDataLoading && 
+              <>
+              <div className='section-title'>
+                    <h1>Variables</h1>
+                </div>  
+          
+                {props.variablesData.map((value, index)=>{
+                  if(value.type == "string"){
+                    return(
+                    <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
+                      <TextField value={variablesInput[value.varName] || ''}  onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"text",value.varName)}} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
+                    </FormControl>
+                    
+                    );
+                    
+                  } else if(value.type == "number"){
+                    
+                    return(
+                    <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
+                      <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
+                      <TextField
+                        aria-label={`${value.varName}`}
+                        placeholder="Type a number…"
+                        value={variablesInput[value.varName]}
+                        onChange={(event)=>{ setWasSomethingChanged(true); handleChangeNumber(value.varName,event,"number")}}
+                      />
+                  </FormControl>
+                    );
 
-                      } else if(value.type == "multiple_selection"){
-                       
-                        return(
-                          <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
-                              <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>
-                              <Select
-                                labelId="demo-multiple-checkbox-label"
-                                id="demo-multiple-checkbox"
-                                multiple
-                                value={variablesInput[value.varName]}
-                                onChange={(event)=>handleChange(event,"multiple",value.varName)}
-                                input={<OutlinedInput label="Columns" />}
-                                renderValue={(selected) => selected.join(', ')}
-                                MenuProps={MenuProps}
-                              >
-                                {(datasetColumns || []).map((column) => (
-                                  <MenuItem key={column} value={column}>
-                                    <Checkbox checked={variablesInput[value.varName].indexOf(column) > -1} />
-                                    <ListItemText primary={column} />
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                          </FormControl>
-                        );
-                      }
-                    })}
-                   </>
-                  } 
-                  {
-                    isDataLoading &&
-                    <div className='data-loading-container'>
-                      <div className="loading-circle-container">
-                          <div className="loading-circle"></div>
-                          <p className="loading-text">Loading...</p>
-                      </div>
-                    </div>
+                  } else if(value.type == "multiple_selection"){
+                    
+                    return(
+                      <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
+                          <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>
+                          <Select
+                            labelId="demo-multiple-checkbox-label"
+                            id="demo-multiple-checkbox"
+                            multiple
+                            value={variablesInput[value.varName]}
+                            onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"multiple",value.varName)}}
+                            input={<OutlinedInput label="Columns" />}
+                            renderValue={(selected) => selected.join(', ')}
+                            MenuProps={MenuProps}
+                          >
+                            {(storedColumnNames || []).map((column) => (
+                              <MenuItem key={column} value={column}>
+                                <Checkbox checked={variablesInput[value.varName].indexOf(column) > -1} />
+                                <ListItemText primary={column} />
+                              </MenuItem>
+                            ))}
+                          </Select>
+                      </FormControl>
+                    );
                   }
-                 </Box>
-                </DialogContent>
-                <DialogActions>
-                  <Button onClick={props.handleClose}>Close</Button>
-                  <Button onClick={()=>{handleDone()}}>Done</Button>
-                </DialogActions>
-              
-          </Dialog>
-        </div> 
+                })}
+                </>
+              } 
+              {
+                isDataLoading &&
+                <div className='data-loading-container'>
+                  <div className="loading-circle-container">
+                      <div className="loading-circle"></div>
+                      <p className="loading-text">Loading...</p>
+                  </div>
+                </div>
+              }
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={props.handleClose}>Close</Button>
+              <Button  disabled={!wasSomethingChanged} onClick={()=>{handleDone()}}>Done</Button>
+            </DialogActions>
+        </Dialog>
+      </ThemeProvider>
+    </div> 
       );
 }
 

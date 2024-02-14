@@ -27,7 +27,7 @@ import axios from "axios";
 import {addPipeline, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
+import { setDatasetColumns, setDatasetInfo, setDatasetColumnNames } from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 
@@ -54,7 +54,7 @@ export default function PipelineSelectDialog(props) {
     for(const obj of data_to_parse){
         allColumns.push(obj.column_name);
     }
-
+    
     dispatch(setDatasetColumns(allColumns));
 }
 
@@ -70,6 +70,14 @@ const parseBucketName = (inputString)=>{
   return inputString;
 }
 
+
+  const parseAndSetColumnNames = (allColumnsData)=>{
+    const allColumnNames = [];
+    for(const column of allColumnsData){
+      allColumnNames.push(column.column_name);
+    }
+    dispatch(setDatasetColumnNames(allColumnNames));
+  } 
 
 const fetchAndParseMinioJson = async (bucket_name) => {
 
@@ -89,6 +97,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     try{
         jsonFileData = await axios.get(jsonFileLink);
         parseAndSetColumns(jsonFileData.data);
+        parseAndSetColumnNames(jsonFileData.data);
         dispatch(setDatasetInfo(jsonFileData.data));
 
     } catch(err){
@@ -175,11 +184,13 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     setfilteredPipelines(updatedPipelines);
   }
 
+  
+
   const addCorespondingPipeline = ()=>{
     if(isLoading){
       return;
     }
-   
+    
     
      if(selectedPipeline.length == 0){
       dispatch(setDatasetColumns([]));
@@ -234,108 +245,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     setWasRunned(true);
   },[])
  
-  // return (
-    
-  // <div>
-  //   <ThemeProvider theme={darkTheme}>
-  //     <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth={true} >
-
-  //          <DialogTitle> {dialogName} </DialogTitle>
-  //           <DialogContent>   
-           
-  //               <Paper
-  //                 component="form"
-  //                 onSubmit={(evt)=>{evt.preventDefault()}}
-  //                 sx={{ p: '2px 4px', display: 'flex', alignItems: 'center', width: "100%" }}
-  //               >
-  //                 <IconButton sx={{ p: '10px' }} aria-label="menu">
-  //                   <MenuIcon />
-  //                 </IconButton>
-  //                 <InputBase
-  //                   sx={{ ml: 1, flex: 1 }}
-  //                   placeholder="Search Pipeline"
-  //                   inputProps={{ 'aria-label': 'search google maps' }}
-  //                   onChange={(evt)=>{updateSearch(evt)}}
-  //                 />
-  //                   <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
-  //                 <IconButton onClick={()=>{}} type="button" sx={{ p: '10px' }} aria-label="search">
-  //                   <SearchIcon />
-  //                 </IconButton> 
-  //               </Paper>
-              
-             
-  //                  <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px" }}>
-  //                    <ListItem
-  //                       key={"my-key"}
-  //                       secondaryAction={
-  //                         <div className='dataset-select-toolbox'>
-  //                           <p>Select</p>
-                          
-  //                         </div>
-  //                       }
-  //                       disablePadding
-  //                       sx={{
-  //                        padding:"15px",
-  //                        pointerEvents:"none"
-  //                       }}
-  //                     >
-  //                       <ListItemButton>
-                          
-  //                         <ListItemText  id={'fd3432'}  disableTypography
-  //                         primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>Pipeline Name</Typography>} />
-  //                       </ListItemButton>
-  //                     </ListItem>
-  //                  {
-  //                   isLoading &&
-  //                   <div className="loading-circle-container">
-  //                     <div className="loading-circle"></div>
-  //                     <p className="loading-text">Loading...</p>
-  //                   </div>
-                    
-  //                  }
-  //                  { !isLoading && filteredPipelines.map((value,index) => {
-  //                    const labelId = `checkbox-list-secondary-label-${value.name}`;
-  //                     return (
-  //                       <ListItem
-  //                         key={value.name}
-  //                         secondaryAction={
-  //                           <div className='dataset-select-toolbox'>
-  //                             <Checkbox
-  //                               edge="end"
-  //                               onChange={handleToggle(value.name)}
-  //                               checked={checked.indexOf(value.name) !== -1}
-  //                               inputProps={{ 'aria-labelledby': labelId }}
-  //                             />
-                              
-  //                           </div>
-  //                         }
-  //                         disablePadding
-  //                       > 
-  //                         <ListItemButton>
-  //                           <ListItemAvatar>
-  //                             <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
-  //                           </ListItemAvatar>
-  //                           <ListItemText  id={labelId}  disableTypography
-  //                           primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value.name}</Typography>} />
-  //                         </ListItemButton>
-  //                       </ListItem>
-  //                     );
-                     
-  //                  })}
-  //                </List>
-  //           </DialogContent>
-  //           <DialogActions>
-  //             <Button onClick={props.handleClose}>Close</Button>
-  //             <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}}>Apply</Button>
-  //           </DialogActions>
-          
-  //     </Dialog>
-  //     </ThemeProvider>
-  //   </div> 
-  // );
-
-
-
+  
 
   React.useEffect(()=>{
     

@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import List from '@mui/material/List';
+import Drawer from '@mui/joy/Drawer';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
@@ -15,6 +16,7 @@ import HubIcon from '@mui/icons-material/Hub';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
+import TrainModelDialog from './dialogs/TrainModel/TrainModelDialog';
 
 const drawerWidth = 240;
 
@@ -67,7 +69,7 @@ const AppBar = styled(MuiAppBar, {
   }),
 }));
 
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
+const BigDrawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme, open }) => ({
     width: drawerWidth,
     flexShrink: 0,
@@ -86,10 +88,12 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 export default function MiniDrawer() {
   const theme = useTheme();
+  const [openDrawer, setOpenDrawer] = React.useState(false);
   const [open, setOpen] = React.useState(true);
   const [selectDataDialog, setSelectDataDialog] = React.useState(false);
   const [displayMLModels, setDisplayMLModels] = React.useState(false);
   const [pipelineType, setPipelineType] = React.useState("");
+  const [trainModelsDialogOpen, setTrainModelsDialogOpen] = React.useState(false);
 
   const openPipelineSelectMenu = (dialogType) => {
     if(dialogType == "train"){
@@ -105,12 +109,18 @@ export default function MiniDrawer() {
     setSelectDataDialog(false);
   }
 
+  const openTrainModelsMenu = ()=>{
+    setTrainModelsDialogOpen(true);
+  }
+
+  const handleTrainModelsMenuClose = ()=>{
+    setTrainModelsDialogOpen(false);
+  }
+
 
   return (
     <Box sx={{ display: 'flex' , width:"20px !important"}}>
-    
-    
-      <Drawer variant="permanent" open={open} PaperProps={{
+      <BigDrawer variant="permanent" open={open} PaperProps={{
         sx: {
           backgroundColor: '#1f263e',
           color: "red",
@@ -120,7 +130,7 @@ export default function MiniDrawer() {
          <img src="./sedimark-logo.svg" width={100} style={{margin:"auto", padding:"20px"}}/>
         </DrawerHeader>
 
-        {/* <Divider /> */}
+        
         <h2 style={{color:"#fff"}}>Operations</h2>
         <List>
              <ListItem key={"Data pre-processing"} disablePadding sx={{ display: 'block' }}>
@@ -172,7 +182,7 @@ export default function MiniDrawer() {
                   <ListItemText primary={"Training pipeline"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-            <ListItem key={"Trained Models"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+            <ListItem key={"Trained Models"} disablePadding sx={{ display: 'block' }} onClick={()=>{openTrainModelsMenu()}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -201,7 +211,7 @@ export default function MiniDrawer() {
 
       <List style={{position:"absolute",bottom:"10px"}}>
       <h2 style={{color:"#fff"}}>Account</h2>
-        <ListItem key={"Notifications"} disablePadding sx={{ display: 'block' }} onClick={()=>{setDisplayMLModels(true);}}>
+        <ListItem key={"Notifications"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -225,7 +235,7 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
 
-            <ListItem key={"Settings"} disablePadding sx={{ display: 'block' }} onClick={()=>{setDisplayMLModels(true);}}>
+            <ListItem key={"Settings"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -250,6 +260,7 @@ export default function MiniDrawer() {
             </ListItem>
 
             <ListItem key={"FAQ"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+           
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -273,10 +284,11 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
         </List>
-      </Drawer>
+      </BigDrawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
       </Box>
      {selectDataDialog && <PipelineSelectDialog pipelineType={pipelineType} open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
+     {trainModelsDialogOpen && <TrainModelDialog handleClose={handleTrainModelsMenuClose} open={trainModelsDialogOpen} close={handleTrainModelsMenuClose} /> }
     </Box>
   );
 }

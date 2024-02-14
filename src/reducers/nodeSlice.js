@@ -3,6 +3,7 @@ import { act } from 'react-dom/test-utils';
 
 const initialState = {
     nodes:[],
+    datasetColumnNames:[],
     selectedPipeline:[],
     selectedModelType:"",
     selectedDataFeaturingColumns:[],
@@ -125,11 +126,15 @@ export const nodeSlice = createSlice({
          },
          setSelectedPipelineName:(state, action) => {
             state.selectedPipelineName = action.payload;
+         },
+
+         setDatasetColumnNames:(state, action)=>{
+            state.datasetColumnNames = action.payload;
          }
     }
 });
 
 
-export const {setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
+export const {setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
 
 export default nodeSlice.reducer;
