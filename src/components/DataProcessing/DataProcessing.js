@@ -1,18 +1,20 @@
 import React, { useEffect, useRef, useState } from "react";
 import Flow from "./Flow";
-import styles from './DataProcessing.css';
+import style from "../DataProcessing/DataProcessing.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
 import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
 import { styled } from '@mui/material/styles';
-import { BLOCK_STATUS, FETCH_PIPELINE_RUN_DATA,  RUN_PIPELINE } from "../../utils/apiEndpoints";
+import {FETCH_PIPELINE_RUN_DATA, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
 import Button from '@mui/material/Button';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import axios from "axios";
+import {Step, StepLabel, Stepper} from "@mui/material";
+import {localStorageAvailable} from "@mui/x-data-grid/utils/utils";
 
 
 function DataProcessing() {
@@ -20,14 +22,16 @@ function DataProcessing() {
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const pipelineName = useSelector((state) => state.selectedPipelineName);
     const blockVariables = useSelector((state) => state.blocksVariables);
-    const circles = document.querySelectorAll(".circle"),
-        progressBars = document.querySelectorAll("#indicators");
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [pipelineFinished, setPipelineFinished] = useState(false);
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isAreYouSureOpen, setIsAreYouSureOpen] = useState(false);
-    const totalStepsWidth = 100;
+    const steps = ["started", "running", "finished"];
+    const [stepStatus, setStepStatus] = React.useState([true, true, true]);
+    const [activeStep, setActiveStep] = React.useState(-1);
+    const isRun = React.useRef(false);
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
     const HtmlTooltip = styled(({ className, ...props }) => (
         <Tooltip {...props} classes={{ popper: className }} />
@@ -49,55 +53,36 @@ function DataProcessing() {
         })
     };
 
-    const markStepCompleted = (index) => {
-        circles[index].style.backgroundColor = "green";
-        circles[index].style.color = "white";
-        if (index <= progressBars.length - 1) {
-            progressBars[index].style.backgroundColor = "green";
-        }
-    }
-
-    const markStepFailed = (index) => {
-        circles[index].style.backgroundColor = "red";
-        circles[index].style.color = "white";
-        if (index <= progressBars.length - 1) {
-            progressBars[index].style.backgroundColor = "red";
-        }
-    }
-
-    const markStepInitial = (index) => {
-        circles[index].style.backgroundColor = "white";
-        circles[index].style.color = "#999999";
-        if (index <= progressBars.length - 1) {
-            progressBars[index].style.backgroundColor = "#e0e0e0";
-        }
-    }
-
     const handleStop = () => {
         setPipelineFinished(false);
-        for (let i = 0; i < circles.length; i++) {
-            markStepInitial(i);
-        }
+        setStepStatus((prevState) => {
+            return prevState.map(() => {
+                return true;
+            });
+        });
+        setActiveStep(-1);
     }
 
-    const startPipeline = async () => {
+    const startPipeline = React.useCallback(async () => {
         if (pipelineNodes.length < 2) {
-            blockAlert("The pipeline does not meet the requirements!");
-            return;
+            blockAlert("A pipeline should have 2 or more blocks!");
+            return false;
         }
 
-        if (runData === null) {
-            blockAlert("Run Data didn't load correctly!");
-            return;
+        if (blockVariables.length === 0) {
+            blockAlert("Please enter at least on block variable!");
+            return false;
         }
 
-        setLoading(true);
+        const variables = {};
+
+        blockVariables.forEach((value) => {
+            variables[value["variable_name"]] = value["value"];
+        })
+
+        setActiveStep(steps.indexOf("start"));
         try {
-            const variables = {}
-            for (let block of blockVariables) {
-                variables[block.variable_name] = block.value;
-            }
-            const response = await axios({
+            await axios({
                 method: "POST",
                 url: RUN_PIPELINE,
                 headers: {
@@ -109,62 +94,114 @@ function DataProcessing() {
                     "variables": variables
                 }
             })
-
-            setLoading(false);
-        } catch (e) {
-            setLoading(false);
-            blockAlert("Error starting the pipeline!");
-            return;
+            return true;
+        } catch(_) {
+            blockAlert("Error occurred when starting the pipeline");
+            return false;
         }
-        setIsPipelineStarted(true);
+    }, [setActiveStep, setStepStatus, setPipelineFinished, blockAlert, blockVariables, runData, pipelineNodes]);
 
-        for (let i = 0; i < pipelineNodes.length; i++) {
-            const makeAPIRequest = async (node) => {
-                return new Promise((resolve) => {
-                    const retry = async () => {
-                        try {
-                            const response = await axios({
-                                method: 'GET',
-                                url: BLOCK_STATUS(runData.run_id, node),
-                            });
-
-                            const data = response.data;
-
-                            if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
-                                console.log('Satisfactory response received:', data);
-                                resolve(data);
-                            } else {
-                                console.log('Unsatisfactory response:', data);
-                                setTimeout(retry, 2000);
-                            }
-                        } catch (error) {
-                            console.error('Error:', error);
-                            setTimeout(retry, 2000);
-                        }
-                    };
-                    retry();
-                });
-            };
-
-            const node = pipelineNodes[i]
-            const result = await makeAPIRequest(node);
-            console.log("Block status: ", result);
-
-            if (result === "completed") {
-                markStepCompleted(i);
-            } else {
-                markStepFailed(i);
-                blockAlert("Pipeline failed to finish!");
-                for (let j = i; j < pipelineNodes.length; j++) {
-                    markStepFailed(j);
+    const runStep = React.useCallback( async () => {
+        let counter = 0;
+        let isResolved = false;
+        return new Promise((resolve) => {
+            const retry = async () => {
+                if (isResolved) return;
+                if (counter === 10) {
+                    isResolved = true;
+                    resolve("failed");
+                    return;
                 }
-                break;
-            }
+                try {
+                    const response = await axios({
+                        method: 'GET',
+                        url: PIPELINE_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).run_id),
+                    });
+
+                    const data = response.data;
+
+                    if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
+                        isResolved = true;
+                        resolve(data);
+                    } else {
+                        counter += 1;
+                        setTimeout(retry, 30000);
+                    }
+                } catch (error) {
+                    setTimeout(retry, 30000);
+                }
+            };
+            retry();
+        });
+    }, [pipelineName]);
+
+    const callStep = React.useCallback(async () => {
+        const result = await runStep();
+
+        setActiveStep(-1);
+
+        const statuses = stepStatus;
+
+        if (result === "completed") {
+            steps.forEach((_, index) => {
+                statuses[index] = true;
+            })
+        } else {
+            steps.forEach((_, index) => {
+                statuses[index] = false;
+            })
         }
 
+        setStepStatus(statuses)
         setIsPipelineStarted(false);
         setPipelineFinished(true);
-    }
+
+        const toSave = {
+            "stepStatus": statuses,
+            "activeStep": -1,
+            "pipelineFinished": true,
+            "isPipelineStarted": false
+        }
+
+        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+    }, [runStep, steps, pipelineName]);
+
+    const runPipeline = React.useCallback(async (source) => {
+        if (source === "button") {
+            const result = await startPipeline();
+
+            if (result) {
+                setActiveStep(steps.indexOf("running"));
+                setIsPipelineStarted(true);
+                const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)),
+                    "activeStep": steps.indexOf("running"), "isPipelineStarted": true};
+
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+
+                await delay(10000);
+
+                callStep().then((_) => {});
+            } else {
+                setActiveStep(-1);
+                setStepStatus((prevState) => {
+                    return prevState.map(() => {
+                        return false;
+                    });
+                });
+                setPipelineFinished(true);
+
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
+                    "activeStep": -1,
+                    "stepStatus": [false, false, false],
+                    "pipelineFinished": true,
+                    "isPipelineStarted": false
+                }));
+            }
+        } else {
+            callStep().then((_) => {});
+        }
+    }, [startPipeline, setPipelineFinished, setActiveStep, setStepStatus, pipelineName, steps,
+        setIsPipelineStarted, callStep]);
 
     useEffect(() => {
         if (pipelineName.length > 0) {
@@ -173,27 +210,41 @@ function DataProcessing() {
                 url: FETCH_PIPELINE_RUN_DATA(pipelineName)
             }).then((response) => {
                 setRunData(response.data);
-            }).catch((error) => {
+                localStorage.setItem(`${pipelineName}-runData`, JSON.stringify(response.data));
+            }).catch((_) => {
                 blockAlert("Error loading pipeline run data!");
             })
         }
     }, [pipelineName]);
 
-    const calculateProgressBarWidth = (totalCircles) => {
-        let factor;
-        if (factor > 5) {
-            factor = 1;
-        } else {
-            if (totalCircles % 2 === 0) {
-                factor = 2;
-            } else {
-                factor = 3;
+    React.useEffect(() => {
+        if (isRun.current) return;
+
+        isRun.current = true;
+
+        let savedState = localStorage.getItem(`${pipelineName}-running-steps`);
+
+        if (savedState) {
+            savedState = JSON.parse(savedState);
+            setStepStatus(savedState.stepStatus);
+            setActiveStep(savedState.activeStep);
+            setPipelineFinished(savedState.pipelineFinished);
+            setIsPipelineStarted(savedState.isPipelineStarted);
+
+            if (!savedState.pipelineFinished && savedState.isPipelineStarted) {
+                setTimeout(() => {
+                    runPipeline("useEffect").then((_) => {});
+                }, 2000)
             }
+        } else {
+            localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
+                "stepStatus": stepStatus,
+                "activeStep": -1,
+                "pipelineFinished": false,
+                "isPipelineStarted": false
+            }))
         }
-        
-        const progressBarWidth = (totalStepsWidth / totalCircles) * (totalCircles - 1) * factor;
-        return progressBarWidth;
-    };
+    })
 
     const closAreYouSure = ()=>{
         setIsAreYouSureOpen(false);
@@ -202,13 +253,14 @@ function DataProcessing() {
     return (
         <div style={{ height: '100%' }}>
             <div className="flow-container">
-                <div className="container">
+                    <div className="container">
                     {loading ? <div className="pipeline-controller pipeline-loading">
                         <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
                         <p>Starting Pipeline...</p>
                     </div>
                         : isPipelineStarted ?
                             <div className="pipeline-controller pipeline-started">
+                                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
                                 <p>Running...</p>
                             </div> : pipelineFinished ?
                                 <div className="pipeline-controller pipeline-started">
@@ -217,45 +269,53 @@ function DataProcessing() {
                                 </div>
                                 :
                                 <div className="pipeline-controller">
-                                    <p className="play-btn" onClick={startPipeline}><FontAwesomeIcon icon={faCirclePlay} /></p>
+                                    <p className="play-btn" onClick={() => runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
                                     <p>Start Pipeline</p>
                                 </div>
                     }
 
-                    <div className="steps">
-                        {pipelineNodes.map((data, index) => (
-                            <div key={index} style={{ maxWidth: totalStepsWidth, display: "flex", flexDirection: "row", alignItems: "center" }}>
-                                <span className="circle">{index + 1}</span>
-                                {index === pipelineNodes.length - 1 ? "" : (
-                                    <span
-                                        className="progress-bar"
-                                        id="indicators"
-                                        style={{ width: `${calculateProgressBarWidth(pipelineNodes.length)}px` }}
-                                    ></span>
-                                )}
-                            </div>
-                        ))}
+                    <div className="steps" style={{ width: "100%" }}>
+                        {pipelineName && (
+                            <Stepper activeStep={activeStep} sx={{ width: "100%" }}>
+                                {steps && steps.map((label, index) => {
+                                    const labelProps = {};
+                                    if (!stepStatus[index]) {
+                                        labelProps.optional = (
+                                            <Typography variant="caption" color="error">
+
+                                            </Typography>
+                                        );
+
+                                        labelProps.error = true;
+                                    }
+
+                                    return (
+                                        <Step key={index}>
+                                            <StepLabel {...labelProps}>{label.toUpperCase()}</StepLabel>
+                                        </Step>
+                                    )
+                                })}
+                            </Stepper>
+                        )}
                     </div>
-                 {
-                    pipelineName.length!=0 &&
-                    <div className="side-info-container">
-                        <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
-                                            <HtmlTooltip
-                            title={
-                            <React.Fragment>
-                                <div>
-                                    <Typography color="inherit"><h3>Selected Pipeline</h3></Typography>
-                                    <em>{pipelineName}</em>
-                                </div>
-                            </React.Fragment>
-                            }
-                        >
-                            <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
-                        </HtmlTooltip> 
-                        
-                    </div>  
-                 }
-                    
+                    {pipelineName.length !== 0 &&
+                        <div className="side-info-container">
+                            <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
+                                                <HtmlTooltip
+                                title={
+                                <React.Fragment>
+                                    <div>
+                                        <Typography color="inherit"><h3>Selected Pipeline</h3></Typography>
+                                        <em>{pipelineName}</em>
+                                    </div>
+                                </React.Fragment>
+                                }
+                            >
+                                <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
+                            </HtmlTooltip>
+
+                        </div>
+                    }
                 </div>
                 
                 <Toaster />

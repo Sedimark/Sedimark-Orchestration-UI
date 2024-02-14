@@ -9,3 +9,4 @@ export const BLOCK_STATUS = (pipeline_id, block_name) => `https://ingress.sedima
 export const GET_ALL_MODELS = `http://localhost:7001/models`;
 export const GET_PARAMETERS_FOR_MODEL = (model_name)=>`http://localhost:7001/model/parameters?name=${model_name}`;
 export const GET_METRICS_FOR_MODEL = (model_name)=>`http://localhost:7001/model/metrics?name=${model_name}`;
+export const PIPELINE_STATUS = (pipeline_id) => `https://ingress.sedimark.work/mage-sedimark/pipeline/batch_status?pipeline_id=${pipeline_id}`;
