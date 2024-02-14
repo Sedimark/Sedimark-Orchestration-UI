@@ -6,3 +6,4 @@ export const FETCH_MINIO_SAMPLE = (pipeline_name) => `https://ingress.sedimark.w
 export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `https://ingress.sedimark.work/mage-sedimark/pipeline/run_data?pipeline_name=${pipeline_name}`;
 export const RUN_PIPELINE = "https://ingress.sedimark.work/mage-sedimark/pipeline/run";
 export const BLOCK_STATUS = (pipeline_id, block_name) => `https://ingress.sedimark.work/mage-sedimark/pipeline/status_once?pipeline_id=${pipeline_id}&block_name=${block_name}`;
+export const PIPELINE_STATUS = (pipeline_id) => `https://ingress.sedimark.work/mage-sedimark/pipeline/batch_status?pipeline_id=${pipeline_id}`;
