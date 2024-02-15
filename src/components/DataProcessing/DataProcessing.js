@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import Flow from "./Flow";
 import style from "../DataProcessing/DataProcessing.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan } from '@fortawesome/free-solid-svg-icons';
+import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
 import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
-import { styled } from '@mui/material/styles';
-import {FETCH_PIPELINE_RUN_DATA, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
+import {createTheme, makeStyles, styled, ThemeProvider} from '@mui/material/styles';
+import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
 import Button from '@mui/material/Button';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
@@ -15,10 +15,36 @@ import Typography from '@mui/material/Typography';
 import axios from "axios";
 import {Step, StepLabel, Stepper} from "@mui/material";
 import {localStorageAvailable} from "@mui/x-data-grid/utils/utils";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Table from "@mui/material/Table";
+import Paper from "@mui/material/Paper";
+import TableHead from "@mui/material/TableHead";
+import TableCell from "@mui/material/TableCell";
+import TableRow from "@mui/material/TableRow";
+import TableBody from "@mui/material/TableBody";
+import TableContainer from "@mui/material/TableContainer";
+import Box from "@mui/material/Box";
 
+function VariablesForm({ variables }) {
+    return (
+        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            {Object.entries(variables).map(([key, value], index) => (
+                <Typography key={index} component="div" variant="body2">
+                    <strong>{key}:</strong> {value ? value : "None"}
+                </Typography>
+            ))}
+        </Box>
+    );
+}
 
 function DataProcessing() {
-
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const pipelineName = useSelector((state) => state.selectedPipelineName);
     const blockVariables = useSelector((state) => state.blocksVariables);
@@ -30,8 +56,14 @@ function DataProcessing() {
     const steps = ["started", "running", "finished"];
     const [stepStatus, setStepStatus] = React.useState([true, true, true]);
     const [activeStep, setActiveStep] = React.useState(-1);
+    const [open, setOpen] = React.useState(false);
+    const [historyData, setHistoryData] = React.useState(null);
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const handleClose = () => {
+        setOpen(false);
+    }
 
     const HtmlTooltip = styled(({ className, ...props }) => (
         <Tooltip {...props} classes={{ popper: className }} />
@@ -61,6 +93,15 @@ function DataProcessing() {
             });
         });
         setActiveStep(-1);
+
+        const toSave = {
+            "pipelineFinished": false,
+            "isPipelineStarted": false,
+            "stepStatus": [true, true, true],
+            "activeStep": -1
+        };
+
+        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
     }
 
     const startPipeline = React.useCallback(async () => {
@@ -148,7 +189,7 @@ function DataProcessing() {
             })
         } else {
             steps.forEach((_, index) => {
-                statuses[index] = false;
+                statuses[index] = index !== steps.length - 1;
             })
         }
 
@@ -250,8 +291,97 @@ function DataProcessing() {
         setIsAreYouSureOpen(false);
     }
 
+    const darkTheme = createTheme({
+        palette: {
+            mode: 'dark',
+            overrides: {
+                MuiInputLabel: {
+                    root: {
+                        color: 'green',
+                    },
+                },
+            },
+        }
+    });
+
+    const handleChange = async (e) => {
+        try {
+            const response = await axios({
+                method: "GET",
+                url: PIPELINE_HISTORY(pipelineName, e.target.value)
+            })
+
+            const result = [];
+
+            for (let entry of response.data) {
+                const variables = {}
+                Object.entries(entry.variables).forEach(([key, value]) => {
+                    if (key !== "execution_partition") {
+                        variables[key] = value
+                    }
+                })
+                result.push({...entry, "variables": variables});
+            }
+            setHistoryData(result);
+        } catch (_) {
+            blockAlert("Error getting the history");
+        }
+    }
+
     return (
         <div style={{ height: '100%' }}>
+            <ThemeProvider theme={darkTheme}>
+                <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="true" >
+                    <DialogTitle>
+                        RUN HISTORY
+                    </DialogTitle>
+                    <DialogContent>
+                        <FormControl fullWidth>
+                            <Typography variant="p" sx={{ color: "white" }}>History Limit</Typography>
+                            <Select
+                                labelId="demo-simple-select-label"
+                                onChange={handleChange}
+                                fullWidth
+                            >
+                                <MenuItem value={10}>10</MenuItem>
+                                <MenuItem value={15}>15</MenuItem>
+                                <MenuItem value={30}>30</MenuItem>
+                                <MenuItem value={50}>50</MenuItem>
+                                <MenuItem value={100}>100</MenuItem>
+                            </Select>
+                        </FormControl>
+                        {historyData && (
+                            <TableContainer component={Paper}>
+                                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Status</TableCell>
+                                            <TableCell align="right">Running Date</TableCell>
+                                            <TableCell align="right">Variables (JSON)</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {historyData.map((row, index) => (
+                                            <TableRow
+                                                key={index}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            >
+                                                <TableCell component="th" scope="row">
+                                                    {row.status}
+                                                </TableCell>
+                                                <TableCell align="right">{row.running_date}</TableCell>
+                                                <TableCell align="right">
+                                                    <VariablesForm variables={row.variables} />
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )}
+                    </DialogContent>
+                </Dialog>
+            </ThemeProvider>
             <div className="flow-container">
                     <div className="container">
                     {loading ? <div className="pipeline-controller pipeline-loading">
@@ -301,7 +431,7 @@ function DataProcessing() {
                     {pipelineName.length !== 0 &&
                         <div className="side-info-container">
                             <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
-                                                <HtmlTooltip
+                            <HtmlTooltip
                                 title={
                                 <React.Fragment>
                                     <div>
@@ -313,7 +443,9 @@ function DataProcessing() {
                             >
                                 <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
                             </HtmlTooltip>
-
+                            <Tooltip title="Run History">
+                                <FontAwesomeIcon icon={faArrowsRotate} onClick={() => setOpen(true)} className="info-icon-side"/>
+                            </Tooltip>
                         </div>
                     }
                 </div>
