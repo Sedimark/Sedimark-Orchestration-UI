@@ -18,7 +18,7 @@ import KeyboardArrowRight from '@mui/icons-material/KeyboardArrowRight';
 import LastPageIcon from '@mui/icons-material/LastPage';
 import Divider from '@mui/material/Divider';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 import { GET_PARAMETERS_FOR_MODEL, GET_METRICS_FOR_MODEL } from "../../../../../utils/apiEndpoints";
 import axios from "axios";
 import { styled } from '@mui/system';
@@ -131,16 +131,16 @@ export const ModelDetails = (props) =>{
     }
 
     const parseParameters = (parameters)=>{
-        const paramArr = [];
-        Object.entries(parameters).forEach(([key,value])=>{
-          const paramObj = {
-            "parameter_name":key,
-            "parameter_value":value[0]
-          }
+        // const paramArr = [];
+        // Object.entries(parameters).forEach(([key,value])=>{
+        //   const paramObj = {
+        //     "parameter_name":key,
+        //     "parameter_value":value[0]
+        //   }
 
-          paramArr.push(paramObj);
-        })
-        setRowsParameters(paramArr);
+        //   paramArr.push(paramObj);
+        // })
+        // setRowsParameters(paramArr);
     }
 
     const parseMetrics = (metrics)=>{
@@ -207,51 +207,64 @@ export const ModelDetails = (props) =>{
                 <Divider/>
                 <div className="param-title">
                     <p className="param-name"> Parameters:</p>
-                    <TableContainer component={Paper} sx={{marginTop:"10px", marginBottom:"20px"}}>
-                      <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
-                        <TableBody>
-                        {(rowsPerPage > 0
-                            ? rowsParameters.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            : rowsParameters
-                        ).map((row) => (
-                            <TableRow key={row.parameter_name}>
-                            <TableCell component="th" scope="row" style={{ fontSize:"1.1rem" }}>
-                                {row.parameter_name}
-                            </TableCell>
-                            <TableCell style={{ width: 160 }} align="right" style={{ fontSize:"1.1rem" }}>
-                                {row.parameter_value}
-                            </TableCell>
-                           
-                            </TableRow>
-                        ))}
-                        {emptyRows > 0 && (
-                            <TableRow style={{ height: 53 * emptyRows }}>
-                            <TableCell colSpan={6} />
-                            </TableRow>
-                        )}
-                        </TableBody>
-                        <TableFooter>
-                        <TableRow>
-                            <TablePagination
-                            rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
-                            colSpan={3}
-                            count={rowsParameters.length}
-                            rowsPerPage={rowsPerPage}
-                            page={page}
-                            SelectProps={{
-                                inputProps: {
-                                'aria-label': 'rows per page',
-                                },
-                                native: true,
-                            }}
-                            onPageChange={handleChangePage}
-                            onRowsPerPageChange={handleChangeRowsPerPage}
-                            ActionsComponent={TablePaginationActions}
-                            />
-                        </TableRow>
-                        </TableFooter>
-                    </Table>
-                  </TableContainer>
+
+                  {
+                      rowsParameters.length!=0 &&
+                      <TableContainer component={Paper} sx={{marginTop:"10px", marginBottom:"20px"}}>
+                        <Table sx={{ minWidth: 500 }} aria-label="custom pagination table">
+                          <TableBody>
+                          {(rowsPerPage > 0
+                              ? rowsParameters.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                              : rowsParameters
+                          ).map((row) => (
+                              <TableRow key={row.parameter_name}>
+                              <TableCell component="th" scope="row" style={{ fontSize:"1.1rem" }}>
+                                  {row.parameter_name}
+                              </TableCell>
+                              <TableCell style={{ width: 160 }} align="right" style={{ fontSize:"1.1rem" }}>
+                                  {row.parameter_value}
+                              </TableCell>
+                            
+                              </TableRow>
+                          ))}
+                          {emptyRows > 0 && (
+                              <TableRow style={{ height: 53 * emptyRows }}>
+                              <TableCell colSpan={6} />
+                              </TableRow>
+                          )}
+                          </TableBody>
+                          <TableFooter>
+                          <TableRow>
+                              <TablePagination
+                              rowsPerPageOptions={[5, 10, 25, { label: 'All', value: -1 }]}
+                              colSpan={3}
+                              count={rowsParameters.length}
+                              rowsPerPage={rowsPerPage}
+                              page={page}
+                              SelectProps={{
+                                  inputProps: {
+                                  'aria-label': 'rows per page',
+                                  },
+                                  native: true,
+                              }}
+                              onPageChange={handleChangePage}
+                              onRowsPerPageChange={handleChangeRowsPerPage}
+                              ActionsComponent={TablePaginationActions}
+                              />
+                          </TableRow>
+                          </TableFooter>
+                      </Table>
+                    </TableContainer>
+
+                  }
+                  {
+                     rowsParameters.length == 0 && 
+                    <div className="no-parameters-container">
+                        <FontAwesomeIcon icon={faBoxOpen} className="empty-page-icon" />
+                        <p>There are no parameters!</p>
+                    </div>  
+                  }
+                    
                 </div>
                 <Divider/>
                 <div className="param-title">

@@ -120,15 +120,19 @@ function DataProcessing() {
 
                     const data = response.data;
 
+                    console.log(data);
+
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
+                        const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "pipelineFinished": true, "isPipelineStarted": false}
+                        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
                         resolve(data);
                     } else {
                         counter += 1;
-                        setTimeout(retry, 30000);
+                        setTimeout(retry, 5000);
                     }
                 } catch (error) {
-                    setTimeout(retry, 30000);
+                    setTimeout(retry, 5000);
                 }
             };
             retry();

@@ -28,3 +28,15 @@
 .left-icon:hover{
     cursor:pointer
 }
+
+.empty-page-icon{
+    padding:10px;
+    font-size:2.9rem;
+}
+
+.no-parameters-container{
+    padding:10px;
+    width: 100%;
+    text-align: center;
+    
+}
