@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Flow from "./Flow";
 import style from "../DataProcessing/DataProcessing.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate } from '@fortawesome/free-solid-svg-icons';
+import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate, faBook } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
 import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
@@ -13,16 +13,14 @@ import Button from '@mui/material/Button';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import axios from "axios";
+import { formatString } from "../../utils/formatString";
 import {Step, StepLabel, Stepper} from "@mui/material";
-import {localStorageAvailable} from "@mui/x-data-grid/utils/utils";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import InputLabel from "@mui/material/InputLabel";
 import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import Table from "@mui/material/Table";
 import Paper from "@mui/material/Paper";
 import TableHead from "@mui/material/TableHead";
@@ -340,12 +338,12 @@ function DataProcessing() {
                         RUN HISTORY
                     </DialogTitle>
                     <DialogContent>
-                        <FormControl fullWidth>
+                        <FormControl sx={{width:"200px", paddingBottom:"20px", paddingTop:"20px"}}>
                             <Typography variant="p" sx={{ color: "white" }}>History Limit</Typography>
                             <Select
                                 labelId="demo-simple-select-label"
                                 onChange={handleChange}
-                                fullWidth
+                                sx={{width:"200px"}}
                             >
                                 <MenuItem value={10}>10</MenuItem>
                                 <MenuItem value={15}>15</MenuItem>
@@ -354,27 +352,35 @@ function DataProcessing() {
                                 <MenuItem value={100}>100</MenuItem>
                             </Select>
                         </FormControl>
+
+                        {
+                            !historyData && 
+                            <div className="no-history-container">
+                                 <FontAwesomeIcon icon={faBook} className="empty-history-icon" />
+                                <p>Select how many records you want to see from history</p>
+                             </div>  
+                        }
                         {historyData && (
                             <TableContainer component={Paper}>
                                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                                    <TableHead>
+                                    <TableHead sx={{backgroundColor:"#000", borderBottom:"none"}}>
                                         <TableRow>
-                                            <TableCell>Status</TableCell>
-                                            <TableCell align="right">Running Date</TableCell>
-                                            <TableCell align="right">Variables (JSON)</TableCell>
+                                            <TableCell sx={{ fontSize:"1.3rem"}}>Status</TableCell>
+                                            <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Running Date</TableCell>
+                                            <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Variables (JSON)</TableCell>
                                         </TableRow>
                                     </TableHead>
-                                    <TableBody>
+                                    <TableBody sx={{ marginBottom:"20px"}}>
                                         {historyData.map((row, index) => (
                                             <TableRow
                                                 key={index}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             >
-                                                <TableCell component="th" scope="row">
+                                                <TableCell component="th" scope="row" style={{color:row["status"] === "failed"?"red":"green", fontSize:"1.3rem"}}>
                                                     {row.status}
                                                 </TableCell>
-                                                <TableCell align="right">{row.running_date}</TableCell>
-                                                <TableCell align="right">
+                                                <TableCell align="right" style={{fontSize:"1.3rem"}}>{row.running_date}</TableCell>
+                                                <TableCell align="right" style={{fontSize:"1.3rem"}}>
                                                     <VariablesForm variables={row.variables} />
                                                 </TableCell>
                                             </TableRow>
@@ -383,6 +389,10 @@ function DataProcessing() {
                                 </Table>
                             </TableContainer>
                         )}
+                        
+                        <Button onClick={()=>{setOpen(false)}} sx={{ marginTop:"20px",bottom:"10px", fontSize:"1.3rem"}} autoFocus>
+                                OK
+                        </Button>
                     </DialogContent>
                 </Dialog>
             </ThemeProvider>
@@ -440,7 +450,7 @@ function DataProcessing() {
                                 <React.Fragment>
                                     <div>
                                         <Typography color="inherit"><h3>Selected Pipeline</h3></Typography>
-                                        <em>{pipelineName}</em>
+                                        <em>{formatString(pipelineName)}</em>
                                     </div>
                                 </React.Fragment>
                                 }

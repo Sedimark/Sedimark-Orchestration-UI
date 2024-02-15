@@ -9,6 +9,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import {useDispatch, useSelector} from 'react-redux';
 import {addPipeline, clearPipeline, setBlocksVariables, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
 import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
+import { formatString } from '../../../../utils/formatString';
 
 export default function AreYouSure(props) {
 
@@ -35,7 +36,7 @@ export default function AreYouSure(props) {
   }
 
   React.useEffect(()=>{
-    
+  
   },[ ])
 
   return (
@@ -52,7 +53,7 @@ export default function AreYouSure(props) {
             </DialogTitle>
             <DialogContent>
             <DialogContentText id="alert-dialog-description">
-                Are you sure you want to remove {selectedPipeline} from the view?
+                Are you sure you want to remove {formatString(selectedPipeline[0])} from the view?
             </DialogContentText>
             </DialogContent>
             <DialogActions>

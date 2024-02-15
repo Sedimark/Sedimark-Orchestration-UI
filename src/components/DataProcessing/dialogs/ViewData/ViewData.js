@@ -37,8 +37,7 @@ export default function ViewData(props) {
    
     const CustomTooltip = ({ active, payload, label }) => {
       if (active) {
-        const males = payload.find((entry) => entry.name === 'males');
-        const females = payload.find((entry) => entry.name === 'females');
+      
         
         return (
           <div className="custom-tooltip">

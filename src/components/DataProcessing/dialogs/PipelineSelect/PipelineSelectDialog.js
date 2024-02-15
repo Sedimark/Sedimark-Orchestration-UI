@@ -22,6 +22,7 @@ import { Typography } from '@mui/material';
 import RadioGroup from '@mui/material/RadioGroup';
 import style from "./PipelineSelectDialog.css";
 import Radio from '@mui/material/Radio';
+import { formatString } from '../../../../utils/formatString';
 import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
 import {addPipeline, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
@@ -325,12 +326,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                                  key={value.name}
                                  secondaryAction={
                                    <div className='dataset-select-toolbox'>
-                                     {/* <Checkbox
-                                       edge="end"
-                                       onChange={handleToggle(value.name)}
-                                       checked={checked.indexOf(value.name) !== -1}
-                                       inputProps={{ 'aria-labelledby': labelId }}
-                                     /> */}
                                      {value.name != pipeline[0] ?
                                       <FormControlLabel value={value.name} control={<Radio />}  /> :
                                       <p className='pipeline-selected-text'>Selected</p>
@@ -345,7 +340,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>
                                    <ListItemText  id={labelId}  disableTypography
-                                   primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{value.name}</Typography>} />
+                                   primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value.name)}</Typography>} />
                                  </ListItemButton>
                                </ListItem>
                              );
