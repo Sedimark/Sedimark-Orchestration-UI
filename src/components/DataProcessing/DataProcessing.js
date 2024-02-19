@@ -334,66 +334,66 @@ function DataProcessing() {
         <div style={{ height: '100%' }}>
             <ThemeProvider theme={darkTheme}>
                 <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="true" >
-                    <DialogTitle>
+                    <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px", marginTop:"20px", marginBottom:"20px" }}  bgcolor="#000" >
+                    <DialogTitle sx={{fontSize:"1.9rem"}}>
                         RUN HISTORY
                     </DialogTitle>
-                    <DialogContent>
-                        <FormControl sx={{width:"200px", paddingBottom:"20px", paddingTop:"20px"}}>
-                            <Typography variant="p" sx={{ color: "white" }}>History Limit</Typography>
-                            <Select
-                                labelId="demo-simple-select-label"
-                                onChange={handleChange}
-                                sx={{width:"200px"}}
-                            >
-                                <MenuItem value={10}>10</MenuItem>
-                                <MenuItem value={15}>15</MenuItem>
-                                <MenuItem value={30}>30</MenuItem>
-                                <MenuItem value={50}>50</MenuItem>
-                                <MenuItem value={100}>100</MenuItem>
-                            </Select>
-                        </FormControl>
+                      
+                        <DialogContent>
+                            <FormControl sx={{width:"200px", paddingBottom:"20px", paddingTop:"20px"}}>
+                                <Typography variant="p" sx={{ color: "white", textAlign:"center" }}>History Limit</Typography>
+                                <Select
+                                    labelId="demo-simple-select-label"
+                                    onChange={handleChange}
+                                    sx={{width:"400px"}}
+                                >
+                                    <MenuItem value={10}>10</MenuItem>
+                                    <MenuItem value={15}>15</MenuItem>
+                                    <MenuItem value={30}>30</MenuItem>
+                                    <MenuItem value={50}>50</MenuItem>
+                                    <MenuItem value={100}>100</MenuItem>
+                                </Select>
+                            </FormControl>
 
-                        {
-                            !historyData && 
-                            <div className="no-history-container">
-                                 <FontAwesomeIcon icon={faBook} className="empty-history-icon" />
-                                <p>Select how many records you want to see from history</p>
-                             </div>  
-                        }
-                        {historyData && (
-                            <TableContainer component={Paper}>
-                                <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                                    <TableHead sx={{backgroundColor:"#000", borderBottom:"none"}}>
-                                        <TableRow>
-                                            <TableCell sx={{ fontSize:"1.3rem"}}>Status</TableCell>
-                                            <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Running Date</TableCell>
-                                            <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Variables (JSON)</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody sx={{ marginBottom:"20px"}}>
-                                        {historyData.map((row, index) => (
-                                            <TableRow
-                                                key={index}
-                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            >
-                                                <TableCell component="th" scope="row" style={{color:row["status"] === "failed"?"red":"green", fontSize:"1.3rem"}}>
-                                                    {row.status}
-                                                </TableCell>
-                                                <TableCell align="right" style={{fontSize:"1.3rem"}}>{row.running_date}</TableCell>
-                                                <TableCell align="right" style={{fontSize:"1.3rem"}}>
-                                                    <VariablesForm variables={row.variables} />
-                                                </TableCell>
+                           
+                            {historyData && (
+                                <TableContainer component={Paper}>
+                                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                                        <TableHead sx={{backgroundColor:"#000", borderBottom:"none"}}>
+                                            <TableRow>
+                                                <TableCell sx={{ fontSize:"1.3rem"}}>Status</TableCell>
+                                                <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Running Date</TableCell>
+                                                <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Variables (JSON)</TableCell>
                                             </TableRow>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                        )}
-                        
-                        <Button onClick={()=>{setOpen(false)}} sx={{ marginTop:"20px",bottom:"10px", fontSize:"1.3rem"}} autoFocus>
-                                OK
-                        </Button>
-                    </DialogContent>
+                                        </TableHead>
+                                        <TableBody sx={{ marginBottom:"20px"}}>
+                                            {historyData.map((row, index) => (
+                                                <TableRow
+                                                    key={index}
+                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                >
+                                                    <TableCell component="th" scope="row" style={{color:row["status"] === "failed"?"red":"green", fontSize:"1.3rem"}}>
+                                                        {row.status}
+                                                    </TableCell>
+                                                    <TableCell align="right" style={{fontSize:"1.3rem"}}>{row.running_date}</TableCell>
+                                                    <TableCell align="right" style={{fontSize:"1.3rem"}}>
+                                                        <VariablesForm variables={row.variables} />
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                            )}
+
+
+                            
+                            <Button onClick={()=>{setOpen(false)}} sx={{ paddingRight:"10%", marginTop:"10%",bottom:"10px", fontSize:"1.3rem"}} autoFocus>
+                                    OK
+                            </Button>
+                        </DialogContent>
+
+                    </Box>
                 </Dialog>
             </ThemeProvider>
             <div className="flow-container">

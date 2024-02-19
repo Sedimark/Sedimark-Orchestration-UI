@@ -73,6 +73,7 @@ export default function TrainModelDialog(props){
 
       try{
         const response = await axios.get(GET_ALL_MODELS);
+        console.log(response.data);
         setAllModelsData(response.data);
         setIsDataLoading(false);
       } catch(err){
