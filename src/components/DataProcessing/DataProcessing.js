@@ -28,7 +28,11 @@ import TableCell from "@mui/material/TableCell";
 import TableRow from "@mui/material/TableRow";
 import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
-import Box from "@mui/material/Box";
+import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import TabContext from '@mui/lab/TabContext';
+import TabList from '@mui/lab/TabList';
+import TabPanel from '@mui/lab/TabPanel';
 
 function VariablesForm({ variables }) {
     return (
@@ -56,6 +60,13 @@ function DataProcessing() {
     const [activeStep, setActiveStep] = React.useState(-1);
     const [open, setOpen] = React.useState(false);
     const [historyData, setHistoryData] = React.useState(null);
+    const [value, setValue] = React.useState('1');
+
+    const handleChangeTab = (event, newValue) => {
+      setValue(newValue);
+    };
+
+
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -466,7 +477,19 @@ function DataProcessing() {
                 
                 <Toaster />
                 <LeftMenu />
-                <Flow />
+                {/* <Flow /> */}
+                    <TabContext value={value}>
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                            <TabList onChange={handleChange} aria-label="lab API tabs example">
+                                <Tab label="Item One" value="1" />
+                                <Tab label="Item Two" value="2" />
+                                <Tab label="Item Three" value="3" />
+                            </TabList>
+                            </Box>
+                            <TabPanel value="1">Item One</TabPanel>
+                            <TabPanel value="2">Item Two</TabPanel>
+                            <TabPanel value="3">Item Three</TabPanel>
+                     </TabContext>
                 { isAreYouSureOpen && <AreYouSure open={isAreYouSureOpen} handleClose={closAreYouSure}></AreYouSure>}
                 
             </div>

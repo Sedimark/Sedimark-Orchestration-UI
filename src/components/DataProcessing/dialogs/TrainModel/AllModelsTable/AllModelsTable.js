@@ -1,4 +1,5 @@
 import React from "react";
+import style from "./AllModelsTable.css";
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';
@@ -10,6 +11,8 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Button from '@mui/material/Button';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { styled } from '@mui/system';
 
 
@@ -49,6 +52,22 @@ export const AllModelsTable = (props)=>{
       }
 
     return(
+        <div>
+            
+              {
+                props.allModelsData.length === 0 && 
+                <div className="no-models-container">
+                  
+                  <p className="no-models-text"> 
+                  <FontAwesomeIcon icon={faFile} />
+                    <p>
+                        There are no trained models!
+                    </p>
+                  </p>
+                </div>
+              }
+              {
+                props.allModelsData.length !=0 && 
                 <TableContainer component={Paper}>
                     <Table sx={{ minWidth: 700 }} aria-label="customized table">
                       <TableHead>
@@ -87,9 +106,12 @@ export const AllModelsTable = (props)=>{
 
                            </StyledTableRow>
                          ))}
+                       
                        </TableBody>
                      </Table>
-              </TableContainer>
+              </TableContainer>    
+              }     
+        </div>
     );
 
 }
