@@ -244,7 +244,8 @@ export default function ViewData(props) {
                             <div className="loading-circle"></div>
                             
                         </div>
-                        }{
+                        }
+                        {
                           !isLoading && 
                           <TableContainer component={Paper} >
                             <Table  aria-label="simple table" sx={{ minWidth: 1950, padding:"10px" }}>

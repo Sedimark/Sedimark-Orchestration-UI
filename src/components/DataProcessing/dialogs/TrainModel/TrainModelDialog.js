@@ -63,17 +63,14 @@ export default function TrainModelDialog(props){
       },
     });
     
-    const handleDone = ()=>{
-      
+    const handleDone = ()=>{      
         props.handleClose();
     }
-
 
     const fetchAllModelsAndSet = async()=>{
 
       try{
         const response = await axios.get(GET_ALL_MODELS);
-        console.log(response.data);
         setAllModelsData(response.data);
         setIsDataLoading(false);
       } catch(err){

@@ -1,38 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
-import Flow from "./Flow";
 import style from "../DataProcessing/DataProcessing.css";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate, faBook } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import LeftMenu from "./LeftMenu";
-import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
-import {createTheme, makeStyles, styled, ThemeProvider} from '@mui/material/styles';
-import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import toast, { Toaster } from 'react-hot-toast';
-import Button from '@mui/material/Button';
+import {createTheme, styled} from '@mui/material/styles';
+import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import axios from "axios";
-import { formatString } from "../../utils/formatString";
-import {Step, StepLabel, Stepper} from "@mui/material";
-import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
-import DialogContent from "@mui/material/DialogContent";
-import Select from "@mui/material/Select";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Table from "@mui/material/Table";
-import Paper from "@mui/material/Paper";
-import TableHead from "@mui/material/TableHead";
-import TableCell from "@mui/material/TableCell";
-import TableRow from "@mui/material/TableRow";
-import TableBody from "@mui/material/TableBody";
-import TableContainer from "@mui/material/TableContainer";
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
+import { PipelineView } from "./pipeline_view/PipelineView";
 
 function VariablesForm({ variables }) {
     return (
@@ -60,19 +41,17 @@ function DataProcessing() {
     const [activeStep, setActiveStep] = React.useState(-1);
     const [open, setOpen] = React.useState(false);
     const [historyData, setHistoryData] = React.useState(null);
-    const [value, setValue] = React.useState('1');
+    const [selectedTab, setSelectedTab] = React.useState('1');
 
     const handleChangeTab = (event, newValue) => {
-      setValue(newValue);
+      setSelectedTab(newValue);
     };
 
 
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-    const handleClose = () => {
-        setOpen(false);
-    }
+   
 
     const HtmlTooltip = styled(({ className, ...props }) => (
         <Tooltip {...props} classes={{ popper: className }} />
@@ -170,7 +149,6 @@ function DataProcessing() {
 
                     const data = response.data;
 
-                    console.log(data);
 
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
@@ -339,160 +317,32 @@ function DataProcessing() {
         } catch (_) {
             blockAlert("Error getting the history");
         }
-    }
+    } 
+
+   
 
     return (
         <div style={{ height: '100%' }}>
-            <ThemeProvider theme={darkTheme}>
-                <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="true" >
-                    <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px", marginTop:"20px", marginBottom:"20px" }}  bgcolor="#000" >
-                    <DialogTitle sx={{fontSize:"1.9rem"}}>
-                        RUN HISTORY
-                    </DialogTitle>
-                      
-                        <DialogContent>
-                            <FormControl sx={{width:"200px", paddingBottom:"20px", paddingTop:"20px"}}>
-                                <Typography variant="p" sx={{ color: "white", textAlign:"center" }}>History Limit</Typography>
-                                <Select
-                                    labelId="demo-simple-select-label"
-                                    onChange={handleChange}
-                                    sx={{width:"400px"}}
-                                >
-                                    <MenuItem value={10}>10</MenuItem>
-                                    <MenuItem value={15}>15</MenuItem>
-                                    <MenuItem value={30}>30</MenuItem>
-                                    <MenuItem value={50}>50</MenuItem>
-                                    <MenuItem value={100}>100</MenuItem>
-                                </Select>
-                            </FormControl>
-
-                           
-                            {historyData && (
-                                <TableContainer component={Paper}>
-                                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
-                                        <TableHead sx={{backgroundColor:"#000", borderBottom:"none"}}>
-                                            <TableRow>
-                                                <TableCell sx={{ fontSize:"1.3rem"}}>Status</TableCell>
-                                                <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Running Date</TableCell>
-                                                <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Variables (JSON)</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody sx={{ marginBottom:"20px"}}>
-                                            {historyData.map((row, index) => (
-                                                <TableRow
-                                                    key={index}
-                                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                >
-                                                    <TableCell component="th" scope="row" style={{color:row["status"] === "failed"?"red":"green", fontSize:"1.3rem"}}>
-                                                        {row.status}
-                                                    </TableCell>
-                                                    <TableCell align="right" style={{fontSize:"1.3rem"}}>{row.running_date}</TableCell>
-                                                    <TableCell align="right" style={{fontSize:"1.3rem"}}>
-                                                        <VariablesForm variables={row.variables} />
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                            )}
-
-
-                            
-                            <Button onClick={()=>{setOpen(false)}} sx={{ paddingRight:"10%", marginTop:"10%",bottom:"10px", fontSize:"1.3rem"}} autoFocus>
-                                    OK
-                            </Button>
-                        </DialogContent>
-
-                    </Box>
-                </Dialog>
-            </ThemeProvider>
-            <div className="flow-container">
-                    <div className="container">
-                    {loading ? <div className="pipeline-controller pipeline-loading">
-                        <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
-                        <p>Starting Pipeline...</p>
-                    </div>
-                        : isPipelineStarted ?
-                            <div className="pipeline-controller pipeline-started">
-                                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
-                                <p>Running...</p>
-                            </div> : pipelineFinished ?
-                                <div className="pipeline-controller pipeline-started">
-                                    <p className="play-btn" onClick={handleStop}><FontAwesomeIcon icon={faTrash} /></p>
-                                    <p>Clear Run</p>
-                                </div>
-                                :
-                                <div className="pipeline-controller">
-                                    <p className="play-btn" onClick={() => runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
-                                    <p>Start Pipeline</p>
-                                </div>
-                    }
-
-                    <div className="steps" style={{ width: "100%" }}>
-                        {pipelineName && (
-                            <Stepper activeStep={activeStep} sx={{ width: "100%" }}>
-                                {steps && steps.map((label, index) => {
-                                    const labelProps = {};
-                                    if (!stepStatus[index]) {
-                                        labelProps.optional = (
-                                            <Typography variant="caption" color="error">
-
-                                            </Typography>
-                                        );
-
-                                        labelProps.error = true;
-                                    }
-
-                                    return (
-                                        <Step key={index}>
-                                            <StepLabel {...labelProps}>{label.toUpperCase()}</StepLabel>
-                                        </Step>
-                                    )
-                                })}
-                            </Stepper>
-                        )}
-                    </div>
-                    {pipelineName.length !== 0 &&
-                        <div className="side-info-container">
-                            <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
-                            <HtmlTooltip
-                                title={
-                                <React.Fragment>
-                                    <div>
-                                        <Typography color="inherit"><h3>Selected Pipeline</h3></Typography>
-                                        <em>{formatString(pipelineName)}</em>
-                                    </div>
-                                </React.Fragment>
-                                }
-                            >
-                                <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
-                            </HtmlTooltip>
-                            <Tooltip title="Run History">
-                                <FontAwesomeIcon icon={faArrowsRotate} onClick={() => setOpen(true)} className="info-icon-side"/>
-                            </Tooltip>
-                        </div>
-                    }
-                </div>
-                
-                <Toaster />
-                <LeftMenu />
-                {/* <Flow /> */}
-                    <TabContext value={value}>
-                            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                            <TabList onChange={handleChange} aria-label="lab API tabs example">
-                                <Tab label="Item One" value="1" />
-                                <Tab label="Item Two" value="2" />
-                                <Tab label="Item Three" value="3" />
-                            </TabList>
+            <TabContext value={selectedTab} className="tabs-container">
+                            <Box sx={{ borderBottom: 1, borderColor: 'divider', marginLeft:"250px" }}>
+                                <TabList onChange={handleChangeTab} aria-label="lab API tabs example">
+                                    <Tab label="Data preprocessing" value="1" />
+                                    <Tab label="Training pipeline" value="2" />
+                                    <Tab label="Predict" value="3" />
+                                </TabList>
                             </Box>
-                            <TabPanel value="1">Item One</TabPanel>
-                            <TabPanel value="2">Item Two</TabPanel>
-                            <TabPanel value="3">Item Three</TabPanel>
-                     </TabContext>
-                { isAreYouSureOpen && <AreYouSure open={isAreYouSureOpen} handleClose={closAreYouSure}></AreYouSure>}
-                
-            </div>
+                <TabPanel value="1" sx={{padding:"0px"}}>  
+                    <PipelineView pipelineType="data_preprocessing"/>
+                </TabPanel>
+                <TabPanel value="2" sx={{padding:"0px"}}>
+                    <PipelineView pipelineType="training"/>
+                </TabPanel>
+                <TabPanel value="3" sx={{padding:"0px"}}>
+                    <PipelineView pipelineType="predict"/>
+                </TabPanel>
+            </TabContext>
+            <LeftMenu />
+            
         </div>
     );
 }

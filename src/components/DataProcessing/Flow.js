@@ -21,9 +21,11 @@ import { setDatasetColumnNames } from '../../reducers/nodeSlice';
 import { v4 as uuidv4 } from 'uuid';
 import axios from "axios";
 
-function Flow() {
+function Flow(props) {
 
-  const selectedPipeline = useSelector((state)=> state.selectedPipeline);
+
+  const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
+  const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const blocksVariables = useSelector((state)=> state.blocksVariables);
   const pipelineFetching = useSelector((state)=> state.is_pipeline_fetching);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
@@ -40,6 +42,7 @@ function Flow() {
   const [pipelineEdges, setPipelineEdges] = useState([]);
   const [wereEdgesPlaced, setWereEdgesPlaced] = useState(false);
   const dispatch = useDispatch();
+  const [selectedPipeline, setSelectedPipeline] = useState([]);
   let edgePlaced = false;
   
   const onNodesChange = useCallback(
@@ -130,7 +133,7 @@ function Flow() {
     }
     
     setPosition(nodeData, nodeData[firstBlock], 0, 0);
-
+    
     for(let nodeType of nodeData){
       
       if(nodeType.type == "Loader"){
@@ -259,9 +262,7 @@ function Flow() {
       }
     }
 
-    
     setPipelineEdges([...connectionEdges]);
-
     setPipelineEdges(connectionEdges);
     addNodes(allNodes);
   }
@@ -354,14 +355,12 @@ function Flow() {
    setTheNodes();
   } 
 
-
  
   const fetchPipelineData = async(pipeline_name)=>{
     setIsPipelineLoading(true);
   
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
-    
       processAndPlaceNodes(resp.data.pipeline.blocks);
       setIsPipelineLoading(false);
       dispatch(setSelectedPipelineName(pipeline_name));
@@ -427,15 +426,18 @@ function Flow() {
   },[storedNodes])
 
 
-
-  useEffect(()=>{
-    if(selectedPipeline.length!=0){
-      fetchAndParseMinioJson(selectedPipeline[0]);
+  const selectPipelineBasedOnProps = (pipeline_type)=>{
+    if( pipeline_type == "training"){
+      setSelectedPipeline(selectedPipelineTrain);
+    } else if (pipeline_type == "data_preprocessing"){
+      setSelectedPipeline(selectedPipelineDataPreProcessing);
     }
-    
-  },[selectedPipeline])
+  }
 
-   
+  useEffect(()=>{ 
+    selectPipelineBasedOnProps(props.pipelineType);
+  },[props, selectedPipelineDataPreProcessing, selectedPipelineTrain])
+
     return (
       <div style={{ width: '96vw', height: '100vh' }}>
         {

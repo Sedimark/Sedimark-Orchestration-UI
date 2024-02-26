@@ -1,6 +1,8 @@
 import * as React from 'react';
+import { useEffect } from 'react';
 import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
 import Box from '@mui/material/Box';
+import { useSelector } from "react-redux/es/hooks/useSelector";
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import List from '@mui/material/List';
@@ -94,6 +96,8 @@ export default function MiniDrawer() {
   const [displayMLModels, setDisplayMLModels] = React.useState(false);
   const [pipelineType, setPipelineType] = React.useState("");
   const [trainModelsDialogOpen, setTrainModelsDialogOpen] = React.useState(false);
+  const pipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
+  const pipelinePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
 
   const openPipelineSelectMenu = (dialogType) => {
     if(dialogType == "train"){
@@ -116,6 +120,15 @@ export default function MiniDrawer() {
   const handleTrainModelsMenuClose = ()=>{
     setTrainModelsDialogOpen(false);
   }
+
+  useEffect(()=>{
+
+    console.log("selectedPipelineTrain:");
+    console.log(pipelineTrain);
+    console.log("selectedPipelineDataPreprocesing");
+    console.log(pipelinePreprocessing);
+
+  },[pipelineTrain, pipelinePreprocessing])
 
 
   return (

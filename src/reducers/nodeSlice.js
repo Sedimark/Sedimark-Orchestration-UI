@@ -1,5 +1,4 @@
 import {createSlice, nanoid} from '@reduxjs/toolkit'
-import { act } from 'react-dom/test-utils';
 
 const initialState = {
     nodes:[],
@@ -22,7 +21,11 @@ const initialState = {
     blocksVariables:[],
     orderedNodes: [],
     selectedPipelineName: "",
-    storedNodes:[]
+    selectedPipelineNameDataPreprocessing:"",
+    selectedPipelineNameTrain:"",
+    storedNodes:[],
+    selectedPipelineTrain:[],
+    selectedPipelineDataPreprocessing:[]
 }   
 
 export const nodeSlice = createSlice({
@@ -130,11 +133,33 @@ export const nodeSlice = createSlice({
 
          setDatasetColumnNames:(state, action)=>{
             state.datasetColumnNames = action.payload;
-         }
+         },
+         addPipelineTrain:(state, action)=>{
+            state.selectedPipelineTrain = [];
+            state.selectedPipelineTrain = [action.payload];
+        },
+        addPipelinePreprocessing:(state, action)=>{
+            state.selectedPipelineDataPreprocessing = [];
+            state.selectedPipelineDataPreprocessing = [action.payload];
+        },
+        clearPipelineProcessing:(state, action)=>{
+            state.selectedPipelineDataPreprocessing = [];
+        },
+        clearPipelineTrain:(state, action)=>{
+            state.selectedPipelineTrain = [];
+        },
+        setSelectedPipelineNameTrain:(state, action)=>{
+            
+            state.selectedPipelineNameTrain = action.payload;
+        },
+
+        setSelectedPipelineNamePreprocessing:(state, action)=>{
+            state.selectedPipelineNameDataPreprocessing = action.payload;
+        }
     }
 });
 
 
-export const {setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
+export const { clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
 
 export default nodeSlice.reducer;

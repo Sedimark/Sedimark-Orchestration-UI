@@ -25,11 +25,12 @@ import Radio from '@mui/material/Radio';
 import { formatString } from '../../../../utils/formatString';
 import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
-import {addPipeline, clearPipeline, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes} from "../../../../reducers/nodeSlice";
+import {addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineName, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { setDatasetColumns, setDatasetInfo, setDatasetColumnNames } from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
+
 
 
 export default function PipelineSelectDialog(props) {
@@ -37,7 +38,8 @@ export default function PipelineSelectDialog(props) {
   
   const dispatch = useDispatch();
   const nodes = useSelector((state)=>state.nodes);
-  const pipeline = useSelector((state)=>state.selectedPipeline);
+  const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
+  const pipelinePreprocessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
   const [checked, setChecked] = React.useState([]);
   const [dataSetSearch,setDatasetSearch] = React.useState(true);
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
@@ -48,6 +50,7 @@ export default function PipelineSelectDialog(props) {
   const [wasRunned, setWasRunned] = React.useState(false);
   const [selectedPipeline,setSelectedPipeline] = React.useState("");
   const [onlyOneOptionSelected, setOnlyOneOptionSelected] = React.useState(false);
+  const [pipeline, setPipeline] = React.useState("");
 
   const parseAndSetColumns = (data_to_parse)=>{
     
@@ -143,6 +146,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     const filteredPipelines = data.filter((dt)=> {
       return  dt.name == pipeline[0] ;
     });
+
     const filteredPipelinesNames = filteredPipelines.length!=0? filteredPipelines[0].name : [];
     if(filteredPipelinesNames.length !=0){
 
@@ -188,36 +192,53 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   
 
   const addCorespondingPipeline = ()=>{
+   
+
     if(isLoading){
-      return;
-    }
-    
-    
-     if(selectedPipeline.length == 0){
-      dispatch(setDatasetColumns([]));
-      dispatch(setDatasetInfo([]));
-      dispatch(setMappedEdges([]));
-      dispatch(setMappedNodes([]));
-      dispatch(setOrderedNodes([]));
-      dispatch(clearPipeline([]));
-      dispatch(setSelectedPipelineName(""));
-      dispatch(setStoredNodes([]));
-      return;
+        return;
     }
 
     
-    if(pipeline.length == 0){ 
-      dispatch(addPipeline(selectedPipeline));
-      return;
-    }
+    if(props.pipelineType == "train"){
 
+      if(selectedPipeline.length == 0){
+        dispatch(addPipelineTrain([]));
+      }
 
-    if(pipeline.length !=0 && pipeline[0] != selectedPipeline)
-    {
-      dispatch(addPipeline(selectedPipeline));
-      return;
-    }
-       
+    
+      if(pipelineTrain.length !=0 && pipelineTrain[0] != selectedPipeline)
+      {
+        dispatch(addPipelineTrain(selectedPipeline));
+        dispatch(setSelectedPipelineName(selectedPipeline));
+        dispatch(setSelectedPipelineNameTrain(selectedPipeline));
+        return;
+      } else if(pipelineTrain.length == 0 ){
+        dispatch(addPipelineTrain(selectedPipeline));
+        dispatch(setSelectedPipelineName(selectedPipeline));
+        dispatch(setSelectedPipelineNameTrain(selectedPipeline));
+        return;
+      }
+
+    } else if (props.pipelineType == "data_preprocessing"){
+      
+        if(selectedPipeline.length == 0){
+          dispatch(addPipelinePreprocessing([]));
+        }
+    
+        if(pipelinePreprocessing.length !=0 && pipelinePreprocessing[0] != selectedPipeline)
+        {
+          dispatch(addPipelinePreprocessing(selectedPipeline));
+          dispatch(setSelectedPipelineName(selectedPipeline));
+          dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
+          return;
+        } else if(pipelinePreprocessing.length == 0 ){
+          dispatch(addPipelinePreprocessing(selectedPipeline));
+          dispatch(setSelectedPipelineName(selectedPipeline));
+          dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
+          return;
+        }
+      }
+    
   }
 
 
@@ -228,12 +249,26 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   const handleDialogTitle = ()=>{
     if(props.pipelineType == "data_preprocessing"){
       setDialogName("Pipelines - preprocessing");
+      setPipeline([pipelinePreprocessing]);
     } else if (props.pipelineType == "train"){
       setDialogName("Pipelines - train");
+      setPipeline(pipelineTrain);
     }
   }
 
+  const checkIfPipelineIsSelected = (all_pipelines, the_pipeline) => {
+    let pipelineSelected = false;
+
+    for(const pipeline of all_pipelines){
+      if(pipeline.name == the_pipeline){
+        pipelineSelected = true;
+      }
+    }
+    return pipelineSelected;
+  }
+
   React.useEffect(()=>{
+  
     if(wasRunned){
       fetchAllPipelines();
     }
@@ -246,15 +281,16 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     setWasRunned(true);
   },[])
  
-  
 
   React.useEffect(()=>{
-    
-      if(filteredPipelines.length == 1 && filteredPipelines[0].name == pipeline[0]){
-        setOnlyOneOptionSelected(true);
-      }
+   
+    setOnlyOneOptionSelected(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
   },[filteredPipelines])
 
+ 
+
+
+ 
   return (
     
     <div>
@@ -349,8 +385,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                           
                       }
   
-                     </RadioGroup>
-                  
+                     </RadioGroup>                
                      }
                      
                    </List>
