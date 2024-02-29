@@ -24,6 +24,7 @@ import {
   Unstable_NumberInput as BaseNumberInput,
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
+
 import { setBlocksVariables } from '../../../../reducers/nodeSlice';
 import axios from "axios";
 
@@ -66,8 +67,10 @@ const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
 export default function VariablesInput(props){
 
     const dispatch = useDispatch();
+    const pipelineProcessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
+    const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
+    const activeTab = useSelector((state)=> state.selectedView);
     const storedColumnNames = useSelector((state)=> state.datasetColumnNames);
-    const selectedPipeline = useSelector((state) => state.selectedPipeline);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
     const [isDataLoading, setIsDataLoading] = React.useState(true);
@@ -80,6 +83,7 @@ export default function VariablesInput(props){
     const [columnNames, setColumnNames] = useState([]);
     const [wasSomethingChanged, setWasSomethingChanged] = React.useState(false);
     const [hasMultipleSelection, setHasMultipleSelection] = React.useState(false);
+    const [selectedPipeline, setSelectedPipeline] = React.useState("");
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
@@ -198,7 +202,8 @@ export default function VariablesInput(props){
           block_name:props.fullNodeName,
           variable_name:key,
           value:variablesInput[key],
-          nodeId:nodeNameId
+          nodeId:nodeNameId,
+          pipelineName:selectedPipeline
         }
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
@@ -261,6 +266,16 @@ export default function VariablesInput(props){
       setVariablesInput(obj);
    }
 
+   const retrievePipelineBasedOnTab = (the_active_tab)=>{
+    console.log("The active tab:");
+    console.log(the_active_tab);
+      if(the_active_tab == 1){
+        setSelectedPipeline(pipelineProcessing);
+      } else {
+        setSelectedPipeline(pipelineTrain);
+      }
+   }
+
    useEffect(()=>{
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
    },[blocksVariablesStored])
@@ -268,10 +283,19 @@ export default function VariablesInput(props){
 
    useEffect(()=>{
     setNodeNameId(convertToSnakeCase(props.fullNodeName));
-    fetchAndParseMinioJson(selectedPipeline[0]); 
+    
    },[]) 
 
- 
+   useEffect(()=>{
+    retrievePipelineBasedOnTab(activeTab);
+   },[activeTab])
+
+   useEffect(()=>{
+    if(selectedPipeline.length !=0){
+      fetchAndParseMinioJson(selectedPipeline);
+    }
+   },[selectedPipeline])
+
     return (
     <div>
       <ThemeProvider theme={darkTheme}>

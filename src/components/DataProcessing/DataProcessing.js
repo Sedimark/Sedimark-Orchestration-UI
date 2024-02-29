@@ -14,6 +14,8 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { PipelineView } from "./pipeline_view/PipelineView";
+import { setSelectedView } from "../../reducers/nodeSlice";
+import {useDispatch} from 'react-redux';
 
 function VariablesForm({ variables }) {
     return (
@@ -28,6 +30,8 @@ function VariablesForm({ variables }) {
 }
 
 function DataProcessing() {
+
+    const dispatch = useDispatch();
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const pipelineName = useSelector((state) => state.selectedPipelineName);
     const blockVariables = useSelector((state) => state.blocksVariables);
@@ -45,8 +49,9 @@ function DataProcessing() {
 
     const handleChangeTab = (event, newValue) => {
       setSelectedTab(newValue);
+      dispatch(setSelectedView(newValue));
     };
-
+ 
 
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -319,6 +324,9 @@ function DataProcessing() {
         }
     } 
 
+    React.useEffect(()=>{
+        
+    },[])
    
 
     return (

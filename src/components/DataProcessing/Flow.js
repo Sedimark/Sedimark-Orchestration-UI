@@ -24,6 +24,7 @@ import axios from "axios";
 function Flow(props) {
 
 
+  const blockVariables = useSelector((state)=> state.blocksVariables);
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const blocksVariables = useSelector((state)=> state.blocksVariables);
@@ -426,6 +427,7 @@ function Flow(props) {
   },[storedNodes])
 
 
+
   const selectPipelineBasedOnProps = (pipeline_type)=>{
     if( pipeline_type == "training"){
       setSelectedPipeline(selectedPipelineTrain);
@@ -434,9 +436,12 @@ function Flow(props) {
     }
   }
 
+  
+
   useEffect(()=>{ 
     selectPipelineBasedOnProps(props.pipelineType);
   },[props, selectedPipelineDataPreProcessing, selectedPipelineTrain])
+
 
     return (
       <div style={{ width: '96vw', height: '100vh' }}>

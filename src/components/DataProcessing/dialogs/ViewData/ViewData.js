@@ -24,14 +24,16 @@ import axios from 'axios';
 
 export default function ViewData(props) {
 
-   
-    const selectedPipeline = useSelector((state) => state.selectedPipeline);
+    const selectedTab = useSelector((state) => state.selectedView);
+    const pipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
+    const pipelinePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const [allColumnsData, setAllColumnsData] = useState();
     const [columnNames, setColumnNames] = useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
     const [doneLoading, setDoneLoading] = React.useState(false);
     const [allColumnsSamples, setAllColumnsSamples] = React.useState([]);
     const [allHistValues,setAllHistValues] = React.useState({});
+    const [selectedPipeline, setSelectedPipeline] = React.useState("");
     const initialized = useRef(false);
 
    
@@ -92,6 +94,7 @@ export default function ViewData(props) {
     
 
       const parseBucketName = (inputString)=>{
+      
         if (inputString.includes('_')) {
           inputString = inputString.split("_").join("-");
         } 
@@ -130,11 +133,11 @@ export default function ViewData(props) {
       }
 
 
-
       const fetchAndParseMinioJson = async (bucket_name) => {
         let jsonFileLink;
         let jsonFileData;
-   
+
+    
         try{
             jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
             jsonFileLink = jsonFileLink.data.url;
@@ -142,7 +145,9 @@ export default function ViewData(props) {
             console.log(err);
             return;
         }
-        
+
+
+      
         try{
             jsonFileData = await axios.get(jsonFileLink);
             parseHistValues(jsonFileData.data);
@@ -195,13 +200,21 @@ export default function ViewData(props) {
       }
 
       useEffect(() => {
-        if (!initialized.current) {
-          initialized.current = true
-          fetchAndParseMinioJson(selectedPipeline[0]);
-          fetchSampleData(selectedPipeline[0]);
-          }
-        }, [])
+        
+        if(selectedPipeline.length !== 0){
+          
+            if (!initialized.current) {
+              initialized.current = true
+              fetchAndParseMinioJson(selectedPipeline);
+              fetchSampleData(selectedPipeline);
+              }
+        }
+       
+        },[selectedPipeline])
 
+      useEffect(()=>{
+        setSelectedPipeline();
+      },[])
 
       useEffect(()=>{
         if(columnNames.length!=0 && allColumnsSamples.length!=0){
@@ -210,6 +223,14 @@ export default function ViewData(props) {
       },[ columnNames , allColumnsSamples])
 
     
+      useEffect(()=>{
+        
+          if(selectedTab == 1){
+            setSelectedPipeline(pipelinePreprocessing[0]);
+          } else {
+            setSelectedPipeline(pipelineTrain[0]);
+          }
+      },[selectedTab])
 
     return (
       

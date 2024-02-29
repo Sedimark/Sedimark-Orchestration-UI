@@ -18,6 +18,7 @@ export default function AreYouSure(props) {
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const selectedPipelineDataPreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const [selectedPipeline,setSelectedPipeline] = useState("");
+
   const darkTheme = createTheme({
     palette: {
       mode: 'dark',
@@ -30,14 +31,14 @@ export default function AreYouSure(props) {
     if(props.pipelineType == "training"){
 
       dispatch(setDatasetColumns([]));
-      dispatch(setDatasetInfo([]));
-      dispatch(setMappedEdges([]));
-      dispatch(setMappedNodes([]));
-      dispatch(setOrderedNodes([]));
-      dispatch(clearPipeline([]));
+      // dispatch(setDatasetInfo([]));
+      // dispatch(setMappedEdges([]));
+      // dispatch(setMappedNodes([]));
+      // dispatch(setOrderedNodes([]));
+      // dispatch(clearPipeline([]));
       dispatch(setSelectedPipelineName(""));
-      dispatch(setStoredNodes([]));
-      dispatch(setBlocksVariables([]));
+      // dispatch(setStoredNodes([]));
+      // dispatch(setBlocksVariables([]));
       dispatch(clearPipelineTrain());
       // the one below are for this specific type of pipeline
 
@@ -48,15 +49,15 @@ export default function AreYouSure(props) {
 
     } else if(props.pipelineType == "data_preprocessing"){
 
-      dispatch(setDatasetColumns([]));
-      dispatch(setDatasetInfo([]));
-      dispatch(setMappedEdges([]));
-      dispatch(setMappedNodes([]));
-      dispatch(setOrderedNodes([]));
-      dispatch(clearPipeline([]));
-      dispatch(setSelectedPipelineName(""));
-      dispatch(setStoredNodes([]));
-      dispatch(setBlocksVariables([]));
+      // dispatch(setDatasetColumns([]));
+      // dispatch(setDatasetInfo([]));
+      // dispatch(setMappedEdges([]));
+      // dispatch(setMappedNodes([]));
+      // dispatch(setOrderedNodes([]));
+      // dispatch(clearPipeline([]));
+      // dispatch(setSelectedPipelineName(""));
+      // dispatch(setStoredNodes([]));
+      // dispatch(setBlocksVariables([]));
       // the one below are for this specific type of pipeline
       dispatch(setSelectedPipelineNamePreprocessing(""));
       dispatch(clearPipelineProcessing());
@@ -95,6 +96,16 @@ export default function AreYouSure(props) {
   
   },[])
 
+ React.useEffect(()=>{
+  setSelectedPipeline(props)
+
+  if(props.pipelineType == "training"){
+    setSelectedPipeline(props.pipelineName);
+  } else if(props.pipelineType == "data_preprocessing"){
+    setSelectedPipeline(props.pipelineName[0]);
+  }
+ },[props])
+
   return (
     
     <ThemeProvider theme={darkTheme}>
@@ -110,7 +121,7 @@ export default function AreYouSure(props) {
             </DialogTitle>
             <DialogContent>
             <DialogContentText id="alert-dialog-description">
-                Are you sure you want to remove {formatString(props.pipelineName)} from the view?
+                Are you sure you want to remove {formatString(selectedPipeline)} from the view?
             </DialogContentText>
             </DialogContent>
             <DialogActions>

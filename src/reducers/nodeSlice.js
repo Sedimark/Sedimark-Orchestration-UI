@@ -1,6 +1,7 @@
 import {createSlice, nanoid} from '@reduxjs/toolkit'
 
 const initialState = {
+    selectedView:[],
     nodes:[],
     datasetColumnNames:[],
     selectedPipeline:[],
@@ -25,7 +26,8 @@ const initialState = {
     selectedPipelineNameTrain:"",
     storedNodes:[],
     selectedPipelineTrain:[],
-    selectedPipelineDataPreprocessing:[]
+    selectedPipelineDataPreprocessing:[],
+    
 }   
 
 export const nodeSlice = createSlice({
@@ -155,11 +157,14 @@ export const nodeSlice = createSlice({
 
         setSelectedPipelineNamePreprocessing:(state, action)=>{
             state.selectedPipelineNameDataPreprocessing = action.payload;
+        },
+        setSelectedView:(state,action)=>{
+            state.selectedView = action.payload;
         }
     }
 });
 
 
-export const { clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
+export const { setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
 
 export default nodeSlice.reducer;

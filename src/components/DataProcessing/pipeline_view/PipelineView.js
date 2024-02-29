@@ -104,6 +104,7 @@ export const PipelineView = (props)=>{
     }
 
     const startPipeline = React.useCallback(async () => {
+
         if (pipelineNodes.length < 2) {
             blockAlert("A pipeline should have 2 or more blocks!");
             return false;

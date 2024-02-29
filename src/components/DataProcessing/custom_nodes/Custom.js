@@ -130,10 +130,19 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name)
+    
+
     if(Object.keys(data.config).length!=0){
       setVariablesPresent(true);
     } else {
       setVariablesPresent(false);
+    }
+    
+  
+    if(Object.keys(data.config).length == 1){
+      if(data.config[Object.keys(data.config)[0]] == null){
+        setVariablesPresent(false);
+      }
     }
 
     const allVars = Object.keys(data.config);
@@ -191,6 +200,7 @@ export default memo(({ data, isConnectable }) => {
     }
     return "";
   }
+
 
   return (
     <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #000", backgroundColor:"#d6d6d4", minHeight:"200px" }}>

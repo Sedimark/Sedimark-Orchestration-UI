@@ -193,19 +193,17 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
   const addCorespondingPipeline = ()=>{
    
-
     if(isLoading){
         return;
     }
 
-    
     if(props.pipelineType == "train"){
 
       if(selectedPipeline.length == 0){
         dispatch(addPipelineTrain([]));
       }
 
-    
+      
       if(pipelineTrain.length !=0 && pipelineTrain[0] != selectedPipeline)
       {
         dispatch(addPipelineTrain(selectedPipeline));
@@ -238,7 +236,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
           return;
         }
       }
-    
   }
 
 
@@ -283,14 +280,10 @@ const fetchAndParseMinioJson = async (bucket_name) => {
  
 
   React.useEffect(()=>{
-   
     setOnlyOneOptionSelected(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
   },[filteredPipelines])
 
- 
 
-
- 
   return (
     
     <div>
@@ -354,7 +347,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                      <RadioGroup onClick={(val)=>{handleRadioClick(val)}}>
   
                       {
-                           filteredPipelines.map((value,index) => {
+                           filteredPipelines.map((value) => {
                             const labelId = `checkbox-list-secondary-label-${value.name}`;
                         
                              return (
