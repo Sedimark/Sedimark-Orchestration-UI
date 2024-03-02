@@ -16,3 +16,9 @@
   padding:80px;
 }
 
+.no-variables-info-container{
+    padding-top:10px;
+    padding-bottom:40px;
+    
+    font-size: 1.3rem;
+}

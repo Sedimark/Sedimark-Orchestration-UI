@@ -5,6 +5,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { styled } from '@mui/system';
 import styles from "./VariablesInput.css";
 import {useDispatch} from 'react-redux';
@@ -19,6 +20,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
+import { faBoxOpen } from '@fortawesome/free-solid-svg-icons';
 import { FETCH_MINIO_FILE } from '../../../../utils/apiEndpoints';
 import {
   Unstable_NumberInput as BaseNumberInput,
@@ -84,6 +86,7 @@ export default function VariablesInput(props){
     const [wasSomethingChanged, setWasSomethingChanged] = React.useState(false);
     const [hasMultipleSelection, setHasMultipleSelection] = React.useState(false);
     const [selectedPipeline, setSelectedPipeline] = React.useState("");
+    const [variablesPresent, setVariablesPresent] = React.useState(true);
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
@@ -267,12 +270,21 @@ export default function VariablesInput(props){
    }
 
    const retrievePipelineBasedOnTab = (the_active_tab)=>{
-    console.log("The active tab:");
-    console.log(the_active_tab);
+  
       if(the_active_tab == 1){
         setSelectedPipeline(pipelineProcessing);
       } else {
         setSelectedPipeline(pipelineTrain);
+      }
+   }
+
+   const parsePhantomVariables = ()=>{
+      let phantomVariable = false;
+
+      if(props.variablesData){
+        if(props.variablesData[0].type == null){
+           setVariablesPresent(false);
+        }
       }
    }
 
@@ -295,6 +307,12 @@ export default function VariablesInput(props){
       fetchAndParseMinioJson(selectedPipeline);
     }
    },[selectedPipeline])
+
+
+
+   useEffect(()=>{
+     parsePhantomVariables();
+   },[])
 
     return (
     <div>
@@ -369,6 +387,13 @@ export default function VariablesInput(props){
                       <p className="loading-text">Loading...</p>
                   </div>
                 </div>
+              }
+              {
+                  !variablesPresent &&
+                  <div className='no-variables-info-container'>
+                    <FontAwesomeIcon icon={faBoxOpen} className='empty-node-container' /> 
+                     <p> There are no variables present</p>
+                  </div>
               }
               </Box>
             </DialogContent>

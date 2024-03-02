@@ -3,6 +3,8 @@ import {createSlice, nanoid} from '@reduxjs/toolkit'
 const initialState = {
     selectedView:[],
     nodes:[],
+    selectedTrainedModel:"",
+    isPredictSelected:false,
     datasetColumnNames:[],
     selectedPipeline:[],
     selectedModelType:"",
@@ -11,7 +13,7 @@ const initialState = {
     standardizationColumns:[],
     imputationAlgs:[],
     edgeToDelete:"",
-    mappedNodes:[],
+    mappedNodes:[], 
     constant_value_imputation_columns:[],
     constant_value_imputation_values:[],
     edges:[],
@@ -24,9 +26,11 @@ const initialState = {
     selectedPipelineName: "",
     selectedPipelineNameDataPreprocessing:"",
     selectedPipelineNameTrain:"",
+    selectedPipelineNamePrediction:"",
     storedNodes:[],
     selectedPipelineTrain:[],
     selectedPipelineDataPreprocessing:[],
+    selectedPipelinePrediction:[],
     
 }   
 
@@ -46,6 +50,12 @@ export const nodeSlice = createSlice({
                 state.nodes.push(newNode);
             }
             
+        },
+        setSelectedTrainedModel:(state, action)=>{
+            state.selectedTrainedModel = action.payload;
+        },
+        setIsPredictedSelected:(state, action)=>{
+            state.isPredictSelected = action.payload;
         },
         setStoredNodes:(state, action)=>{
             state.storedNodes = action.payload;
@@ -160,11 +170,17 @@ export const nodeSlice = createSlice({
         },
         setSelectedView:(state,action)=>{
             state.selectedView = action.payload;
+        },
+        setSelectedPipelinePrediction:(state,action)=>{
+            state.selectedPipelinePrediction = action.payload;
+        },
+        setSelectedPipelineNamePrediction:(state,action)=>{
+            state.selectedPipelineNamePrediction = action.payload;
         }
     }
 });
 
 
-export const { setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
+export const {setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
 
 export default nodeSlice.reducer;

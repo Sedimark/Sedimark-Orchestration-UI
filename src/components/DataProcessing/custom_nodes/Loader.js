@@ -51,7 +51,7 @@ export default memo(({ data, isConnectable }) => {
   const [storedVariables, setStoredVariables] = useState([]);
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
   const [viewDataDialog, setViewDataDialog] = useState(false);
-
+  
  
 
   const parseString = (str) => {
@@ -95,8 +95,6 @@ export default memo(({ data, isConnectable }) => {
   }
 
 
-  // this function is used for the name of a block because we may need
-  // to parse it 
   const parseArray = (arr) => {
     if (arr.length > 0) {
       let result = arr.join(', ');
@@ -132,6 +130,10 @@ export default memo(({ data, isConnectable }) => {
     setViewDataDialog(false);
   }
 
+  const parsePhantomVariables = ()=>{
+
+  }
+
   useEffect(() => {
     setParams(data.config);
     processName(data.name)
@@ -144,13 +146,19 @@ export default memo(({ data, isConnectable }) => {
     setFullNodeName(data.name);
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
+    let varObj;
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
-      const varObj = {
-        varName: allVars[i],
-        type: allVarsType[i]
+      if(allVarsType[i] == null){
+        continue;
+      } else {
+         varObj = {
+          varName: allVars[i],
+          type: allVarsType[i]
+        }
+        allVarsData.push(varObj);
       }
-      allVarsData.push(varObj);
+      
     }
     setAllVariables(allVarsData);
 
@@ -167,9 +175,16 @@ export default memo(({ data, isConnectable }) => {
     } else {
       setVariablesPresent(false);
     }
+
+    
+    if(Object.keys(data.config).length == 1){
+      if(data.config[Object.keys(data.config)[0]] == null){
+        setVariablesPresent(false);
+      }
+    }
+
   }, [storedVariables])
 
- 
 
 
   return (
@@ -215,7 +230,10 @@ export default memo(({ data, isConnectable }) => {
         {
           !variablesPresent && 
           <div className="no-variables-container">
-              <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
+            <div>
+            <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
+            </div>  
+              <button className='change-base-btn base-toolbox-btn no-variables-present' onClick={() => { setViewDataDialog(true) }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button>
           </div> 
         }
         {

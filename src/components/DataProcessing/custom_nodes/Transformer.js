@@ -83,12 +83,18 @@ export default memo(({ data, isConnectable }) => {
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
     const allVarsData = [];
+    let varObj;
     for(let i = 0; i<allVars.length; i++){
-      const varObj = {
-        varName:allVars[i],
-        type:allVarsType[i]
+      if(allVarsType[i] == null){
+        continue;
+      } else {
+        varObj = {
+          varName:allVars[i],
+          type:allVarsType[i]
+        }
+        allVarsData.push(varObj);
       }
-      allVarsData.push(varObj);
+       
     }
     setAllVariables(allVarsData);
     

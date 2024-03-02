@@ -5,14 +5,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell, { tableCellClasses } from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TableRow from '@mui/material/TableRow';
-import { styled } from '@mui/system';
-import Paper from '@mui/material/Paper';
 import styles from "./TrainModelDialog.css";
 import {useDispatch} from 'react-redux';
 import axios from "axios";
@@ -20,6 +12,8 @@ import { AllModelsTable } from './AllModelsTable/AllModelsTable';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {ModelDetails} from "./ModelDetails/ModelDetails";
 import { GET_ALL_MODELS } from '../../../../utils/apiEndpoints';
+import {setIsPredictedSelected} from "../../../../reducers/nodeSlice";
+import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedPipelineName, setSelectedView } from '../../../../reducers/nodeSlice';
 
 
 const ITEM_HEIGHT = 48;
@@ -34,20 +28,6 @@ const MenuProps = {
 };
  
 
-function createData(name, calories, fat, carbs, protein) {
-  return { name, calories, fat, carbs, protein };
-}
-
-const rows = [
-  createData('Model Name', "30/04/2023", 6.0, 24, 4.0),
-  createData('Ice cream sandwich', "10/09/2023", 9.0, 37, 4.3),
-  createData('Eclair', "10/09/2023", 6.0),
-  createData('Cupcake', "10/09/2023",  4.3),
-  createData('Gingerbread', "10/09/2023", 3.9),
-];
-
-
-
 export default function TrainModelDialog(props){
 
     const [isDataLoading, setIsDataLoading] = React.useState(true);
@@ -56,7 +36,9 @@ export default function TrainModelDialog(props){
     const [allModelsPage, setModelsPage] = React.useState(true);
     const [modelsDetailsPage, setModelsDetailPage] = React.useState(false);
     const [selectedModelData, setSelectedModelData] = React.useState({});
-    
+    const [isPredSelected, setIsPredSelected] = React.useState(false);
+    const dispatch = useDispatch();
+
     const darkTheme = createTheme({
       palette: {
         mode: 'dark',
@@ -85,19 +67,23 @@ export default function TrainModelDialog(props){
      setModelsDetailPage(!modelsDetailsPage);
    }
 
-   const truncateString = (inputString, maxLength)=>{
-    if (inputString.length <= maxLength) {
-      return inputString;
+  const handleCloseDialog = ()=>{
+    handleDone();
+    dispatch(setIsPredictedSelected(isPredSelected));
+    if(isPredSelected == true){
+      dispatch(setSelectedPipelineNamePrediction("prediction"));
+      dispatch(setSelectedPipelinePrediction(["prediction"]));
     } else {
-      return inputString.slice(0, maxLength) + "...";
+      dispatch(setSelectedPipelineNamePrediction(""));
+      dispatch(setSelectedPipelinePrediction([]));
     }
   }
   
-
     useEffect(()=>{
       fetchAllModelsAndSet();
     },[]);
 
+    
 
     return ( 
     <div>
@@ -110,7 +96,7 @@ export default function TrainModelDialog(props){
             {!isDataLoading && allModelsPage && 
               <>
                
-                  <AllModelsTable allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData}></AllModelsTable>
+                  <AllModelsTable allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected}></AllModelsTable>
               </>
               } 
               {
@@ -130,7 +116,7 @@ export default function TrainModelDialog(props){
             </DialogContent>
             <DialogActions>
               
-              <Button   onClick={()=>{handleDone()}}>Ok</Button>
+              <Button   onClick={()=>{handleCloseDialog();}}>Ok</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

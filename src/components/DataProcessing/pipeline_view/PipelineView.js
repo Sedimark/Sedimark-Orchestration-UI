@@ -26,14 +26,19 @@ import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRot
 import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useDispatch } from 'react-redux';
+import {setSelectedTrainedModel, setIsPredictedSelected} from "../../../reducers/nodeSlice";
 import Box from '@mui/material/Box';
 import Flow from "../Flow";
 
 
 export const PipelineView = (props)=>{
+
+    const dispatch = useDispatch();
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const blockVariables = useSelector((state) => state.blocksVariables);
     const pipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
+    const isPredictSelected = useSelector((state)=>state.isPredictSelected);
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [pipelineFinished, setPipelineFinished] = useState(false);
@@ -311,6 +316,8 @@ export const PipelineView = (props)=>{
     }
 
     const handleChange = async (e) => {
+
+
         try {
             const response = await axios({
                 method: "GET",
@@ -335,17 +342,39 @@ export const PipelineView = (props)=>{
     } 
 
     const selectPipelineBasedOffParameters = (pipelineType)=>{
+
         if(pipelineType == "training"){
-            setPipelineName(pipelineNameTrain);
+            if(pipelineNameTrain == "mlflow train_test"){
+                setPipelineName("mlflow_train_test"); 
+            } else {
+                setPipelineName(pipelineNameTrain); 
+            }
+            
         } else if (pipelineType == "data_preprocessing"){
             setPipelineName(pipelineNamePreprocessing);
-        }
+        } else if(pipelineType == "prediction"){
+           
+        } 
+    }
+
+    const handleDeleteTheRestData = ()=>{
+        dispatch(setSelectedTrainedModel(""));
+        dispatch(setIsPredictedSelected(false));
+        setPipelineName("");
     }
 
     useEffect(()=>{
         selectPipelineBasedOffParameters(props.pipelineType);
     },[pipelineNameTrain, pipelineNamePreprocessing])
  
+
+    useEffect(()=>{
+        if(isPredictSelected && props.pipelineType == "prediction"){
+            setPipelineName("prediction");
+        }
+    },[isPredictSelected])
+
+
 
     return(
         <div>
@@ -492,7 +521,7 @@ export const PipelineView = (props)=>{
                                 
                             <Flow pipelineType={props.pipelineType}/>
                                 
-                            { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure}></AreYouSure>}
+                            { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps = {handleDeleteTheRestData}></AreYouSure>}
                             
                         </div>
 

@@ -489,5 +489,13 @@
   }
 
   .no-variables-container{
-    padding:15px;
+    /* padding:15px; */
+  }
+
+  .no-variables-present{
+    margin-top:40px;
+  }
+
+  .view-map-btn{
+    margin-top:60px;
   }

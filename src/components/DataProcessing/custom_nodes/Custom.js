@@ -2,7 +2,7 @@ import React, { memo, useState, useEffect } from 'react';
 import { Handle, Position } from 'reactflow';
 import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -138,6 +138,7 @@ export default memo(({ data, isConnectable }) => {
       setVariablesPresent(false);
     }
     
+    
   
     if(Object.keys(data.config).length == 1){
       if(data.config[Object.keys(data.config)[0]] == null){
@@ -157,17 +158,6 @@ export default memo(({ data, isConnectable }) => {
     }
     setAllVariables(allVarsData);
   },[])
-
-
-
-  useEffect(()=>{
-    if(Object.keys(data.config).length!=0){
-      setVariablesPresent(true);
-    } else {
-      setVariablesPresent(false);
-    }
-  
-  },[storedVariables])
 
 
   useEffect(()=>{

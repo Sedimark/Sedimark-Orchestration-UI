@@ -11,12 +11,19 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Button from '@mui/material/Button';
 import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
+import CheckIcon from '@mui/icons-material/Check';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { styled } from '@mui/system';
-
+import {setSelectedTrainedModel, setIsPredictedSelected} from "../../../../../reducers/nodeSlice";
+import { useSelector } from "react-redux";
+import { useDispatch } from 'react-redux';
 
 export const AllModelsTable = (props)=>{
+
+    
+    const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
+    const dispatch = useDispatch();
 
     const StyledTableCell = styled(TableCell)(({ theme }) => ({
         [`&.${tableCellClasses.head}`]: {
@@ -50,6 +57,18 @@ export const AllModelsTable = (props)=>{
           props.handleSwitch();
           props.selectModel(model_data);
       }
+
+      const handleChangeSelectedModel = (row_name)=>{
+          if(row_name!= selectedTrainedModel )
+          { 
+            dispatch(setSelectedTrainedModel(row_name));
+            props.setIsPredSelected(true);
+          } else if (row_name == selectedTrainedModel){
+            dispatch(setSelectedTrainedModel(""));
+            props.setIsPredSelected(false);
+          }
+      }
+
 
     return(
         <div>
@@ -86,17 +105,29 @@ export const AllModelsTable = (props)=>{
                              </StyledTableCell>
                              <StyledTableCell align="left">{row.creation_date}</StyledTableCell>
                              <StyledTableCell align="left">
-                             <Button variant="contained"   sx={{ width: 150,
-                                                                                                color: 'white',
-                                                                                                backgroundColor:"green",
-                                                                                                "&:hover": {
-                                                                                                  backgroundColor: '#00cc30',
-                                                                                                  color: '#fff',
-                                                                                              }
-                                                                                      }}
-                                     onClick={()=>{handleSeeMore({model_name:row.name, model_date:row.creation_date})}} 
-                                     endIcon={<LibraryAddCheckIcon/>}>Select</Button>
+                              {row.name !== selectedTrainedModel && 
+                                      <Button variant="contained"   sx={{ width: 150,
+                                        color: 'white',
+                                        backgroundColor:"green",
+                                        "&:hover": {
+                                          backgroundColor: '#00cc30',
+                                          color: '#fff',
+                                      }
+                              }}
+        onClick={()=>{handleChangeSelectedModel(row.name)}} 
+        endIcon={<LibraryAddCheckIcon/>}>Select</Button>
+                              }
+                         
+                                { row.name == selectedTrainedModel && 
+
+                                <Button variant="contained"   sx={{ width: 150,
+                                                color: 'white',
+                                      }}
+                            onClick={()=>{handleChangeSelectedModel(row.name)}} 
+                            endIcon={<CheckIcon/>}>Selected</Button>
+                                }
                              </StyledTableCell>
+
                              <StyledTableCell align="right"><Button variant="contained"   sx={{ width: 150,
                                                                                                 color: 'white',
                                                                                                 backgroundColor:"#2431bd"

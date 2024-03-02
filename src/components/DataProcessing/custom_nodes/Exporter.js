@@ -9,7 +9,7 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
-import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faMap } from '@fortawesome/free-solid-svg-icons';
 import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -24,6 +24,7 @@ export default memo(({ data, isConnectable }) => {
   const [allVariables, setAllVariables] = useState([]);
   const [variablesPresent, setVariablesPresent] = useState(false);
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
+  const [specialBlockViewButton, setSpecialBlockViewButton] = useState(false);
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -54,11 +55,20 @@ export default memo(({ data, isConnectable }) => {
       setNodeName(str);
     }
   }
+
+  const checkIfSpecialBlock = ()=>{
+    if(data.name == "Export Map"){
+      setSpecialBlockViewButton(true);
+    } else {
+      setSpecialBlockViewButton(false);
+    }
+  }
   
 
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name);
+    
   },[])
 
   const parseArray = (arr)=>{
@@ -131,6 +141,12 @@ export default memo(({ data, isConnectable }) => {
     } else {
       setVariablesPresent(false);
     }
+
+    if(Object.keys(data.config).length == 1){
+      if(data.config[Object.keys(data.config)[0]] == null){
+        setVariablesPresent(false);
+      }
+    }
   
   },[storedVariables])
 
@@ -140,15 +156,24 @@ export default memo(({ data, isConnectable }) => {
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
     const allVarsData = [];
+    let varObj;
     for(let i = 0; i<allVars.length; i++){
-      const varObj = {
-        varName:allVars[i],
-        type:allVarsType[i]
+      if(allVarsType[i] == null){
+        continue;
+      } else {
+        varObj = {
+          varName:allVars[i],
+          type:allVarsType[i]
+        }
+        allVarsData.push(varObj);
       }
-      allVarsData.push(varObj);
     }
     setAllVariables(allVarsData);
-    
+  },[])
+
+
+  useEffect(()=>{
+    checkIfSpecialBlock();
   },[])
 
  
@@ -197,10 +222,13 @@ export default memo(({ data, isConnectable }) => {
           </div>
          }
         {
-          !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
+          (!variablesPresent && !specialBlockViewButton) && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }
         {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
-
+        {specialBlockViewButton &&  <div className='custom-node-bottom-toolbox'>
+                  <button className='custom-node-toolbox-btn view-map-btn' onClick={()=>{openVariablesEditMenu()}}> View Map <FontAwesomeIcon icon={faMap}/></button>
+              </div>
+         }
       </div>
       <Handle
         type="source"

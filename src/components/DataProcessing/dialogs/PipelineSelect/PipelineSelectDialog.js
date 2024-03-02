@@ -28,7 +28,7 @@ import axios from "axios";
 import {addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineName, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { setDatasetColumns, setDatasetInfo, setDatasetColumnNames } from '../../../../reducers/nodeSlice';
+import { setDatasetColumns, setDatasetInfo, setDatasetColumnNames, setSelectedView } from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 
@@ -203,19 +203,21 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         dispatch(addPipelineTrain([]));
       }
 
-      
+       
       if(pipelineTrain.length !=0 && pipelineTrain[0] != selectedPipeline)
-      {
+      { 
         dispatch(addPipelineTrain(selectedPipeline));
         dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
+        
         return;
       } else if(pipelineTrain.length == 0 ){
         dispatch(addPipelineTrain(selectedPipeline));
         dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
+       
         return;
-      }
+      } 
 
     } else if (props.pipelineType == "data_preprocessing"){
       
@@ -228,11 +230,13 @@ const fetchAndParseMinioJson = async (bucket_name) => {
           dispatch(addPipelinePreprocessing(selectedPipeline));
           dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
+          
           return;
         } else if(pipelinePreprocessing.length == 0 ){
           dispatch(addPipelinePreprocessing(selectedPipeline));
           dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
+          
           return;
         }
       }

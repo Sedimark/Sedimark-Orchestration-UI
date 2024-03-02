@@ -64,7 +64,7 @@ export default function AreYouSure(props) {
       localStorage.clear();
       props.handleClose();
 
-    } else if(props.pipelineType == "predict"){
+    } else if(props.pipelineType == "prediction"){
 
       dispatch(setDatasetColumns([]));
       dispatch(setDatasetInfo([]));
@@ -80,15 +80,15 @@ export default function AreYouSure(props) {
 
     }
 
+
+    if(props.additionalSteps){
+      props.additionalSteps();
+    }
     
   }
 
   const selectPipelineNameBasedOnType = ()=>{
-    // if(props.pipelineType == "training"){
-    //   setSelectedPipeline(pipe)
-    // } else if(props.pipelineType == "data_preprocessing"){
-
-    // } 
+    
   }
 
   React.useEffect(()=>{
@@ -103,6 +103,8 @@ export default function AreYouSure(props) {
     setSelectedPipeline(props.pipelineName);
   } else if(props.pipelineType == "data_preprocessing"){
     setSelectedPipeline(props.pipelineName[0]);
+  } else if(props.pipelineType == "prediction"){
+    setSelectedPipeline("prediction");
   }
  },[props])
 

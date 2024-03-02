@@ -35,6 +35,9 @@ function DataProcessing() {
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const pipelineName = useSelector((state) => state.selectedPipelineName);
     const blockVariables = useSelector((state) => state.blocksVariables);
+    const selectedPipelineNamePrediction  = useSelector((state)=>state.selectedPipelineNamePrediction);
+    const selectedPipelineNameDataPreprocessing = useSelector((state)=>state.selectedPipelineNameDataPreprocessing);
+    const selectedPipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [pipelineFinished, setPipelineFinished] = useState(false);
     const [runData, setRunData] = useState(null);
@@ -329,14 +332,14 @@ function DataProcessing() {
     },[])
    
 
-    return (
+    return ( 
         <div style={{ height: '100%' }}>
             <TabContext value={selectedTab} className="tabs-container">
                             <Box sx={{ borderBottom: 1, borderColor: 'divider', marginLeft:"250px" }}>
                                 <TabList onChange={handleChangeTab} aria-label="lab API tabs example">
-                                    <Tab label="Data preprocessing" value="1" />
-                                    <Tab label="Training pipeline" value="2" />
-                                    <Tab label="Predict" value="3" />
+                                    <Tab label={<div className="tab-name"> <p>pre-processing </p>   {selectedPipelineNameDataPreprocessing.length != 0 && <p class="blue-dot"></p>} </div>} value="1" />
+                                    <Tab label={<div className="tab-name"> <p>Training Pipeline </p> {selectedPipelineNameTrain.length != 0 && <p class="blue-dot"></p>}</div>} value="2" />
+                                    <Tab label={<div className="tab-name"> <p>Predict </p>  {selectedPipelineNamePrediction.length != 0 && <p class="blue-dot"></p>}</div>} value="3" />
                                 </TabList>
                             </Box>
                 <TabPanel value="1" sx={{padding:"0px"}}>  
@@ -346,11 +349,10 @@ function DataProcessing() {
                     <PipelineView pipelineType="training"/>
                 </TabPanel>
                 <TabPanel value="3" sx={{padding:"0px"}}>
-                    <PipelineView pipelineType="predict"/>
+                    <PipelineView pipelineType="prediction"/>
                 </TabPanel>
             </TabContext>
             <LeftMenu />
-            
         </div>
     );
 }

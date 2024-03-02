@@ -23,7 +23,7 @@ import axios from "axios";
 
 function Flow(props) {
 
-
+  const isPredictSelected = useSelector((state)=>state.isPredictSelected);
   const blockVariables = useSelector((state)=> state.blocksVariables);
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
@@ -182,7 +182,7 @@ function Flow(props) {
         
       } 
     }
-    dispatch(setOrderedNodes(finalNodes));
+    // dispatch(setOrderedNodes(finalNodes));
     dispatch(setStoredNodes(newNodes));
     setNodes(newNodes);
     
@@ -358,6 +358,7 @@ function Flow(props) {
 
  
   const fetchPipelineData = async(pipeline_name)=>{
+    
     setIsPipelineLoading(true);
   
     try{
@@ -369,8 +370,9 @@ function Flow(props) {
       console.log(err);
       setIsPipelineLoading(false);
     }
-  }
 
+  }
+ 
   const parseSelectedPipelineName = (inputString)=>{
     if (inputString.includes('-')) {
       inputString = inputString.split("_").join("-");
@@ -429,10 +431,19 @@ function Flow(props) {
 
 
   const selectPipelineBasedOnProps = (pipeline_type)=>{
+
+  
     if( pipeline_type == "training"){
       setSelectedPipeline(selectedPipelineTrain);
     } else if (pipeline_type == "data_preprocessing"){
       setSelectedPipeline(selectedPipelineDataPreProcessing);
+    } else if (pipeline_type == "prediction"){
+      if(isPredictSelected == true){
+        setSelectedPipeline(["prediction"]);
+      } else {
+        setSelectedPipeline([""]);
+        setNodes([]);
+      }
     }
   }
 
