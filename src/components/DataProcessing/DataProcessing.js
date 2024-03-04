@@ -17,18 +17,6 @@ import { PipelineView } from "./pipeline_view/PipelineView";
 import { setSelectedView } from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 
-function VariablesForm({ variables }) {
-    return (
-        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            {Object.entries(variables).map(([key, value], index) => (
-                <Typography key={index} component="div" variant="body2">
-                    <strong>{key}:</strong> {value ? value : "None"}
-                </Typography>
-            ))}
-        </Box>
-    );
-}
-
 function DataProcessing() {
 
     const dispatch = useDispatch();
@@ -328,8 +316,14 @@ function DataProcessing() {
     } 
 
     React.useEffect(()=>{
-        
-    },[])
+            console.log("selectedPipelineNameDataPreprocessing:");
+            console.log(selectedPipelineNameDataPreprocessing);
+            console.log("selectedPipelineNameTrain");
+            console.log(selectedPipelineNameTrain);
+            console.log("selectedPipelineNamePrediction");
+            console.log(selectedPipelineNamePrediction);
+
+    },[selectedPipelineNameDataPreprocessing, selectedPipelineNameTrain, selectedPipelineNamePrediction])
    
 
     return ( 

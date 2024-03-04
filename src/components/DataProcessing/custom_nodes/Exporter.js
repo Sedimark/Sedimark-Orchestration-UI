@@ -12,12 +12,20 @@ import { styled } from '@mui/material/styles';
 import { faDiagramProject, faMap } from '@fortawesome/free-solid-svg-icons';
 import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { PREDICT_RESULTS_LINK } from '../../../utils/apiEndpoints';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import ViewMap from '../dialogs/PredictResults/ViewMap';
+import { setMapData } from '../../../reducers/nodeSlice';
+import toast, { Toaster } from 'react-hot-toast';
+import axios from 'axios';
+import {useDispatch} from 'react-redux';
  
 export default memo(({ data, isConnectable }) => {
  
+  const dispatch = useDispatch();
   const variablesValues = useSelector((state)=> state.blocksVariables);
+  const [viewMapOpen, setViewMapOpen] = useState(false);
   const [storedVariables, setStoredVariables] = useState([]);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
@@ -127,8 +135,48 @@ export default memo(({ data, isConnectable }) => {
     return "";
   }
 
+
+  const blockAlert = (msg) => {
+    toast.success(msg, {
+        duration: 4000,
+        position: 'top-right',
+    })
+  };
+
+
+  const blockAlertError = (msg) =>{
+    toast.error(msg, {
+      duration: 4000,
+      position: 'top-right',
+  })
+  }
+
   const openVariablesEditMenu = ()=>{
     setVariablesInputOpen(true);
+  }
+
+  const renderMap = async()=>{
+    blockAlert("Hold on! We are fetching the map...");
+    let mapLink;
+    try{
+      mapLink = await axios.get(PREDICT_RESULTS_LINK);
+      mapLink = mapLink.data.url;
+    } catch(err){
+      console.log(err);
+      blockAlertError("There was an error while trying to render the map!");
+      return;
+    }
+
+    let mapData;
+
+    try{
+      mapData = await axios.get(mapLink);
+      dispatch(setMapData(mapData.data));
+      setViewMapOpen(true);
+    } catch(err){
+      blockAlertError("There was an error while trying to render the map!");
+      console.log(err);
+    }
   }
 
   useEffect(()=>{
@@ -175,6 +223,8 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     checkIfSpecialBlock();
   },[])
+
+
 
  
   return (
@@ -225,11 +275,16 @@ export default memo(({ data, isConnectable }) => {
           (!variablesPresent && !specialBlockViewButton) && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
         }
         {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
+        
         {specialBlockViewButton &&  <div className='custom-node-bottom-toolbox'>
-                  <button className='custom-node-toolbox-btn view-map-btn' onClick={()=>{openVariablesEditMenu()}}> View Map <FontAwesomeIcon icon={faMap}/></button>
+                  <button className='custom-node-toolbox-btn view-map-btn' onClick={()=>{renderMap()}}> View Map <FontAwesomeIcon icon={faMap}/></button>
               </div>
          }
+         {viewMapOpen && 
+          <ViewMap open={viewMapOpen} handleClose={()=>{setViewMapOpen(false)}} ></ViewMap>
+         }
       </div>
+
       <Handle
         type="source"
         position={Position.Right}

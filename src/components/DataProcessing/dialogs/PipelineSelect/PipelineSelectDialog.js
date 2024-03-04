@@ -16,7 +16,7 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCodeBranch } from '@fortawesome/free-solid-svg-icons';
+import { faCodeBranch, faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons';
 import Paper from '@mui/material/Paper'; 
 import { Typography } from '@mui/material';
 import RadioGroup from '@mui/material/RadioGroup';
@@ -51,6 +51,7 @@ export default function PipelineSelectDialog(props) {
   const [selectedPipeline,setSelectedPipeline] = React.useState("");
   const [onlyOneOptionSelected, setOnlyOneOptionSelected] = React.useState(false);
   const [pipeline, setPipeline] = React.useState("");
+  const [hasError, setHasError] = React.useState(false);
 
   const parseAndSetColumns = (data_to_parse)=>{
     
@@ -95,6 +96,8 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         parseAndSetColumns([]);
         dispatch(setDatasetInfo([]));
         console.log(err);
+        setIsLoading(false);
+        setHasError(true);
         return;
     }
     
@@ -106,6 +109,8 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
     } catch(err){
         console.log(err);
+        setIsLoading(false);
+        setHasError(true);
     }
   };
 
@@ -166,6 +171,8 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         setIsLoading(false);
       }
      } catch(err){
+      setIsLoading(false);
+      setHasError(true);
       console.log(err);
      }
   }
@@ -384,12 +391,18 @@ const fetchAndParseMinioJson = async (bucket_name) => {
   
                      </RadioGroup>                
                      }
+                     {hasError &&
+                        <div className="no-result-container">
+                            <FontAwesomeIcon icon={faScrewdriverWrench} className='empty-node-container' /> 
+                            <p> We have encountered an error! Please try again later</p>
+                        </div>
+                     }
                      
                    </List>
               </DialogContent>
               <DialogActions>
                 <Button onClick={props.handleClose}>Close</Button>
-                <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}} disabled={onlyOneOptionSelected || isLoading}>Apply</Button>
+                <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}} disabled={onlyOneOptionSelected || isLoading || hasError}>Apply</Button>
               </DialogActions>
             
         </Dialog>

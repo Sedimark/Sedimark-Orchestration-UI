@@ -371,6 +371,8 @@ export const PipelineView = (props)=>{
     useEffect(()=>{
         if(isPredictSelected && props.pipelineType == "prediction"){
             setPipelineName("prediction");
+        } else if(isPredictSelected == false && props.pipelineType == "prediction") {
+            setPipelineName("");
         }
     },[isPredictSelected])
 

@@ -15,7 +15,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { styled } from '@mui/system';
-import {setSelectedTrainedModel, setIsPredictedSelected} from "../../../../../reducers/nodeSlice";
+import {setSelectedTrainedModel, setIsPredictedSelected, setSelectedPipelineNamePrediction, setSelectedPipelinePrediction} from "../../../../../reducers/nodeSlice";
 import { useSelector } from "react-redux";
 import { useDispatch } from 'react-redux';
 
@@ -65,6 +65,8 @@ export const AllModelsTable = (props)=>{
             props.setIsPredSelected(true);
           } else if (row_name == selectedTrainedModel){
             dispatch(setSelectedTrainedModel(""));
+            dispatch(setSelectedPipelinePrediction([]));
+            dispatch(setSelectedPipelineNamePrediction(""));
             props.setIsPredSelected(false);
           }
       }

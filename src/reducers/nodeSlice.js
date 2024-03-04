@@ -14,8 +14,6 @@ const initialState = {
     imputationAlgs:[],
     edgeToDelete:"",
     mappedNodes:[], 
-    constant_value_imputation_columns:[],
-    constant_value_imputation_values:[],
     edges:[],
     mageAIOauthToken:"",
     dataset_info:[],
@@ -31,6 +29,7 @@ const initialState = {
     selectedPipelineTrain:[],
     selectedPipelineDataPreprocessing:[],
     selectedPipelinePrediction:[],
+    mapData:""
     
 }   
 
@@ -71,12 +70,6 @@ export const nodeSlice = createSlice({
         },
         setDatasetInfo:(state,action)=>{
             state.dataset_info = action.payload;
-        },
-        setConstantValueImputationColumns:(state,action)=>{
-            state.constant_value_imputation_columns = action.payload
-        },
-        setStoredConstantValueImputationValues:(state,action)=>{
-            state.constant_value_imputation_values = action.payload
         },
         setMappedNodes:(state, action)=>{
             state.mappedNodes = action.payload;
@@ -176,11 +169,14 @@ export const nodeSlice = createSlice({
         },
         setSelectedPipelineNamePrediction:(state,action)=>{
             state.selectedPipelineNamePrediction = action.payload;
+        },
+        setMapData:(state,action)=>{
+            state.mapData = action.payload;
         }
     }
 });
 
 
-export const {setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo ,setStoredConstantValueImputationValues, setConstantValueImputationColumns,setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName} = nodeSlice.actions
+export const {setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo , setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName, setMapData} = nodeSlice.actions
 
 export default nodeSlice.reducer;

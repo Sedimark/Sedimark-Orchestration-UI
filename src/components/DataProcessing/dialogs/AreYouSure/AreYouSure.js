@@ -8,7 +8,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import {useDispatch, useSelector} from 'react-redux';
-import {  clearPipelineProcessing, clearPipelineTrain, addPipeline, clearPipeline, setBlocksVariables, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes, setSelectedPipelineNamePreprocessing, setSelectedPipelineNameTrain} from "../../../../reducers/nodeSlice";
+import {  clearPipelineProcessing, clearPipelineTrain, addPipeline, clearPipeline, setBlocksVariables, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes, setSelectedPipelineNamePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelinePrediction, setSelectedPipelineNamePrediction} from "../../../../reducers/nodeSlice";
 import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
 import { formatString } from '../../../../utils/formatString';
 
@@ -31,34 +31,14 @@ export default function AreYouSure(props) {
     if(props.pipelineType == "training"){
 
       dispatch(setDatasetColumns([]));
-      // dispatch(setDatasetInfo([]));
-      // dispatch(setMappedEdges([]));
-      // dispatch(setMappedNodes([]));
-      // dispatch(setOrderedNodes([]));
-      // dispatch(clearPipeline([]));
       dispatch(setSelectedPipelineName(""));
-      // dispatch(setStoredNodes([]));
-      // dispatch(setBlocksVariables([]));
       dispatch(clearPipelineTrain());
-      // the one below are for this specific type of pipeline
-
       dispatch(setSelectedPipelineNameTrain(""));
 
       localStorage.clear();
       props.handleClose();
 
     } else if(props.pipelineType == "data_preprocessing"){
-
-      // dispatch(setDatasetColumns([]));
-      // dispatch(setDatasetInfo([]));
-      // dispatch(setMappedEdges([]));
-      // dispatch(setMappedNodes([]));
-      // dispatch(setOrderedNodes([]));
-      // dispatch(clearPipeline([]));
-      // dispatch(setSelectedPipelineName(""));
-      // dispatch(setStoredNodes([]));
-      // dispatch(setBlocksVariables([]));
-      // the one below are for this specific type of pipeline
       dispatch(setSelectedPipelineNamePreprocessing(""));
       dispatch(clearPipelineProcessing());
       localStorage.clear();
@@ -75,6 +55,8 @@ export default function AreYouSure(props) {
       dispatch(setSelectedPipelineName(""));
       dispatch(setStoredNodes([]));
       dispatch(setBlocksVariables([]));
+      dispatch(setSelectedPipelinePrediction([]));
+      dispatch(setSelectedPipelineNamePrediction(""));
       localStorage.clear();
       props.handleClose();
 
