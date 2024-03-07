@@ -314,16 +314,6 @@ function DataProcessing() {
             blockAlert("Error getting the history");
         }
     } 
-
-    React.useEffect(()=>{
-            console.log("selectedPipelineNameDataPreprocessing:");
-            console.log(selectedPipelineNameDataPreprocessing);
-            console.log("selectedPipelineNameTrain");
-            console.log(selectedPipelineNameTrain);
-            console.log("selectedPipelineNamePrediction");
-            console.log(selectedPipelineNamePrediction);
-
-    },[selectedPipelineNameDataPreprocessing, selectedPipelineNameTrain, selectedPipelineNamePrediction])
    
 
     return ( 

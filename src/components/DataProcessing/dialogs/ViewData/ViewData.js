@@ -27,6 +27,7 @@ export default function ViewData(props) {
     const selectedTab = useSelector((state) => state.selectedView);
     const pipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
     const pipelinePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
+    const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
     const [allColumnsData, setAllColumnsData] = useState();
     const [columnNames, setColumnNames] = useState([]);
     const [isLoading, setIsLoading] = React.useState(true);
@@ -227,8 +228,11 @@ export default function ViewData(props) {
         
           if(selectedTab == 1){
             setSelectedPipeline(pipelinePreprocessing[0]);
-          } else {
+          } else if(selectedTab == 2) {
             setSelectedPipeline(pipelineTrain[0]);
+          } else {
+            
+            setSelectedPipeline(selectedPipelinePrediction[0]);
           }
       },[selectedTab])
 

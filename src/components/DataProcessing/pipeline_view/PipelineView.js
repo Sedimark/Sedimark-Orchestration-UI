@@ -40,6 +40,7 @@ export const PipelineView = (props)=>{
     const pipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
     const isPredictSelected = useSelector((state)=>state.isPredictSelected);
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
+    const selectedPipelineNamePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [pipelineFinished, setPipelineFinished] = useState(false);
     const [runData, setRunData] = useState(null);
@@ -352,9 +353,9 @@ export const PipelineView = (props)=>{
             
         } else if (pipelineType == "data_preprocessing"){
             setPipelineName(pipelineNamePreprocessing);
-        } else if(pipelineType == "prediction"){
-           
-        } 
+        } else if (pipelineType == "prediction"){
+            setPipelineName(selectedPipelineNamePrediction);
+        }
     }
 
     const handleDeleteTheRestData = ()=>{
@@ -367,16 +368,13 @@ export const PipelineView = (props)=>{
         selectPipelineBasedOffParameters(props.pipelineType);
     },[pipelineNameTrain, pipelineNamePreprocessing])
  
-
     useEffect(()=>{
-        if(isPredictSelected && props.pipelineType == "prediction"){
-            setPipelineName("prediction");
-        } else if(isPredictSelected == false && props.pipelineType == "prediction") {
+        if(selectedPipelineNamePrediction.length != 0){
+            setPipelineName(selectedPipelineNamePrediction);
+        } else {
             setPipelineName("");
         }
-    },[isPredictSelected])
-
-
+    },[selectedPipelineNamePrediction])
 
     return(
         <div>

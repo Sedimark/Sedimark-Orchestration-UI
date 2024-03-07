@@ -11,5 +11,5 @@ export const store = configureStore({reducer: nodeReducer, preloadedState:persis
 
 store.subscribe(()=>{
   const currentState = store.getState();
-  saveState(currentState);
+  // saveState(currentState);
 })

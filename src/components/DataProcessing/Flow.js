@@ -8,21 +8,25 @@ import Exporter from './custom_nodes/Exporter.js';
 import Custom from './custom_nodes/Custom.js';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
+import toast, { Toaster } from 'react-hot-toast';
 import {
   setMappedNodes,
   setMappedEdges,
   setOrderedNodes,
   setSelectedPipelineName,
-  setStoredNodes
+  setStoredNodes,
+  setSelectedPipelineNamePrediction,
+  setSelectedPipelinePrediction
 } from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
-import { FETCH_PIPELINE_DATA, FETCH_MINIO_FILE } from '../../utils/apiEndpoints.js';
+import { FETCH_PIPELINE_DATA, FETCH_MINIO_FILE, FETCH_PIPELINE_PREDICT_DATA } from '../../utils/apiEndpoints.js';
 import { setDatasetColumnNames } from '../../reducers/nodeSlice';
 import { v4 as uuidv4 } from 'uuid';
 import axios from "axios";
 
 function Flow(props) {
-
+  
+  const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
   const isPredictSelected = useSelector((state)=>state.isPredictSelected);
   const blockVariables = useSelector((state)=> state.blocksVariables);
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
@@ -182,7 +186,7 @@ function Flow(props) {
         
       } 
     }
-    // dispatch(setOrderedNodes(finalNodes));
+
     dispatch(setStoredNodes(newNodes));
     setNodes(newNodes);
     
@@ -360,7 +364,7 @@ function Flow(props) {
   const fetchPipelineData = async(pipeline_name)=>{
     
     setIsPipelineLoading(true);
-  
+   
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
       processAndPlaceNodes(resp.data.pipeline.blocks);
@@ -382,6 +386,31 @@ function Flow(props) {
     } 
 
     return inputString;
+  }
+
+  const blockAlert = (msg) => {
+    toast.error(msg, {
+        duration: 2000,
+        position: 'top-right',
+    })
+};
+
+  const fetchPipelineForModel = async(model)=>{
+    try{
+      const resp = await axios.get(FETCH_PIPELINE_PREDICT_DATA(model));
+      setSelectedPipeline([resp.data.name]);
+      dispatch(setSelectedPipelineNamePrediction(resp.data.name));
+      dispatch(setSelectedPipelinePrediction([resp.data.name]));
+    }catch(err){
+      console.log(err);
+      if(model.length != 0){
+        blockAlert("No pipeline found for the model!");
+      }
+      setSelectedPipeline([]);
+      dispatch(setSelectedPipelineNamePrediction(""));
+      dispatch(setSelectedPipelinePrediction([""]));
+      dispatch(setSelectedPipelineName(""));
+    }
   }
 
   useEffect(()=>{
@@ -428,6 +457,12 @@ function Flow(props) {
     }
   },[storedNodes])
 
+  
+  useEffect(()=>{
+    if(props.pipelineType == "prediction"){
+      fetchPipelineForModel(selectedTrainedModel);
+    }
+  },[selectedTrainedModel])
 
 
   const selectPipelineBasedOnProps = (pipeline_type)=>{
@@ -437,14 +472,7 @@ function Flow(props) {
       setSelectedPipeline(selectedPipelineTrain);
     } else if (pipeline_type == "data_preprocessing"){
       setSelectedPipeline(selectedPipelineDataPreProcessing);
-    } else if (pipeline_type == "prediction"){
-      if(isPredictSelected == true){
-        setSelectedPipeline(["prediction"]);
-      } else {
-        setSelectedPipeline([""]);
-        setNodes([]);
-      }
-    }
+    } 
   }
 
   

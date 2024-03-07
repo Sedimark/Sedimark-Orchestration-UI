@@ -20,10 +20,12 @@ import { setMapData } from '../../../reducers/nodeSlice';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import {useDispatch} from 'react-redux';
+
  
 export default memo(({ data, isConnectable }) => {
  
   const dispatch = useDispatch();
+  const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
   const variablesValues = useSelector((state)=> state.blocksVariables);
   const [viewMapOpen, setViewMapOpen] = useState(false);
   const [storedVariables, setStoredVariables] = useState([]);
@@ -159,7 +161,7 @@ export default memo(({ data, isConnectable }) => {
     blockAlert("Hold on! We are fetching the map...");
     let mapLink;
     try{
-      mapLink = await axios.get(PREDICT_RESULTS_LINK);
+      mapLink = await axios.get(PREDICT_RESULTS_LINK(selectedTrainedModel));
       mapLink = mapLink.data.url;
     } catch(err){
       console.log(err);

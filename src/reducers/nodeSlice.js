@@ -29,7 +29,7 @@ const initialState = {
     selectedPipelineTrain:[],
     selectedPipelineDataPreprocessing:[],
     selectedPipelinePrediction:[],
-    mapData:""
+    mapData:"",
     
 }   
 

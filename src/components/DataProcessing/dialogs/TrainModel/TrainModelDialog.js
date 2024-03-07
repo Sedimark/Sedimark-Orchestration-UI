@@ -11,9 +11,10 @@ import axios from "axios";
 import { AllModelsTable } from './AllModelsTable/AllModelsTable';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {ModelDetails} from "./ModelDetails/ModelDetails";
-import { GET_ALL_MODELS } from '../../../../utils/apiEndpoints';
+import { GET_ALL_MODELS, PREDICT_RESULTS_LINK, FETCH_PIPELINE_PREDICT_DATA } from '../../../../utils/apiEndpoints';
 import {setIsPredictedSelected} from "../../../../reducers/nodeSlice";
 import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedPipelineName, setSelectedView } from '../../../../reducers/nodeSlice';
+import { useSelector } from "react-redux";
 
 
 const ITEM_HEIGHT = 48;
@@ -30,8 +31,8 @@ const MenuProps = {
 
 export default function TrainModelDialog(props){
 
+    const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
     const [isDataLoading, setIsDataLoading] = React.useState(true);
-    const [wasSomethingChanged, setWasSomethingChanged] = React.useState(false);
     const [allModelsData, setAllModelsData] = React.useState([]);
     const [allModelsPage, setModelsPage] = React.useState(true);
     const [modelsDetailsPage, setModelsDetailPage] = React.useState(false);
@@ -67,23 +68,24 @@ export default function TrainModelDialog(props){
      setModelsDetailPage(!modelsDetailsPage);
    }
 
+
   const handleCloseDialog = ()=>{
     handleDone();
-    dispatch(setIsPredictedSelected(isPredSelected));
-    if(isPredSelected == true){
-      dispatch(setSelectedPipelineNamePrediction("prediction"));
-      dispatch(setSelectedPipelinePrediction(["prediction"]));
-    } else {
-      dispatch(setSelectedPipelineNamePrediction(""));
-      dispatch(setSelectedPipelinePrediction([]));
-    }
+    
+    // dispatch(setIsPredictedSelected(isPredSelected));
+    // if(isPredSelected == true){
+    //   dispatch(setSelectedPipelineNamePrediction("prediction"));
+    //   dispatch(setSelectedPipelinePrediction(["prediction"]));
+    // } else {
+    //   dispatch(setSelectedPipelineNamePrediction(""));
+    //   dispatch(setSelectedPipelinePrediction([]));
+    // }
   }
   
     useEffect(()=>{
       fetchAllModelsAndSet();
     },[]);
 
-    
 
     return ( 
     <div>

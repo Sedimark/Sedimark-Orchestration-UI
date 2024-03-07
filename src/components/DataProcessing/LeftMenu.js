@@ -121,14 +121,6 @@ export default function MiniDrawer() {
     setTrainModelsDialogOpen(false);
   }
 
-  useEffect(()=>{
-
-    console.log("selectedPipelineTrain:");
-    console.log(pipelineTrain);
-    console.log("selectedPipelineDataPreprocesing");
-    console.log(pipelinePreprocessing);
-
-  },[pipelineTrain, pipelinePreprocessing])
 
 
   return (

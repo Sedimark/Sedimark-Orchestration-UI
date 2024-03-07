@@ -7,7 +7,6 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { setDatasetColumns, setDatasetInfo, setDatasetColumnNames, setSelectedView } from '../../../../reducers/nodeSlice';
 
 export default function ViewMap(props) {
 
@@ -17,10 +16,7 @@ export default function ViewMap(props) {
           mode: 'dark',
         },
       });
-  
-  useEffect(()=>{
-    console.log(mapData);
-  },[mapData])
+
 
   return (
     
