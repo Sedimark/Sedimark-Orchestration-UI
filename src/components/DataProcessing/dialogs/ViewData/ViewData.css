@@ -1,33 +1,5 @@
-.truncate-text {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px; /* Set your desired maximum width */
-  }
-  
-  .truncate-text:hover {
-    white-space: normal;
-    overflow: visible;
-  }
-
-  .loading-text-view-data{
-    margin-left: 100%;
-  }
-
-  .custom-tooltip {
-    position: absolute;
-    z-index: 1000;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    color:#fff;
-    padding: 8px;
-    font-size: 1.3rem;
-    border-radius: 4px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  }
-
-  .tooltip-content{
-    background-color: white;
-    color:#000;
-    border: 1px solid #000;
+  .error-container{
+    padding:20px;
+    text-align: center;
+    font-size: 1.4rem;
   }

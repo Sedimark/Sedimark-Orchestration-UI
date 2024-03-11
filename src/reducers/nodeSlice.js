@@ -29,6 +29,8 @@ const initialState = {
     selectedPipelineTrain:[],
     selectedPipelineDataPreprocessing:[],
     selectedPipelinePrediction:[],
+    noPipelineFound:false,
+    selectedTab:{"changed":false, tabSelected:"1"},
     mapData:"",
     
 }   
@@ -84,9 +86,6 @@ export const nodeSlice = createSlice({
         removeNode:(state, action) =>{
             state.nodes = state.nodes.filter((node)=> node.id !== action.payload)
         }, 
-        removePreProcessingNodes:(state, action)=>{
-           
-        },
         resetSelectedModelType:(state, action)=>{
             state.selectedModelType = "";
         },
@@ -99,9 +98,6 @@ export const nodeSlice = createSlice({
         },
         removeDataset:(state,action) =>{
             state.selectedPipeline = [];
-        },
-        removeDataFeaturingColumns:(state,action)=>{
-            state.selectedDataFeaturingColumns = [];
         },
         setSelectedModelType:(state,action)=>{
             state.selectedModelType = action.payload;
@@ -172,11 +168,20 @@ export const nodeSlice = createSlice({
         },
         setMapData:(state,action)=>{
             state.mapData = action.payload;
+        },
+        
+        setNoPipelineFound:(state,action)=>{
+            state.noPipelineFound = action.payload;
+        },
+
+        setSelectedTab:(state, action) =>{
+            state.selectedTab = action.payload;
         }
+
     }
 });
 
 
-export const {setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo , setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, removeDataFeaturingColumns, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, removePreProcessingNodes,setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName, setMapData} = nodeSlice.actions
+export const { setSelectedTab, setNoPipelineFound ,setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo , setMappedNodes, setMappedEdges, resetSelectedModelType, resetNormalizationAndStandardization, addNode,setNodes,removeDataset,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns,setNormalizationColumns,setStandardizationColumns,setImputationAlgs, setEdgeToDelete, clearPipeline, setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName, setMapData} = nodeSlice.actions
 
 export default nodeSlice.reducer;

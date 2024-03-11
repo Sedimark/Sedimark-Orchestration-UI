@@ -11,9 +11,9 @@ import axios from "axios";
 import { AllModelsTable } from './AllModelsTable/AllModelsTable';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {ModelDetails} from "./ModelDetails/ModelDetails";
-import { GET_ALL_MODELS, PREDICT_RESULTS_LINK, FETCH_PIPELINE_PREDICT_DATA } from '../../../../utils/apiEndpoints';
-import {setIsPredictedSelected} from "../../../../reducers/nodeSlice";
-import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedPipelineName, setSelectedView } from '../../../../reducers/nodeSlice';
+import { GET_ALL_MODELS} from '../../../../utils/apiEndpoints';
+import {setSelectedTrainedModel} from "../../../../reducers/nodeSlice";
+import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedTab } from '../../../../reducers/nodeSlice';
 import { useSelector } from "react-redux";
 
 
@@ -38,6 +38,7 @@ export default function TrainModelDialog(props){
     const [modelsDetailsPage, setModelsDetailPage] = React.useState(false);
     const [selectedModelData, setSelectedModelData] = React.useState({});
     const [isPredSelected, setIsPredSelected] = React.useState(false);
+    const [rowName, setRowName] = React.useState("");
     const dispatch = useDispatch();
 
     const darkTheme = createTheme({
@@ -46,7 +47,20 @@ export default function TrainModelDialog(props){
       },
     });
     
-    const handleDone = ()=>{      
+    const handleDone = ()=>{     
+      
+      if(rowName!= selectedTrainedModel )
+     { 
+          dispatch(setSelectedTrainedModel(rowName));
+          setIsPredSelected(true);
+         
+     } else if (rowName == selectedTrainedModel){
+          dispatch(setSelectedTrainedModel(""));
+          dispatch(setSelectedPipelinePrediction([]));
+          dispatch(setSelectedPipelineNamePrediction(""));
+          setIsPredSelected(false);
+    } 
+
         props.handleClose();
     }
 
@@ -63,23 +77,20 @@ export default function TrainModelDialog(props){
       
    }
 
+
    const handleSwitch = ()=>{
      setModelsPage(!allModelsPage);
      setModelsDetailPage(!modelsDetailsPage);
    }
 
 
-  const handleCloseDialog = ()=>{
+
+  const handleCloseDialog = ()=>{      
     handleDone();
-    
-    // dispatch(setIsPredictedSelected(isPredSelected));
-    // if(isPredSelected == true){
-    //   dispatch(setSelectedPipelineNamePrediction("prediction"));
-    //   dispatch(setSelectedPipelinePrediction(["prediction"]));
-    // } else {
-    //   dispatch(setSelectedPipelineNamePrediction(""));
-    //   dispatch(setSelectedPipelinePrediction([]));
-    // }
+  }
+
+  const handleChangeSelectedTab = ()=>{
+    dispatch(setSelectedTab({"changed":true, tabSelected:"3"}));
   }
   
     useEffect(()=>{
@@ -98,7 +109,7 @@ export default function TrainModelDialog(props){
             {!isDataLoading && allModelsPage && 
               <>
                
-                  <AllModelsTable allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected}></AllModelsTable>
+                  <AllModelsTable setRowName={setRowName} allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected}></AllModelsTable>
               </>
               } 
               {
@@ -118,7 +129,7 @@ export default function TrainModelDialog(props){
             </DialogContent>
             <DialogActions>
               
-              <Button   onClick={()=>{handleCloseDialog();}}>Ok</Button>
+              <Button   onClick={()=>{handleCloseDialog(); handleChangeSelectedTab()}}>Ok</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

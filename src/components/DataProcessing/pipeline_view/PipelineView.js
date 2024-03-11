@@ -343,7 +343,8 @@ export const PipelineView = (props)=>{
     } 
 
     const selectPipelineBasedOffParameters = (pipelineType)=>{
-
+        console.log("pipelineType:");
+        console.log(pipelineType);
         if(pipelineType == "training"){
             if(pipelineNameTrain == "mlflow train_test"){
                 setPipelineName("mlflow_train_test"); 
@@ -361,7 +362,6 @@ export const PipelineView = (props)=>{
     const handleDeleteTheRestData = ()=>{
         dispatch(setSelectedTrainedModel(""));
         dispatch(setIsPredictedSelected(false));
-        setPipelineName("");
     }
 
     useEffect(()=>{
@@ -369,9 +369,9 @@ export const PipelineView = (props)=>{
     },[pipelineNameTrain, pipelineNamePreprocessing])
  
     useEffect(()=>{
-        if(selectedPipelineNamePrediction.length != 0){
+        if(selectedPipelineNamePrediction.length != 0 && props.pipelineType == "prediction"){
             setPipelineName(selectedPipelineNamePrediction);
-        } else {
+        } else if( props.pipelineType == "prediction") {
             setPipelineName("");
         }
     },[selectedPipelineNamePrediction])
@@ -494,19 +494,13 @@ export const PipelineView = (props)=>{
                                     </div>
                                     {pipelineName.length !== 0 &&
                                         <div className="side-info-container">
-                                            <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
-                                            <HtmlTooltip
-                                                title={
-                                                <React.Fragment>
-                                                    <div>
-                                                        <Typography color="inherit"><h3>Selected Pipeline</h3></Typography>
-                                                        <em>{ props.pipelineType == "data_preprocessing"? formatString(pipelineName[0]): formatString(pipelineName)}</em>
-                                                    </div>
-                                                </React.Fragment>
-                                                }
-                                            >
+                                            <Tooltip title="Delete">
+                                                <FontAwesomeIcon icon={faTrashCan} title="Delete" onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
+                                            </Tooltip>
+                                            
+                                            <Tooltip title={`${props.pipelineType == "data_preprocessing"? formatString(pipelineName[0]): formatString(pipelineName)}`}>
                                                 <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
-                                            </HtmlTooltip>
+                                            </Tooltip>
                                             <Tooltip title="Run History">
                                                 <FontAwesomeIcon icon={faArrowsRotate} onClick={() => setOpen(true)} className="info-icon-side"/>
                                             </Tooltip>

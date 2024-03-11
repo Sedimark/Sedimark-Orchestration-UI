@@ -27,23 +27,17 @@ import axios from "axios";
 function Flow(props) {
   
   const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
-  const isPredictSelected = useSelector((state)=>state.isPredictSelected);
-  const blockVariables = useSelector((state)=> state.blocksVariables);
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
-  const blocksVariables = useSelector((state)=> state.blocksVariables);
-  const pipelineFetching = useSelector((state)=> state.is_pipeline_fetching);
+  const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
+  const noPipelineFound = useSelector((state)=> state.noPipelineFound);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
   const edgeTypes = useMemo(() => ({ }), []);
-  const storedNodes = useSelector((state)=>state.storedNodes);
-  const storedDataset = useSelector((state)=>state.selectedDataset);
-  const edgeToDelete = useSelector((state)=>state.edgeToDelete);
   const initialNodes = []; 
   const initialEdges = [];
   const [isPipelineLoading, setIsPipelineLoading] = useState(false);
   const [nodes, setNodes] = useNodesState(initialNodes);
   const [edges, setEdges] = useEdgesState(initialEdges);
-  const [variant, setVariant] = useState('cross');
   const [pipelineEdges, setPipelineEdges] = useState([]);
   const [wereEdgesPlaced, setWereEdgesPlaced] = useState(false);
   const dispatch = useDispatch();
@@ -189,7 +183,7 @@ function Flow(props) {
 
     dispatch(setStoredNodes(newNodes));
     setNodes(newNodes);
-    
+    dispatch(setOrderedNodes(newNodes));
   }
 
   const processAndPlaceEdges = ()=>{
@@ -287,28 +281,6 @@ function Flow(props) {
     dispatch(setDatasetColumnNames(allColumnNames));
   } 
 
-  const fetchAndParseMinioJson = async (bucket_name) => {
-
-    let jsonFileLink;
-    let jsonFileData;
-  
-    try{
-        jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
-        jsonFileLink = jsonFileLink.data.url;
-    } catch(err){
-       
-        console.log(err);
-        return;
-    }
-    
-    try{
-        jsonFileData = await axios.get(jsonFileLink);
-        parseAndSetColumnNames(jsonFileData.data);
-
-    } catch(err){
-        console.log(err);
-    }
-  };
 
   const verifyAddedEdgeIsOk = ()=>{
     
@@ -394,7 +366,7 @@ function Flow(props) {
         position: 'top-right',
     })
 };
-
+ 
   const fetchPipelineForModel = async(model)=>{
     try{
       const resp = await axios.get(FETCH_PIPELINE_PREDICT_DATA(model));
@@ -444,20 +416,13 @@ function Flow(props) {
       const parsedSelectedPipeline = parseSelectedPipelineName(selectedPipeline[0]);
       fetchPipelineData(parsedSelectedPipeline);
     } else {
+  
       setNodes([]);
       setEdges([]);
     }
   },[selectedPipeline])
 
    
-  useEffect(()=>{
-   
-    if(nodes.length == 0){
-      setNodes(storedNodes);
-    }
-  },[storedNodes])
-
-  
   useEffect(()=>{
     if(props.pipelineType == "prediction"){
       fetchPipelineForModel(selectedTrainedModel);
@@ -475,11 +440,10 @@ function Flow(props) {
     } 
   }
 
-  
 
   useEffect(()=>{ 
     selectPipelineBasedOnProps(props.pipelineType);
-  },[props, selectedPipelineDataPreProcessing, selectedPipelineTrain])
+  },[props, selectedPipelineDataPreProcessing, selectedPipelineTrain, selectedPipelinePrediction])
 
 
     return (

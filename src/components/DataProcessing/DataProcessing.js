@@ -14,12 +14,13 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { PipelineView } from "./pipeline_view/PipelineView";
-import { setSelectedView } from "../../reducers/nodeSlice";
+import { setSelectedView, setSelectedTab } from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 
 function DataProcessing() {
 
     const dispatch = useDispatch();
+    const storedSelectedTab = useSelector((state) => state.selectedTab);
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const pipelineName = useSelector((state) => state.selectedPipelineName);
     const blockVariables = useSelector((state) => state.blocksVariables);
@@ -274,10 +275,6 @@ function DataProcessing() {
         }
     })
 
-    const closAreYouSure = ()=>{
-        setIsAreYouSureOpen(false);
-    }
-
     const darkTheme = createTheme({
         palette: {
             mode: 'dark',
@@ -315,7 +312,15 @@ function DataProcessing() {
         }
     } 
    
-
+    useEffect(()=>{
+    
+        if(storedSelectedTab["changed"] == true){
+            setSelectedTab(storedSelectedTab["tabSelected"]);
+        } else {
+            dispatch(setSelectedTab({"changed":false, tabSelected:storedSelectedTab["tabSelected"]}));
+        }
+    },[storedSelectedTab])
+ 
     return ( 
         <div style={{ height: '100%' }}>
             <TabContext value={selectedTab} className="tabs-container">

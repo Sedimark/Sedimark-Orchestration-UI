@@ -1,4 +1,5 @@
 import React from "react";
+import {useState, useEffect} from "react";
 import style from "./AllModelsTable.css";
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -9,20 +10,18 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Button from '@mui/material/Button';
-import AutoGraphIcon from '@mui/icons-material/AutoGraph';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import CheckIcon from '@mui/icons-material/Check';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { styled } from '@mui/system';
-import {setSelectedTrainedModel, setIsPredictedSelected, setSelectedPipelineNamePrediction, setSelectedPipelinePrediction} from "../../../../../reducers/nodeSlice";
 import { useSelector } from "react-redux";
 import { useDispatch } from 'react-redux';
 
 export const AllModelsTable = (props)=>{
 
-    
-    const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
+    const selectedModel =  useSelector((state)=> state.selectedTrainedModel);
+    const [selectedTrainedModel, setSelectedTrainedModel] = useState("");
     const dispatch = useDispatch();
 
     const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -59,17 +58,19 @@ export const AllModelsTable = (props)=>{
       }
 
       const handleChangeSelectedModel = (row_name)=>{
+        props.setRowName(row_name);
           if(row_name!= selectedTrainedModel )
           { 
-            dispatch(setSelectedTrainedModel(row_name));
-            props.setIsPredSelected(true);
+            setSelectedTrainedModel(row_name);
           } else if (row_name == selectedTrainedModel){
-            dispatch(setSelectedTrainedModel(""));
-            dispatch(setSelectedPipelinePrediction([]));
-            dispatch(setSelectedPipelineNamePrediction(""));
-            props.setIsPredSelected(false);
+            setSelectedTrainedModel("");
           }
       }
+
+      useEffect(()=>{
+        setSelectedTrainedModel(selectedModel);
+
+      },[selectedModel])
 
 
     return(

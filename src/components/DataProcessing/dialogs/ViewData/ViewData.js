@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useEffect, useState, useRef } from 'react';
+import style from "./ViewData.css";
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
@@ -9,12 +10,14 @@ import DialogActions from '@mui/material/DialogActions';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Table from '@mui/material/Table';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { FETCH_MINIO_FILE , FETCH_MINIO_SAMPLE} from '../../../../utils/apiEndpoints';
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -36,7 +39,8 @@ export default function ViewData(props) {
     const [allHistValues,setAllHistValues] = React.useState({});
     const [selectedPipeline, setSelectedPipeline] = React.useState("");
     const initialized = useRef(false);
-
+    const [noData, setNoData] = useState(false);
+    const [errorEncountered, setErrorEncountered] = useState(false);
    
     const CustomTooltip = ({ active, payload, label }) => {
       if (active) {
@@ -143,6 +147,8 @@ export default function ViewData(props) {
             jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
             jsonFileLink = jsonFileLink.data.url;
         } catch(err){
+            setIsLoading(false);
+            setErrorEncountered(true);
             console.log(err);
             return;
         }
@@ -155,6 +161,8 @@ export default function ViewData(props) {
             setAllColumnsData(jsonFileData.data);
             parseAndSetColumnNames(jsonFileData.data);
         } catch(err){
+            setIsLoading(false);
+            setErrorEncountered(true);
             console.log(err);
         }
       };
@@ -186,6 +194,8 @@ export default function ViewData(props) {
             jsonFileLink = await axios.get(FETCH_MINIO_SAMPLE(parseBucketName(bucket_name)));
             jsonFileLink = jsonFileLink.data.url;
          } catch(err){
+           setIsLoading(false);
+           setErrorEncountered(true);
            console.log(err);
            return;
         }
@@ -195,6 +205,8 @@ export default function ViewData(props) {
            
            setAllColumnsSamples(jsonFileData.data);
        } catch(err){
+         setIsLoading(false);
+         setErrorEncountered(true);
           console.log(err);
        }
 
@@ -269,6 +281,14 @@ export default function ViewData(props) {
                             <div className="loading-circle"></div>
                             
                         </div>
+                        }
+                        {
+                          errorEncountered && 
+                          <div className='error-container'>
+                              <FontAwesomeIcon icon={faCircleExclamation}/> 
+                             <p>We have encountered an error!</p>
+                             <p>Please try again later</p>
+                          </div>
                         }
                         {
                           !isLoading && 

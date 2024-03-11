@@ -25,7 +25,7 @@ import Radio from '@mui/material/Radio';
 import { formatString } from '../../../../utils/formatString';
 import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
 import axios from "axios";
-import {addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineName, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing} from "../../../../reducers/nodeSlice";
+import {setSelectedTab, addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineName, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { setDatasetColumns, setDatasetInfo, setDatasetColumnNames, setSelectedView } from '../../../../reducers/nodeSlice';
@@ -196,7 +196,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     setfilteredPipelines(updatedPipelines);
   }
 
-  
 
   const addCorespondingPipeline = ()=>{
    
@@ -210,19 +209,19 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         dispatch(addPipelineTrain([]));
       }
 
-       
+        
       if(pipelineTrain.length !=0 && pipelineTrain[0] != selectedPipeline)
-      { 
+      {  
         dispatch(addPipelineTrain(selectedPipeline));
         dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
-        
+        dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
         return;
       } else if(pipelineTrain.length == 0 ){
         dispatch(addPipelineTrain(selectedPipeline));
         dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
-       
+        dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
         return;
       } 
 
@@ -237,13 +236,13 @@ const fetchAndParseMinioJson = async (bucket_name) => {
           dispatch(addPipelinePreprocessing(selectedPipeline));
           dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
-          
+          dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
           return;
         } else if(pipelinePreprocessing.length == 0 ){
           dispatch(addPipelinePreprocessing(selectedPipeline));
           dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
-          
+          dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
           return;
         }
       }
@@ -252,6 +251,8 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
   const handleRadioClick = (value)=>{
     setSelectedPipeline(value.target.value);
+    setOnlyOneOptionSelected(false);
+    
  }
 
   const handleDialogTitle = ()=>{
@@ -288,11 +289,13 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     }
     setWasRunned(true);
   },[])
- 
+
 
   React.useEffect(()=>{
-    setOnlyOneOptionSelected(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
+    setOnlyOneOptionSelected(!checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
   },[filteredPipelines])
+
+  
 
 
   return (
