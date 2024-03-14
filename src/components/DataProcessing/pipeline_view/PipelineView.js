@@ -343,8 +343,7 @@ export const PipelineView = (props)=>{
     } 
 
     const selectPipelineBasedOffParameters = (pipelineType)=>{
-        console.log("pipelineType:");
-        console.log(pipelineType);
+        
         if(pipelineType == "training"){
             if(pipelineNameTrain == "mlflow train_test"){
                 setPipelineName("mlflow_train_test"); 

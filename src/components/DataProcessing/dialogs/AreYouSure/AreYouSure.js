@@ -8,7 +8,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import {useDispatch, useSelector} from 'react-redux';
-import {  clearPipelineProcessing, clearPipelineTrain, addPipeline, clearPipeline, setBlocksVariables, setMappedEdges, setMappedNodes, setOrderedNodes, setSelectedPipelineName, setStoredNodes, setSelectedPipelineNamePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelinePrediction, setSelectedPipelineNamePrediction} from "../../../../reducers/nodeSlice";
+import {  clearPipelineProcessing, clearPipelineTrain, setMapData, clearPipeline, setBlocksVariables,  setSelectedPipelineName, setStoredNodes, setSelectedPipelineNamePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelinePrediction, setSelectedPipelineNamePrediction} from "../../../../reducers/nodeSlice";
 import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
 import { formatString } from '../../../../utils/formatString';
 
@@ -41,16 +41,14 @@ export default function AreYouSure(props) {
     } else if(props.pipelineType == "data_preprocessing"){
       dispatch(setSelectedPipelineNamePreprocessing(""));
       dispatch(clearPipelineProcessing());
+      dispatch(setBlocksVariables([]));
       localStorage.clear();
       props.handleClose();
 
     } else if(props.pipelineType == "prediction"){
-
+      dispatch(setMapData(""));
       dispatch(setDatasetColumns([]));
       dispatch(setDatasetInfo([]));
-      dispatch(setMappedEdges([]));
-      dispatch(setMappedNodes([]));
-      dispatch(setOrderedNodes([]));
       dispatch(clearPipeline([]));
       dispatch(setSelectedPipelineName(""));
       dispatch(setStoredNodes([]));

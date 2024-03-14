@@ -230,9 +230,9 @@ export default function ViewData(props) {
       },[])
 
       useEffect(()=>{
-        // if(columnNames.length!=0 && allColumnsSamples.length!=0){
-        //       setIsLoading(false);
-        // }
+        if(columnNames.length!=0 && allColumnsSamples.length!=0){
+              setIsLoading(false);
+        }
       },[ columnNames , allColumnsSamples])
 
     

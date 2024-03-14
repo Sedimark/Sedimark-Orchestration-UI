@@ -42,10 +42,8 @@ export default memo(({ data, isConnectable }) => {
 
   const variablesValues = useSelector((state) => state.blocksVariables);
   const [variablesPresent, setVariablesPresent] = useState(null);
-  const [publishDate, setPublishDate] = useState("");
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
-  const datasetSelected = useSelector((state) => state.selectedDataset);
   const [params, setParams] = useState({});
   const [allVariables, setAllVariables] = useState([]);
   const [storedVariables, setStoredVariables] = useState([]);
