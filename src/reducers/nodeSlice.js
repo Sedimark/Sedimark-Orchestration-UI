@@ -1,7 +1,7 @@
 import {createSlice, nanoid} from '@reduxjs/toolkit'
 
 const initialState = {
-    selectedView:[],
+    selectedView:[1],
     nodes:[],
     selectedTrainedModel:"",
     isPredictSelected:false,
@@ -127,7 +127,7 @@ export const nodeSlice = createSlice({
         },
          setOrderedNodes:(state, action) => {
             state.orderedNodes = action.payload;
-         },
+         }, 
          setSelectedPipelineName:(state, action) => {
             state.selectedPipelineName = action.payload;
          },

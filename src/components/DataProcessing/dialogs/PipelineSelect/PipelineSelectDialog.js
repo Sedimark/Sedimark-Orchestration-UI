@@ -229,7 +229,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
       
         if(selectedPipeline.length == 0){
           dispatch(addPipelinePreprocessing([]));
-        }
+        } 
     
         if(pipelinePreprocessing.length !=0 && pipelinePreprocessing[0] != selectedPipeline)
         {

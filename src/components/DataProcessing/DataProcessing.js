@@ -37,10 +37,10 @@ function DataProcessing() {
     const [activeStep, setActiveStep] = React.useState(-1);
     const [open, setOpen] = React.useState(false);
     const [historyData, setHistoryData] = React.useState(null);
-    const [selectedTab, setSelectedTab] = React.useState('1');
+    const [selectedTab, setSelectedTabHere] = React.useState('1');
 
     const handleChangeTab = (event, newValue) => {
-      setSelectedTab(newValue);
+      setSelectedTabHere(newValue);
       dispatch(setSelectedView(newValue));
     };
  
@@ -315,11 +315,15 @@ function DataProcessing() {
     useEffect(()=>{
     
         if(storedSelectedTab["changed"] == true){
-            setSelectedTab(storedSelectedTab["tabSelected"]);
-        } else {
-            dispatch(setSelectedTab({"changed":false, tabSelected:storedSelectedTab["tabSelected"]}));
-        }
+            setSelectedTabHere(storedSelectedTab["tabSelected"]);
+        } 
+      
+       
     },[storedSelectedTab])
+
+    useEffect(()=>{
+        dispatch(setSelectedView([1]));
+    },[])
  
     return ( 
         <div style={{ height: '100%' }}>
