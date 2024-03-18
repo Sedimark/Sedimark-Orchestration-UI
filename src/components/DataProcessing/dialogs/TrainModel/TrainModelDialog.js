@@ -49,8 +49,13 @@ export default function TrainModelDialog(props){
     
     const handleDone = ()=>{     
       
+       if(selectedTrainedModel.length!=0 && rowName.length == 0){
+        props.handleClose();
+        return;
+       }
+
       if(rowName!= selectedTrainedModel )
-     { 
+     {  
           dispatch(setSelectedTrainedModel(rowName));
           setIsPredSelected(true);
          
@@ -61,7 +66,7 @@ export default function TrainModelDialog(props){
           setIsPredSelected(false);
     } 
 
-        props.handleClose();
+      props.handleClose();
     }
 
     const fetchAllModelsAndSet = async()=>{

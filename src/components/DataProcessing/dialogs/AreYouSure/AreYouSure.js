@@ -35,14 +35,14 @@ export default function AreYouSure(props) {
       dispatch(clearPipelineTrain());
       dispatch(setSelectedPipelineNameTrain(""));
 
-      localStorage.clear();
+      // localStorage.clear();
       props.handleClose();
 
     } else if(props.pipelineType == "data_preprocessing"){
       dispatch(setSelectedPipelineNamePreprocessing(""));
       dispatch(clearPipelineProcessing());
       dispatch(setBlocksVariables([]));
-      localStorage.clear();
+      // localStorage.clear();
       props.handleClose();
 
     } else if(props.pipelineType == "prediction"){
@@ -55,7 +55,7 @@ export default function AreYouSure(props) {
       dispatch(setBlocksVariables([]));
       dispatch(setSelectedPipelinePrediction([]));
       dispatch(setSelectedPipelineNamePrediction(""));
-      localStorage.clear();
+      // localStorage.clear();
       props.handleClose();
 
     }

@@ -1,6 +1,6 @@
 import React, {  useState, useEffect }  from "react";
-import { formatString } from "../../../utils/formatString";
-import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../../utils/apiEndpoints";
+import { formatString } from "../../utils/formatString";
+import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {Step, StepLabel, Stepper} from "@mui/material";
 import Dialog from "@mui/material/Dialog";
@@ -18,7 +18,7 @@ import TableBody from "@mui/material/TableBody";
 import TableContainer from "@mui/material/TableContainer";
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
-import AreYouSure from "../dialogs/AreYouSure/AreYouSure";
+import AreYouSure from "../DataProcessing/dialogs/AreYouSure/AreYouSure";
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import {createTheme, styled} from '@mui/material/styles';
@@ -27,9 +27,9 @@ import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useDispatch } from 'react-redux';
-import {setSelectedTrainedModel, setIsPredictedSelected} from "../../../reducers/nodeSlice";
+import {setSelectedTrainedModel, setIsPredictedSelected} from "../../reducers/nodeSlice";
 import Box from '@mui/material/Box';
-import Flow from "../Flow";
+import Flow from "../Flow/Flow";
 
 
 export const PipelineView = (props)=>{
@@ -38,7 +38,6 @@ export const PipelineView = (props)=>{
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const blockVariables = useSelector((state) => state.blocksVariables);
     const pipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
-    const isPredictSelected = useSelector((state)=>state.isPredictSelected);
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const selectedPipelineNamePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
@@ -266,7 +265,7 @@ export const PipelineView = (props)=>{
         }
     }, [pipelineName]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isRun.current) return;
 
         isRun.current = true;
@@ -359,18 +358,23 @@ export const PipelineView = (props)=>{
     }
 
     const handleDeleteTheRestData = ()=>{
-        dispatch(setSelectedTrainedModel(""));
+        
+        if(props.pipelineType == "prediction"){
+            dispatch(setSelectedTrainedModel(""));
+        }
         dispatch(setIsPredictedSelected(false));
     }
 
     useEffect(()=>{
+        
         selectPipelineBasedOffParameters(props.pipelineType);
     },[pipelineNameTrain, pipelineNamePreprocessing])
  
     useEffect(()=>{
+        
         if(selectedPipelineNamePrediction.length != 0 && props.pipelineType == "prediction"){
             setPipelineName(selectedPipelineNamePrediction);
-        } else if( props.pipelineType == "prediction") {
+        } else if( props.pipelineType == "prediction" ) {
             setPipelineName("");
         }
     },[selectedPipelineNamePrediction])

@@ -1,24 +1,22 @@
 import * as React from 'react';
-import { useEffect } from 'react';
-import { styled, useTheme, Theme, CSSObject } from '@mui/material/styles';
+import { useState } from 'react';
+import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
-import { useSelector } from "react-redux/es/hooks/useSelector";
 import MuiDrawer from '@mui/material/Drawer';
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
 import List from '@mui/material/List';
-import Drawer from '@mui/joy/Drawer';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import WidgetsIcon from '@mui/icons-material/Widgets';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import PipelineSelectDialog from './dialogs/PipelineSelect/PipelineSelectDialog';
+import PipelineSelectDialog from '../DataProcessing/dialogs/PipelineSelect/PipelineSelectDialog';
 import HubIcon from '@mui/icons-material/Hub';
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
 import SettingsIcon from '@mui/icons-material/Settings';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import TrainModelDialog from './dialogs/TrainModel/TrainModelDialog';
+import TrainModelDialog from '../DataProcessing/dialogs/TrainModel/TrainModelDialog';
 
 const drawerWidth = 240;
 
@@ -90,14 +88,10 @@ const BigDrawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'ope
 
 export default function MiniDrawer() {
   const theme = useTheme();
-  const [openDrawer, setOpenDrawer] = React.useState(false);
-  const [open, setOpen] = React.useState(true);
-  const [selectDataDialog, setSelectDataDialog] = React.useState(false);
-  const [displayMLModels, setDisplayMLModels] = React.useState(false);
-  const [pipelineType, setPipelineType] = React.useState("");
+  const [open, setOpen] = useState(true);
+  const [selectDataDialog, setSelectDataDialog] = useState(false);
+  const [pipelineType, setPipelineType] = useState("");
   const [trainModelsDialogOpen, setTrainModelsDialogOpen] = React.useState(false);
-  const pipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
-  const pipelinePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
 
   const openPipelineSelectMenu = (dialogType) => {
     if(dialogType == "train"){

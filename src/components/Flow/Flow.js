@@ -1,14 +1,14 @@
 import React, { useCallback,useState, useMemo, useEffect } from 'react';
 import style from "./Flow.css";
 import ReactFlow, { MiniMap,Background, Controls, useNodesState, useEdgesState, addEdge, applyEdgeChanges, applyNodeChanges } from 'reactflow';
-import Loader from './custom_nodes/Loader.js';
+import Loader from '../Nodes/Loader.js';
 import 'reactflow/dist/style.css';
-import Transformer from './custom_nodes/Transformer.js';
-import Exporter from './custom_nodes/Exporter.js';
-import Custom from './custom_nodes/Custom.js';
+import Transformer from '../Nodes/Transformer.js';
+import Exporter from '../Nodes/Exporter.js';
+import Custom from '../Nodes/Custom.js';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import {
   setMappedNodes,
   setMappedEdges,
@@ -17,10 +17,9 @@ import {
   setStoredNodes,
   setSelectedPipelineNamePrediction,
   setSelectedPipelinePrediction
-} from "../../reducers/nodeSlice";
+} from "../../reducers/nodeSlice.js";
 import {useDispatch} from 'react-redux';
-import { FETCH_PIPELINE_DATA, FETCH_MINIO_FILE, FETCH_PIPELINE_PREDICT_DATA } from '../../utils/apiEndpoints.js';
-import { setDatasetColumnNames } from '../../reducers/nodeSlice';
+import { FETCH_PIPELINE_DATA, FETCH_PIPELINE_PREDICT_DATA } from '../../utils/apiEndpoints.js';
 import { v4 as uuidv4 } from 'uuid';
 import axios from "axios";
 
@@ -30,7 +29,6 @@ function Flow(props) {
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
-  const noPipelineFound = useSelector((state)=> state.noPipelineFound);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
   const edgeTypes = useMemo(() => ({ }), []);
   const initialNodes = []; 
@@ -210,18 +208,6 @@ function Flow(props) {
       
     }
   }
-
-  const parseBucketName = (inputString)=>{
-    if (inputString.includes('_')) {
-      inputString = inputString.split("_").join("-");
-    } 
-  
-    if (inputString.includes(' ')) {
-      inputString =  inputString.split(' ').join("-");
-    } 
-  
-    return inputString;
-  }
   
   const processAndPlaceNodes = (blocks) =>{ 
     setPipelineEdges([]);
@@ -271,17 +257,6 @@ function Flow(props) {
     setEdges((eds) => eds.filter((e) => e.id !== edgeToDelete));
   }
   
-
-  const parseAndSetColumnNames = (allColumnsData)=>{
-    const allColumnNames = [];
-    for(const column of allColumnsData){
-      allColumnNames.push(column.column_name);
-    }
-    
-    dispatch(setDatasetColumnNames(allColumnNames));
-  } 
-
-
   const verifyAddedEdgeIsOk = ()=>{
     
    if (edges.length == 0 ){
@@ -425,6 +400,7 @@ function Flow(props) {
    
   useEffect(()=>{
     if(props.pipelineType == "prediction"){
+      
       fetchPipelineForModel(selectedTrainedModel);
     }
   },[selectedTrainedModel])

@@ -52,6 +52,7 @@ export default function PipelineSelectDialog(props) {
   const [onlyOneOptionSelected, setOnlyOneOptionSelected] = React.useState(false);
   const [pipeline, setPipeline] = React.useState("");
   const [hasError, setHasError] = React.useState(false);
+  const [foundPipeline, setFoundPipeline] = React.useState(false);
 
   const parseAndSetColumns = (data_to_parse)=>{
     
@@ -112,29 +113,6 @@ const fetchAndParseMinioJson = async (bucket_name) => {
         setIsLoading(false);
         setHasError(true);
     }
-  };
-
-  const handleToggle = (value) => () => {
-    const currentIndex = checked.indexOf(value);
-    const newChecked = [...checked];
-    
-    if(newChecked.length == 1){
-      if(currentIndex != -1){
-        newChecked.pop();
-      } else {
-        newChecked.pop();
-        newChecked.push(value);
-      }
-    } else {
-      if (currentIndex === -1) {
-        newChecked.push(value);
-      } 
-    }
-    if(newChecked.length!=0){
-      fetchAndParseMinioJson(newChecked[0]);
-    }
-
-    setChecked(newChecked);
   };
 
 
@@ -293,9 +271,8 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
   React.useEffect(()=>{
     setOnlyOneOptionSelected(!checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
+    setFoundPipeline(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
   },[filteredPipelines])
-
-  
 
 
   return (
@@ -405,7 +382,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
               </DialogContent>
               <DialogActions>
                 <Button onClick={props.handleClose}>Close</Button>
-                <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}} disabled={onlyOneOptionSelected || isLoading || hasError}>Apply</Button>
+                <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}} disabled={onlyOneOptionSelected || isLoading || hasError || foundPipeline }>Apply</Button>
               </DialogActions>
             
         </Dialog>

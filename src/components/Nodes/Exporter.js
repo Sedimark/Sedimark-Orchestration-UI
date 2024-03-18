@@ -10,13 +10,13 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import { styled } from '@mui/material/styles';
 import { faDiagramProject, faMap } from '@fortawesome/free-solid-svg-icons';
-import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
+import VariablesInput from '../DataProcessing/dialogs/VariablesInput/VariablesInput';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { PREDICT_RESULTS_LINK } from '../../../utils/apiEndpoints';
+import { PREDICT_RESULTS_LINK } from '../../utils/apiEndpoints';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
-import ViewMap from '../dialogs/PredictResults/ViewMap';
-import { setMapData } from '../../../reducers/nodeSlice';
+import ViewMap from '../DataProcessing/dialogs/PredictResults/ViewMap';
+import { setMapData } from '../../reducers/nodeSlice';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import {useDispatch} from 'react-redux';

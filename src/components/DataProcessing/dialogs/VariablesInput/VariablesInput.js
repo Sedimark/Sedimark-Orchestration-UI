@@ -75,18 +75,15 @@ export default function VariablesInput(props){
     const storedColumnNames = useSelector((state)=> state.datasetColumnNames);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
-    const [isDataLoading, setIsDataLoading] = React.useState(true);
-    const [selectedColumns, setSelectedColumns] = React.useState([]);
-    const [columns, setColumns] = React.useState([]);
-    const [variableValues, setVariableValues] = React.useState([]);
-    const [variablesInput, setVariablesInput] = React.useState({});
-    const [valueData, setValue] = React.useState();
-    const [nodeNameId, setNodeNameId] = React.useState();
+    const [isDataLoading, setIsDataLoading] = useState(true);
+    const [columns, setColumns] = useState([]);
+    const [variableValues, setVariableValues] = useState([]);
+    const [variablesInput, setVariablesInput] = useState({});
+    const [nodeNameId, setNodeNameId] = useState();
     const [columnNames, setColumnNames] = useState([]);
-    const [wasSomethingChanged, setWasSomethingChanged] = React.useState(false);
-    const [hasMultipleSelection, setHasMultipleSelection] = React.useState(false);
-    const [selectedPipeline, setSelectedPipeline] = React.useState("");
-    const [variablesPresent, setVariablesPresent] = React.useState(true);
+    const [wasSomethingChanged, setWasSomethingChanged] = useState(false);
+    const [selectedPipeline, setSelectedPipeline] = useState("");
+    const [variablesPresent, setVariablesPresent] = useState(true);
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);

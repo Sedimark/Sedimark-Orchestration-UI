@@ -1,20 +1,19 @@
 import React, { useEffect, useRef, useState } from "react";
 import style from "../DataProcessing/DataProcessing.css";
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import LeftMenu from "./LeftMenu";
+import LeftMenu from "../LeftMenu/LeftMenu";
 import toast, { Toaster } from 'react-hot-toast';
 import {createTheme, styled} from '@mui/material/styles';
-import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
+import {FETCH_PIPELINE_RUN_DATA,  PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
-import Typography from '@mui/material/Typography';
 import axios from "axios";
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
-import { PipelineView } from "./pipeline_view/PipelineView";
-import { setSelectedView, setSelectedTab } from "../../reducers/nodeSlice";
+import { PipelineView } from "../PipelineView/PipelineView";
+import { setSelectedView} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 
 function DataProcessing() {
@@ -30,14 +29,10 @@ function DataProcessing() {
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [pipelineFinished, setPipelineFinished] = useState(false);
     const [runData, setRunData] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [isAreYouSureOpen, setIsAreYouSureOpen] = useState(false);
     const steps = ["started", "running", "finished"];
-    const [stepStatus, setStepStatus] = React.useState([true, true, true]);
-    const [activeStep, setActiveStep] = React.useState(-1);
-    const [open, setOpen] = React.useState(false);
-    const [historyData, setHistoryData] = React.useState(null);
-    const [selectedTab, setSelectedTabHere] = React.useState('1');
+    const [stepStatus, setStepStatus] = useState([true, true, true]);
+    const [activeStep, setActiveStep] = useState(-1);
+    const [selectedTab, setSelectedTabHere] = useState('1');
 
     const handleChangeTab = (event, newValue) => {
       setSelectedTabHere(newValue);
@@ -45,7 +40,7 @@ function DataProcessing() {
     };
  
 
-    const isRun = React.useRef(false);
+    const isRun = useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
    
@@ -70,24 +65,6 @@ function DataProcessing() {
         })
     };
 
-    const handleStop = () => {
-        setPipelineFinished(false);
-        setStepStatus((prevState) => {
-            return prevState.map(() => {
-                return true;
-            });
-        });
-        setActiveStep(-1);
-
-        const toSave = {
-            "pipelineFinished": false,
-            "isPipelineStarted": false,
-            "stepStatus": [true, true, true],
-            "activeStep": -1
-        };
-
-        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
-    }
 
     const startPipeline = React.useCallback(async () => {
         if (pipelineNodes.length < 2) {
@@ -246,7 +223,7 @@ function DataProcessing() {
         }
     }, [pipelineName]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         if (isRun.current) return;
 
         isRun.current = true;
@@ -288,30 +265,7 @@ function DataProcessing() {
         }
     });
 
-    const handleChange = async (e) => {
-        try {
-            const response = await axios({
-                method: "GET",
-                url: PIPELINE_HISTORY(pipelineName, e.target.value)
-            })
 
-            const result = [];
-
-            for (let entry of response.data) {
-                const variables = {}
-                Object.entries(entry.variables).forEach(([key, value]) => {
-                    if (key !== "execution_partition") {
-                        variables[key] = value
-                    }
-                })
-                result.push({...entry, "variables": variables});
-            }
-            setHistoryData(result);
-        } catch (_) {
-            blockAlert("Error getting the history");
-        }
-    } 
-   
     useEffect(()=>{
     
         if(storedSelectedTab["changed"] == true){

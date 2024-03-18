@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import TableRow from '@mui/material/TableRow';
-import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
+import VariablesInput from '../DataProcessing/dialogs/VariablesInput/VariablesInput';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell, { tableCellClasses } from '@mui/material/TableCell';

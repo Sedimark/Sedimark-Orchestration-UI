@@ -13,7 +13,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
+import VariablesInput from '../DataProcessing/dialogs/VariablesInput/VariablesInput';
 
  
 export default memo(({ data, isConnectable }) => {

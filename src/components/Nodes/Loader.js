@@ -9,15 +9,14 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import VariablesInput from '../dialogs/VariablesInput/VariablesInput';
-import ViewData from '../dialogs/ViewData/ViewData';
+import VariablesInput from '../DataProcessing/dialogs/VariablesInput/VariablesInput';
+import ViewData from '../DataProcessing/dialogs/ViewData/ViewData';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
-import axios from "axios";
+
 
 export default memo(({ data, isConnectable }) => {
 
@@ -126,10 +125,6 @@ export default memo(({ data, isConnectable }) => {
 
   const handleCloseViewData = ()=>{
     setViewDataDialog(false);
-  }
-
-  const parsePhantomVariables = ()=>{
-
   }
 
   useEffect(() => {

@@ -33,14 +33,12 @@ export default function ViewData(props) {
     const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
     const [allColumnsData, setAllColumnsData] = useState();
     const [columnNames, setColumnNames] = useState([]);
-    const [isLoading, setIsLoading] = React.useState(true);
-    const [doneLoading, setDoneLoading] = React.useState(false);
-    const [allColumnsSamples, setAllColumnsSamples] = React.useState([]);
-    const [allHistValues,setAllHistValues] = React.useState({});
-    const [selectedPipeline, setSelectedPipeline] = React.useState("");
-    const initialized = useRef(false);
-    const [noData, setNoData] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [allColumnsSamples, setAllColumnsSamples] = useState([]);
+    const [allHistValues,setAllHistValues] = useState({});
+    const [selectedPipeline, setSelectedPipeline] = useState("");
     const [errorEncountered, setErrorEncountered] = useState(false);
+    const initialized = useRef(false);
    
     const CustomTooltip = ({ active, payload, label }) => {
       if (active) {
