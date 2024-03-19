@@ -40,7 +40,7 @@ export default memo(({ data, isConnectable }) => {
   }));
 
   const variablesValues = useSelector((state) => state.blocksVariables);
-  const [variablesPresent, setVariablesPresent] = useState(null);
+  const [variablesPresent, setVariablesPresent] = useState(false);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
   const [params, setParams] = useState({});
@@ -142,7 +142,7 @@ export default memo(({ data, isConnectable }) => {
     let varObj;
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
-      if(allVarsType[i] == null){
+      if(allVarsType[i] == null || (allVarsType[i] != "multiple_selection" && allVarsType[i] != "string" && allVarsType[i] != "number" )){
         continue;
       } else {
          varObj = {
@@ -153,6 +153,13 @@ export default memo(({ data, isConnectable }) => {
       }
       
     }
+
+    
+    if(allVarsData.length != 0){
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
+    }
     setAllVariables(allVarsData);
 
   }, [])
@@ -160,23 +167,6 @@ export default memo(({ data, isConnectable }) => {
   useEffect(() => {
     processVariablesValues(variablesValues);
   }, [variablesValues])
-
-
-  useEffect(() => {
-    if (Object.keys(data.config).length != 0) {
-      setVariablesPresent(true);
-    } else {
-      setVariablesPresent(false);
-    }
-
-    
-    if(Object.keys(data.config).length == 1){
-      if(data.config[Object.keys(data.config)[0]] == null){
-        setVariablesPresent(false);
-      }
-    }
-
-  }, [storedVariables])
 
 
 

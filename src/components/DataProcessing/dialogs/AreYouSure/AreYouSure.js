@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -9,7 +9,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import {useDispatch, useSelector} from 'react-redux';
 import {  clearPipelineProcessing, clearPipelineTrain, setMapData, clearPipeline, setBlocksVariables,  setSelectedPipelineName, setStoredNodes, setSelectedPipelineNamePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelinePrediction, setSelectedPipelineNamePrediction} from "../../../../reducers/nodeSlice";
-import { setDatasetColumns, setDatasetInfo } from '../../../../reducers/nodeSlice';
+import { setDatasetColumns } from '../../../../reducers/nodeSlice';
 import { formatString } from '../../../../utils/formatString';
 
 export default function AreYouSure(props) {
@@ -17,6 +17,7 @@ export default function AreYouSure(props) {
   const dispatch = useDispatch();
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const selectedPipelineDataPreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
+  const blocksVariables = useSelector((state)=> state.blocksVariables);
   const [selectedPipeline,setSelectedPipeline] = useState("");
 
   const darkTheme = createTheme({
@@ -26,6 +27,11 @@ export default function AreYouSure(props) {
   });
 
 
+  const deleteVariablesForPipeline = ()=>{
+    console.log("all za variables are:");
+    console.log(blocksVariables);
+  }
+
   const deleteSelectedPipeline = () => {
 
     if(props.pipelineType == "training"){
@@ -34,28 +40,21 @@ export default function AreYouSure(props) {
       dispatch(setSelectedPipelineName(""));
       dispatch(clearPipelineTrain());
       dispatch(setSelectedPipelineNameTrain(""));
-
-      // localStorage.clear();
       props.handleClose();
 
     } else if(props.pipelineType == "data_preprocessing"){
       dispatch(setSelectedPipelineNamePreprocessing(""));
       dispatch(clearPipelineProcessing());
       dispatch(setBlocksVariables([]));
-      // localStorage.clear();
       props.handleClose();
 
     } else if(props.pipelineType == "prediction"){
       dispatch(setMapData(""));
       dispatch(setDatasetColumns([]));
-      dispatch(setDatasetInfo([]));
       dispatch(clearPipeline([]));
-      dispatch(setSelectedPipelineName(""));
-      dispatch(setStoredNodes([]));
       dispatch(setBlocksVariables([]));
       dispatch(setSelectedPipelinePrediction([]));
       dispatch(setSelectedPipelineNamePrediction(""));
-      // localStorage.clear();
       props.handleClose();
 
     }
@@ -71,12 +70,12 @@ export default function AreYouSure(props) {
     
   }
 
-  React.useEffect(()=>{
+  useEffect(()=>{
     selectPipelineNameBasedOnType();
   
   },[])
 
- React.useEffect(()=>{
+ useEffect(()=>{
   setSelectedPipeline(props)
 
   if(props.pipelineType == "training"){
@@ -87,6 +86,13 @@ export default function AreYouSure(props) {
     setSelectedPipeline("prediction");
   }
  },[props])
+
+
+ useEffect(()=>{
+  console.log("blockVariables:");
+  console.log(blocksVariables);
+ },[blocksVariables])
+ 
 
   return (
     

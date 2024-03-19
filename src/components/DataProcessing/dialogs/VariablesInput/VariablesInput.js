@@ -84,6 +84,7 @@ export default function VariablesInput(props){
     const [wasSomethingChanged, setWasSomethingChanged] = useState(false);
     const [selectedPipeline, setSelectedPipeline] = useState("");
     const [variablesPresent, setVariablesPresent] = useState(true);
+    const [purifiedVariables, setPurifiedVariables] = useState([]);
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
@@ -277,12 +278,20 @@ export default function VariablesInput(props){
 
    const parsePhantomVariables = ()=>{
       let phantomVariable = false;
+      const allBlockVariables = [];
 
-      if(props.variablesData){
-        if(props.variablesData[0].type == null){
-           setVariablesPresent(false);
+     for(const varInstance of props.variablesData){
+        if(varInstance.type && (varInstance.type == "string" || varInstance.type == "number" || varInstance.type == "multiple_selection"))
+        {
+          allBlockVariables.push(varInstance);
         }
-      }
+     }
+     
+     setPurifiedVariables(allBlockVariables);
+     if(allBlockVariables.length == 0){
+      setVariablesPresent(false);
+     }
+     
    }
 
    useEffect(()=>{
@@ -325,7 +334,7 @@ export default function VariablesInput(props){
                     <h1>Variables</h1>
                 </div>  
           
-                {props.variablesData.map((value, index)=>{
+                {purifiedVariables.map((value, index)=>{
                   if(value.type == "string"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>

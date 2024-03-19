@@ -21,7 +21,7 @@ export default memo(({ data, isConnectable }) => {
   const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
   const [rows,setRows] = useState([]);
-  const [variablesPresent, setVariablesPresent] = useState(null);
+  const [variablesPresent, setVariablesPresent] = useState(false);
   const [fullNodeName, setFullNodeName] = useState("");
   const [nodeName, setNodeName] = useState("");
   const [allVariables, setAllVariables] = useState([]);
@@ -84,17 +84,24 @@ export default memo(({ data, isConnectable }) => {
     const allVarsType = Object.values(data.config);
     const allVarsData = [];
     let varObj;
+    
     for(let i = 0; i<allVars.length; i++){
-      if(allVarsType[i] == null){
+      if(allVarsType[i] == null || (allVarsType[i] != "multiple_selection" && allVarsType[i] != "string" && allVarsType[i] != "number" )){
         continue;
       } else {
         varObj = {
           varName:allVars[i],
-          type:allVarsType[i]
+          type:allVarsType[i] 
         }
         allVarsData.push(varObj);
       }
        
+    }
+
+    if(allVarsData.length != 0){
+      setVariablesPresent(true);
+    } else {
+      setVariablesPresent(false);
     }
     setAllVariables(allVarsData);
     
@@ -126,15 +133,6 @@ export default memo(({ data, isConnectable }) => {
     processVariablesValues(variablesValues);
   },[variablesValues])
 
-
-  useEffect(()=>{
-    if(Object.keys(data.config).length!=0){
-      setVariablesPresent(true);
-    } else {
-      setVariablesPresent(false);
-    }
-  
-  },[storedVariables])
 
 
   const parseString = (str)=>{
@@ -170,6 +168,7 @@ export default memo(({ data, isConnectable }) => {
     }
     return "";
   }
+
 
   return (
     <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px" }}>

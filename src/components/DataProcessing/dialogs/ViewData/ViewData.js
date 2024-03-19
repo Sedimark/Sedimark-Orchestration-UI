@@ -200,7 +200,6 @@ export default function ViewData(props) {
       
       try {
            jsonFileData = await axios.get(jsonFileLink);
-           
            setAllColumnsSamples(jsonFileData.data);
        } catch(err){
          setIsLoading(false);

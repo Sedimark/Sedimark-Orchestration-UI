@@ -21,7 +21,7 @@ export default memo(({ data, isConnectable }) => {
   const variablesValues = useSelector((state)=> state.blocksVariables);
   const normalizationColumns = useSelector((state)=>state.normalizationColumns);
   const standardizationColumns = useSelector((state)=>state.standardizationColumns);
-  const [variablesPresent, setVariablesPresent] = useState(true);
+  const [variablesPresent, setVariablesPresent] = useState(false);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
   const [storedVariables, setStoredVariables] = useState([]);
@@ -149,13 +149,23 @@ export default memo(({ data, isConnectable }) => {
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
     const allVarsData = [];
+    let varObj;
     for(let i = 0; i<allVars.length; i++){
-      const varObj = {
-        varName:allVars[i],
-        type:allVarsType[i]
+      if(allVarsType[i] == null || (allVarsType[i] != "multiple_selection" && allVarsType[i] != "string" && allVarsType[i] != "number" )){
+        continue;
+      } else {
+        varObj = {
+          varName:allVars[i],
+          type:allVarsType[i]
+        }
+        allVarsData.push(varObj);
       }
-      allVarsData.push(varObj);
     }
+
+    if(allVarsData.length != 0){
+      setVariablesPresent(true);
+    } 
+    
     setAllVariables(allVarsData);
   },[])
 

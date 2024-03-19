@@ -508,7 +508,7 @@ export const PipelineView = (props)=>{
                                                 <FontAwesomeIcon icon={faArrowsRotate} onClick={() => setOpen(true)} className="info-icon-side"/>
                                             </Tooltip>
                                         </div>
-                                    }
+                                    } 
                                 </div>
                           </>
                          }                            
