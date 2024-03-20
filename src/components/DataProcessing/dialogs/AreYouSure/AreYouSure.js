@@ -14,12 +14,9 @@ import { formatString } from '../../../../utils/formatString';
 
 export default function AreYouSure(props) {
 
-  const dispatch = useDispatch();
-  const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
-  const selectedPipelineDataPreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
-  const blocksVariables = useSelector((state)=> state.blocksVariables);
+  const storedVariables = useSelector((state)=>state.blocksVariables);
   const [selectedPipeline,setSelectedPipeline] = useState("");
-
+  const dispatch = useDispatch();
   const darkTheme = createTheme({
     palette: {
       mode: 'dark',
@@ -28,15 +25,23 @@ export default function AreYouSure(props) {
 
 
   const deleteVariablesForPipeline = ()=>{
-    console.log("all za variables are:");
-    console.log(blocksVariables);
+    if(props.pipelineName){
+      const pipeline = props.thePipelineName[0];
+      console.log(storedVariables);
+      const filteredVariables = [];
+      for(const variable of storedVariables){
+        if(variable["pipelineName"][0] !== pipeline){
+            filteredVariables.push(variable);
+        }
+      }
+      dispatch(setBlocksVariables(filteredVariables));
+    }
   }
 
   const deleteSelectedPipeline = () => {
 
     if(props.pipelineType == "training"){
 
-      dispatch(setDatasetColumns([]));
       dispatch(setSelectedPipelineName(""));
       dispatch(clearPipelineTrain());
       dispatch(setSelectedPipelineNameTrain(""));
@@ -45,20 +50,17 @@ export default function AreYouSure(props) {
     } else if(props.pipelineType == "data_preprocessing"){
       dispatch(setSelectedPipelineNamePreprocessing(""));
       dispatch(clearPipelineProcessing());
-      dispatch(setBlocksVariables([]));
       props.handleClose();
 
     } else if(props.pipelineType == "prediction"){
       dispatch(setMapData(""));
-      dispatch(setDatasetColumns([]));
-      dispatch(clearPipeline([]));
-      dispatch(setBlocksVariables([]));
       dispatch(setSelectedPipelinePrediction([]));
       dispatch(setSelectedPipelineNamePrediction(""));
       props.handleClose();
 
     }
-
+    deleteVariablesForPipeline();
+    
 
     if(props.additionalSteps){
       props.additionalSteps();
@@ -66,15 +68,7 @@ export default function AreYouSure(props) {
     
   }
 
-  const selectPipelineNameBasedOnType = ()=>{
-    
-  }
-
-  useEffect(()=>{
-    selectPipelineNameBasedOnType();
   
-  },[])
-
  useEffect(()=>{
   setSelectedPipeline(props)
 
@@ -87,11 +81,6 @@ export default function AreYouSure(props) {
   }
  },[props])
 
-
- useEffect(()=>{
-  console.log("blockVariables:");
-  console.log(blocksVariables);
- },[blocksVariables])
  
 
   return (

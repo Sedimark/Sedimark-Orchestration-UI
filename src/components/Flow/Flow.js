@@ -78,7 +78,7 @@ function Flow(props) {
   };
 
 
-  const addNodes = (nodeData) => {
+  const addNodes = (nodeData , pipeline_name) => {
     const newNodes = [];
     const positions = {};
     let finalNodes = [];
@@ -133,11 +133,16 @@ function Flow(props) {
     
     for(let nodeType of nodeData){
       
+      const nodeData = nodeType.config;
+      nodeData.pipelineName = pipeline_name[0];
+  
+
       if(nodeType.type == "Loader"){
+
         newNodes.push({
           id: nodeType.node_id,
           type: 'loader',
-          data: { label: 'Loader', config:nodeType.config, name: nodeType.node_name},
+          data: { label: 'Loader', config:nodeData , name: nodeType.node_name},
           position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
        });
       
@@ -148,7 +153,7 @@ function Flow(props) {
           {
            id: nodeType.node_id,
            type: 'transformer',
-           data: { label: 'Transformer', config:nodeType.config, name: nodeType.node_name},
+           data: { label: 'Transformer', config:nodeData, name: nodeType.node_name},
            position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           });
         
@@ -159,7 +164,7 @@ function Flow(props) {
           {
             id: nodeType.node_id,
             type: 'exporter',
-            data: { label: 'Exporter', config:nodeType.config, name: nodeType.node_name},
+            data: { label: 'Exporter', config:nodeData, name: nodeType.node_name},
             position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           }
         );
@@ -171,7 +176,7 @@ function Flow(props) {
           {
             id: nodeType.node_id,
             type: 'custom',
-            data: { label: 'Custom', config:nodeType.config, name: nodeType.node_name},
+            data: { label: 'Custom', config:nodeData, name: nodeType.node_name},
             position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           }
         );
@@ -209,7 +214,7 @@ function Flow(props) {
     }
   }
   
-  const processAndPlaceNodes = (blocks) =>{ 
+  const processAndPlaceNodes = (blocks, pipeline_name) =>{ 
     setPipelineEdges([]);
     setEdges([]);
     const allNodes = [];
@@ -249,7 +254,7 @@ function Flow(props) {
 
     setPipelineEdges([...connectionEdges]);
     setPipelineEdges(connectionEdges);
-    addNodes(allNodes);
+    addNodes(allNodes, pipeline_name);
   }
 
   const deleteOneEdge = (edgeToDelete) =>{
@@ -314,7 +319,7 @@ function Flow(props) {
    
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
-      processAndPlaceNodes(resp.data.pipeline.blocks);
+      processAndPlaceNodes(resp.data.pipeline.blocks, pipeline_name);
       setIsPipelineLoading(false);
       dispatch(setSelectedPipelineName(pipeline_name));
     } catch(err){

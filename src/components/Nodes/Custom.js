@@ -19,8 +19,6 @@ import VariablesInput from '../DataProcessing/dialogs/VariablesInput/VariablesIn
 export default memo(({ data, isConnectable }) => {
 
   const variablesValues = useSelector((state)=> state.blocksVariables);
-  const normalizationColumns = useSelector((state)=>state.normalizationColumns);
-  const standardizationColumns = useSelector((state)=>state.standardizationColumns);
   const [variablesPresent, setVariablesPresent] = useState(false);
   const [nodeName, setNodeName] = useState("");
   const [fullNodeName, setFullNodeName] = useState("");
@@ -48,36 +46,6 @@ export default memo(({ data, isConnectable }) => {
     },
   }));
 
-  
-
-  const shuffleArray = (array)=>{
-    for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
-    }
-  }
-
-  const combineAndSet = ()=>{
-    let finalResult = [];
-    for(const colS of standardizationColumns){
-      const newObj = {
-        name:colS.column_name,
-        algType:"Standardization"
-      }
-      finalResult.push(newObj);
-    }
-
-    for(const colN of normalizationColumns){
-      const newObj = {
-        name:colN.column_name,
-        algType:"Normalization"
-      }
-      finalResult.push(newObj);
-    }
-    shuffleArray(finalResult);
-    finalResult = finalResult.slice(0,5);
-    
-  }
 
   const parseString = (str)=>{
     if(str.length > 20){
@@ -123,9 +91,7 @@ export default memo(({ data, isConnectable }) => {
     setStoredVariables(storedVars);
   }
 
-  useEffect(()=>{
-    combineAndSet();
-  },[standardizationColumns, normalizationColumns])
+ 
  
   useEffect(()=>{
     processName(data.name);

@@ -498,7 +498,7 @@ export const PipelineView = (props)=>{
                                     {pipelineName.length !== 0 &&
                                         <div className="side-info-container">
                                             <Tooltip title="Delete">
-                                                <FontAwesomeIcon icon={faTrashCan} title="Delete" onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
+                                                <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
                                             </Tooltip>
                                             
                                             <Tooltip title={`${props.pipelineType == "data_preprocessing"? formatString(pipelineName[0]): formatString(pipelineName)}`}>
@@ -518,7 +518,7 @@ export const PipelineView = (props)=>{
                                 
                             <Flow pipelineType={props.pipelineType}/>
                                 
-                            { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps = {handleDeleteTheRestData}></AreYouSure>}
+                            { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps={handleDeleteTheRestData} thePipelineName={pipelineName} ></AreYouSure>}
                             
                         </div>
 

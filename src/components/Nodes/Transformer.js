@@ -18,9 +18,7 @@ import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 export default memo(({ data, isConnectable }) => {
   
   const variablesValues = useSelector((state)=> state.blocksVariables);
-  const dataFeaturing = useSelector((state)=>state.selectedDataFeaturingColumns);
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
-  const [rows,setRows] = useState([]);
   const [variablesPresent, setVariablesPresent] = useState(false);
   const [fullNodeName, setFullNodeName] = useState("");
   const [nodeName, setNodeName] = useState("");
@@ -36,10 +34,6 @@ export default memo(({ data, isConnectable }) => {
     },
   }));
 
-  function createData(column_name, sample_data) {
-    return { column_name, sample_data };
-  }
-
   const StyledTableRow = styled(TableRow)(({ theme }) => ({
     '&:nth-of-type(odd)': {
       backgroundColor: theme.palette.action.hover,
@@ -49,15 +43,7 @@ export default memo(({ data, isConnectable }) => {
     },
   }));
 
-  const populateRows = (data)=>{
-    let newRows = [];
-    for(let dt of data){
-      newRows.push(createData(dt.column_name,dt.sample_data));
-    }
-    newRows = newRows.slice(0,5);
-    setRows(newRows);
-  }
-  
+
 
   const openVariablesEditMenu = ()=>{
     setVariablesInputOpen(true);
@@ -73,9 +59,6 @@ export default memo(({ data, isConnectable }) => {
     }
   }
   
-  useEffect(()=>{
-    populateRows(dataFeaturing);
-  },[dataFeaturing])
 
   useEffect(()=>{
     processName(data.name);
@@ -131,8 +114,8 @@ export default memo(({ data, isConnectable }) => {
 
   useEffect(()=>{
     processVariablesValues(variablesValues);
+   
   },[variablesValues])
-
 
 
   const parseString = (str)=>{

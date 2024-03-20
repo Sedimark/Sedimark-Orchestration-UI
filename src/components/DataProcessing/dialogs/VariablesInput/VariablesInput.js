@@ -8,6 +8,7 @@ import Box from '@mui/material/Box';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { styled } from '@mui/system';
 import styles from "./VariablesInput.css";
+import toast, { Toaster } from 'react-hot-toast';
 import {useDispatch} from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -41,28 +42,6 @@ const MenuProps = {
   },
 };
  
-const NumberInput = React.forwardRef(function CustomNumberInput(props, ref) {
-  return (
-    <BaseNumberInput
-      slots={{
-        root: StyledInputRoot,
-        input: StyledInputElement,
-        incrementButton: StyledButton,
-        decrementButton: StyledButton,
-      }}
-      slotProps={{
-        incrementButton: {
-          children: '▴',
-        },
-        decrementButton: {
-          children: '▾',
-        },
-      }}
-      {...props}
-      ref={ref}
-    />
-  );
-});
 
 
 
@@ -72,7 +51,6 @@ export default function VariablesInput(props){
     const pipelineProcessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
     const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
     const activeTab = useSelector((state)=> state.selectedView);
-    const storedColumnNames = useSelector((state)=> state.datasetColumnNames);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
     const [isDataLoading, setIsDataLoading] = useState(true);
@@ -84,6 +62,7 @@ export default function VariablesInput(props){
     const [wasSomethingChanged, setWasSomethingChanged] = useState(false);
     const [selectedPipeline, setSelectedPipeline] = useState("");
     const [variablesPresent, setVariablesPresent] = useState(true);
+    const [areMultipleVariables, setAreMultipleVariables] = useState(false);
     const [purifiedVariables, setPurifiedVariables] = useState([]);
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -116,21 +95,31 @@ export default function VariablesInput(props){
     } 
 
     const fetchAndParseMinioJson = async (bucket_name) => {
+
+      setIsDataLoading(true);
       let jsonFileLink;
       let jsonFileData;
- 
+      
+      const zaParsed = parseBucketName(bucket_name[0])
+
       try{
-          jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
+          jsonFileLink = await axios.get(FETCH_MINIO_FILE(zaParsed));
           jsonFileLink = jsonFileLink.data.url;
+          
       } catch(err){
           console.log(err);
+          setIsDataLoading(false);
+          blockAlert("There was an error while fetching the columns!!");
           return;
       }
       
       try{
           jsonFileData = await axios.get(jsonFileLink);
           parseAndSetColumnNames(jsonFileData.data);
+          setIsDataLoading(false);
       } catch(err){
+          blockAlert("There was an error while fetching the columns!!");
+          setIsDataLoading(false);
           console.log(err);
       }
     };
@@ -193,6 +182,13 @@ export default function VariablesInput(props){
        parsedArray = [...parsedArray, ...newValues];
        return parsedArray;
     }
+
+    const blockAlert = (msg) => {
+      toast.error(msg, {
+          duration: 2000,
+          position: 'top-right',
+      })
+    }; 
     
     const createObjToStore = ()=>{
       
@@ -211,6 +207,7 @@ export default function VariablesInput(props){
       }
     
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
+      
       dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
@@ -284,7 +281,12 @@ export default function VariablesInput(props){
         if(varInstance.type && (varInstance.type == "string" || varInstance.type == "number" || varInstance.type == "multiple_selection"))
         {
           allBlockVariables.push(varInstance);
+        } 
+
+        if(varInstance.type == "multiple_selection"){
+          setAreMultipleVariables(true);
         }
+
      }
      
      setPurifiedVariables(allBlockVariables);
@@ -294,6 +296,7 @@ export default function VariablesInput(props){
      
    }
 
+   
    useEffect(()=>{
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
    },[blocksVariablesStored])
@@ -309,11 +312,11 @@ export default function VariablesInput(props){
    },[activeTab])
 
    useEffect(()=>{
-    if(selectedPipeline.length !=0){
+
+    if(selectedPipeline.length !=0 && areMultipleVariables){
       fetchAndParseMinioJson(selectedPipeline);
     }
-   },[selectedPipeline])
-
+   },[selectedPipeline, areMultipleVariables])
 
 
    useEffect(()=>{
@@ -372,7 +375,7 @@ export default function VariablesInput(props){
                             renderValue={(selected) => selected.join(', ')}
                             MenuProps={MenuProps}
                           >
-                            {(storedColumnNames || []).map((column) => (
+                            {(columnNames || []).map((column) => (
                               <MenuItem key={column} value={column}>
                                 <Checkbox checked={variablesInput[value.varName].indexOf(column) > -1} />
                                 <ListItemText primary={column} />

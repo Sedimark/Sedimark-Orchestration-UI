@@ -19,7 +19,7 @@ function App() {
       console.log(err);
     }    
   }
-
+ 
   useEffect(()=>{
     setFetchedToken();
   },[]);

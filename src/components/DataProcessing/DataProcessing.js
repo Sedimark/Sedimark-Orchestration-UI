@@ -63,7 +63,7 @@ function DataProcessing() {
             duration: 2000,
             position: 'top-right',
         })
-    };
+    }; 
 
 
     const startPipeline = React.useCallback(async () => {
