@@ -4,7 +4,6 @@ import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {Step, StepLabel, Stepper} from "@mui/material";
 import Dialog from "@mui/material/Dialog";
-import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
@@ -22,7 +21,7 @@ import AreYouSure from "../DataProcessing/dialogs/AreYouSure/AreYouSure";
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import {createTheme, styled} from '@mui/material/styles';
-import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate, faBook } from '@fortawesome/free-solid-svg-icons';
+import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate,  } from '@fortawesome/free-solid-svg-icons';
 import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -383,14 +382,11 @@ export const PipelineView = (props)=>{
         <div>
                     <ThemeProvider theme={darkTheme}>
                             <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="true" >
-                                <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px", marginTop:"40px", marginBottom:"40px" }}  bgcolor="#000" >
-                                <DialogTitle sx={{fontSize:"1.9rem"}}>
-                                    RUN HISTORY
-                                </DialogTitle>
+                                <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px", marginTop:"40px", marginBottom:"40px", padding:"20px" }}  bgcolor="#000" >
                                 
                                     <DialogContent>
                                         <FormControl sx={{width:"200px", paddingBottom:"20px", paddingTop:"20px"}}>
-                                            <Typography variant="p" sx={{ color: "white", textAlign:"center" }}>History Limit</Typography>
+                                            <Typography variant="p" sx={{ color: "white", textAlign:"center", width:"100%", marginLeft:"50%", fontSize:"1.7rem" }}>History Limit</Typography>
                                             <Select
                                                 labelId="demo-simple-select-label"
                                                 onChange={handleChange}
@@ -437,7 +433,7 @@ export const PipelineView = (props)=>{
 
 
                                         
-                                        <Button onClick={()=>{setOpen(false)}} sx={{ textAlign:"center", paddingRight:"", marginTop:"10%",bottom:"10px", fontSize:"1.3rem"}} autoFocus>
+                                        <Button onClick={()=>{setOpen(false)}} sx={{ textAlign:"center", paddingRight:"80px",paddingTop:"20px", marginTop:"10%",bottom:"10px", fontSize:"1.5rem"}} autoFocus>
                                                 OK
                                         </Button>
                                     </DialogContent>
