@@ -67,18 +67,6 @@ export const PipelineView = (props)=>{
             </Box>
         );
     }
-
-    const HtmlTooltip = styled(({ className, ...props }) => (
-        <Tooltip {...props} classes={{ popper: className }} />
-      ))(({ theme }) => ({
-        [`& .${tooltipClasses.tooltip}`]: {
-          backgroundColor: '#f5f5f9',
-          color: 'rgba(0, 0, 0, 0.87)',
-          maxWidth: 420,
-          fontSize: theme.typography.pxToRem(15),
-          border: '1px solid #dadde9',
-        },
-      }));
       
 
     const blockAlert = (msg) => {
@@ -134,7 +122,7 @@ export const PipelineView = (props)=>{
                     "Content-Type": "application/json"
                 },
                 data: {
-                    "run_id": runData.run_id,
+                    "run_id": runData.id,
                     "token": runData.token,
                     "variables": variables
                 }
@@ -287,8 +275,8 @@ export const PipelineView = (props)=>{
             localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
                 "stepStatus": stepStatus,
                 "activeStep": -1,
-                "pipelineFinished": false,
-                "isPipelineStarted": false
+                "pipelineFinished": pipelineFinished,
+                "isPipelineStarted": isPipelineStarted
             }))
         }
     })
