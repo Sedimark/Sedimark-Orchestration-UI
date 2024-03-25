@@ -21,7 +21,7 @@ import AreYouSure from "../DataProcessing/dialogs/AreYouSure/AreYouSure";
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import {createTheme, styled} from '@mui/material/styles';
-import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate,  } from '@fortawesome/free-solid-svg-icons';
+import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate, faBroom } from '@fortawesome/free-solid-svg-icons';
 import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -114,8 +114,9 @@ export const PipelineView = (props)=>{
             return false;
         }
 
+    
         if (blockVariables.length === 0) {
-            blockAlert("Please enter at least on block variable!");
+            blockAlert("Please enter all the variables!");
             return false;
         }
 
@@ -134,7 +135,7 @@ export const PipelineView = (props)=>{
                     "Content-Type": "application/json"
                 },
                 data: {
-                    "run_id": runData.run_id,
+                    "run_id": runData.id,
                     "token": runData.token,
                     "variables": variables
                 }
@@ -160,7 +161,7 @@ export const PipelineView = (props)=>{
                 try {
                     const response = await axios({
                         method: 'GET',
-                        url: PIPELINE_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).run_id),
+                        url: PIPELINE_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id),
                     });
 
                     const data = response.data;
@@ -493,8 +494,8 @@ export const PipelineView = (props)=>{
                                     </div>
                                     {pipelineName.length !== 0 &&
                                         <div className="side-info-container">
-                                            <Tooltip title="Delete">
-                                                <FontAwesomeIcon icon={faTrashCan}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
+                                            <Tooltip title="Clear">
+                                                <FontAwesomeIcon icon={faBroom}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
                                             </Tooltip>
                                             
                                             <Tooltip title={`${props.pipelineType == "data_preprocessing"? formatString(pipelineName[0]): formatString(pipelineName)}`}>

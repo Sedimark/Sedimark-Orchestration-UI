@@ -27,7 +27,6 @@ export default function AreYouSure(props) {
   const deleteVariablesForPipeline = ()=>{
     if(props.pipelineName){
       const pipeline = props.thePipelineName[0];
-      console.log(storedVariables);
       const filteredVariables = [];
       for(const variable of storedVariables){
         if(variable["pipelineName"][0] !== pipeline){

@@ -28,6 +28,7 @@ const initialState = {
     noPipelineFound:false,
     selectedTab:{"changed":false, tabSelected:"1"},
     mapData:"",
+    pipelineNrOfVariables:[]
     
 }   
 
@@ -47,6 +48,10 @@ export const nodeSlice = createSlice({
                 state.nodes.push(newNode);
             }
             
+        },
+        setPipelineNumberOfVariables:(state,action)=>{
+            
+            state.pipelineNrOfVariables = action.payload;
         },
         setSelectedTrainedModel:(state, action)=>{
             state.selectedTrainedModel = action.payload;
@@ -159,6 +164,6 @@ export const nodeSlice = createSlice({
 });
 
 
-export const { setSelectedTab, setNoPipelineFound ,setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo , setMappedNodes, setMappedEdges, resetSelectedModelType, addNode,setNodes,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns, setEdgeToDelete, clearPipeline, setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName, setMapData} = nodeSlice.actions
+export const { setPipelineNumberOfVariables, setSelectedTab, setNoPipelineFound ,setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo , setMappedNodes, setMappedEdges, resetSelectedModelType, addNode,setNodes,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns, setEdgeToDelete, clearPipeline, setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName, setMapData} = nodeSlice.actions
 
 export default nodeSlice.reducer;

@@ -16,7 +16,8 @@ import { faChartSimple } from '@fortawesome/free-solid-svg-icons';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
-
+import { parseTheType } from '../../utils/parseTheType';
+import { parseTheDescription } from '../../utils/parseTheDescription';
 
 export default memo(({ data, isConnectable }) => {
 
@@ -73,6 +74,7 @@ export default memo(({ data, isConnectable }) => {
     const storedVars = [];
     for (let val of varsVals) {
       if (val.block_name == fullNodeName) {
+        
         if (val.type == "multiple") {
           storedVars.push(
             {
@@ -134,24 +136,31 @@ export default memo(({ data, isConnectable }) => {
 
   }, [])
 
+ 
+
   useEffect(() => {
     processName(data.name);
     setFullNodeName(data.name);
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
+    
     let varObj;
     const allVarsData = [];
+ 
     for (let i = 0; i < allVars.length; i++) {
-      if(allVarsType[i] == null || (allVarsType[i] != "multiple_selection" && allVarsType[i] != "string" && allVarsType[i] != "number" )){
+      const parsedVarType = parseTheType(allVarsType[i]);
+      const parsedVarDescription = parseTheDescription(allVarsType[i]);
+      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" )){
         continue;
-      } else {
+      } else { 
          varObj = {
           varName: allVars[i],
-          type: allVarsType[i]
+          type: parsedVarType,
+          description: parsedVarDescription
         }
         allVarsData.push(varObj);
       }
-      
+       
     }
 
     
@@ -168,6 +177,7 @@ export default memo(({ data, isConnectable }) => {
     processVariablesValues(variablesValues);
   }, [variablesValues])
 
+ 
 
 
   return (

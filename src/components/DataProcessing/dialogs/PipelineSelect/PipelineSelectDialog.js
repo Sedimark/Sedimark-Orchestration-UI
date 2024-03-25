@@ -77,45 +77,6 @@ const parseBucketName = (inputString)=>{
 }
 
 
-  const parseAndSetColumnNames = (allColumnsData)=>{
-    const allColumnNames = [];
-    for(const column of allColumnsData){
-      allColumnNames.push(column.column_name);
-    }
-    dispatch(setDatasetColumnNames(allColumnNames));
-  } 
-
-const fetchAndParseMinioJson = async (bucket_name) => {
-
-    let jsonFileLink;
-    let jsonFileData;
-  
-    try{
-        jsonFileLink = await axios.get(FETCH_MINIO_FILE(parseBucketName(bucket_name)));
-        jsonFileLink = jsonFileLink.data.url;
-    } catch(err){
-        parseAndSetColumns([]);
-        dispatch(setDatasetInfo([]));
-        console.log(err);
-        setIsLoading(false);
-        setHasError(true);
-        return;
-    }
-    
-    try{
-        jsonFileData = await axios.get(jsonFileLink);
-        parseAndSetColumns(jsonFileData.data);
-        parseAndSetColumnNames(jsonFileData.data);
-        dispatch(setDatasetInfo(jsonFileData.data));
-
-    } catch(err){
-        console.log(err);
-        setIsLoading(false);
-        setHasError(true);
-    }
-  };
-
-
   const darkTheme = createTheme({
     palette: {
       mode: 'dark',
@@ -228,8 +189,10 @@ const fetchAndParseMinioJson = async (bucket_name) => {
 
 
   const handleRadioClick = (value)=>{
+    
     setSelectedPipeline(value.target.value);
     setOnlyOneOptionSelected(false);
+    setFoundPipeline(false);
     
  }
 
@@ -274,6 +237,11 @@ const fetchAndParseMinioJson = async (bucket_name) => {
     setFoundPipeline(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
   },[filteredPipelines])
 
+
+  const handleElementClick = (za_clicked_element)=>{
+    console.log("Za value is:");
+    console.log(za_clicked_element);
+  }
 
   return (
     
@@ -355,7 +323,7 @@ const fetchAndParseMinioJson = async (bucket_name) => {
                                  }
                                  disablePadding
                                > 
-                                 <ListItemButton>
+                                 <ListItemButton onClick={()=>{handleElementClick(value.name)}}>
                                    <ListItemAvatar>
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>

@@ -18,7 +18,10 @@
 
 .no-variables-info-container{
     padding-top:10px;
-    padding-bottom:40px;
-    
+    padding-bottom:40px;   
     font-size: 1.3rem;
+}
+
+.variable-description{
+    padding-top:10px;
 }

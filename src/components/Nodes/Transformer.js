@@ -13,6 +13,8 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import Paper from '@mui/material/Paper';
+import { parseTheType } from '../../utils/parseTheType';
+import { parseTheDescription } from '../../utils/parseTheDescription';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 
 export default memo(({ data, isConnectable }) => {
@@ -65,22 +67,25 @@ export default memo(({ data, isConnectable }) => {
     setFullNodeName(data.name);
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
-    const allVarsData = [];
     let varObj;
-    
-    for(let i = 0; i<allVars.length; i++){
-      if(allVarsType[i] == null || (allVarsType[i] != "multiple_selection" && allVarsType[i] != "string" && allVarsType[i] != "number" )){
+    const allVarsData = [];
+    for (let i = 0; i < allVars.length; i++) {
+      const parsedVarType = parseTheType(allVarsType[i]);
+      const parsedVarDescription = parseTheDescription(allVarsType[i]);
+      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" )){
         continue;
-      } else {
-        varObj = {
-          varName:allVars[i],
-          type:allVarsType[i] 
+      } else { 
+         varObj = {
+          varName: allVars[i],
+          type: parsedVarType,
+          description: parsedVarDescription
         }
         allVarsData.push(varObj);
       }
-       
+      
     }
 
+    
     if(allVarsData.length != 0){
       setVariablesPresent(true);
     } else {

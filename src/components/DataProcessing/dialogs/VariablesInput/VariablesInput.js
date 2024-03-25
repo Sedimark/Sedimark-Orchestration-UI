@@ -21,7 +21,7 @@ import Checkbox from '@mui/material/Checkbox';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
-import { faBoxOpen } from '@fortawesome/free-solid-svg-icons';
+import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { FETCH_MINIO_FILE } from '../../../../utils/apiEndpoints';
 import {
   Unstable_NumberInput as BaseNumberInput,
@@ -311,7 +311,7 @@ export default function VariablesInput(props){
     retrievePipelineBasedOnTab(activeTab);
    },[activeTab])
 
-   useEffect(()=>{
+   useEffect(()=>{ 
 
     if(selectedPipeline.length !=0 && areMultipleVariables){
       fetchAndParseMinioJson(selectedPipeline);
@@ -322,6 +322,7 @@ export default function VariablesInput(props){
    useEffect(()=>{
      parsePhantomVariables();
    },[])
+
 
     return (
     <div>
@@ -336,12 +337,12 @@ export default function VariablesInput(props){
               <div className='section-title'>
                     <h1>Variables</h1>
                 </div>  
-          
                 {purifiedVariables.map((value, index)=>{
                   if(value.type == "string"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
                       <TextField value={variablesInput[value.varName] || ''}  onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"text",value.varName)}} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
+                       {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                     </FormControl>
                     
                     );
@@ -357,6 +358,7 @@ export default function VariablesInput(props){
                         value={variablesInput[value.varName]}
                         onChange={(event)=>{ setWasSomethingChanged(true); handleChangeNumber(value.varName,event,"number")}}
                       />
+                      {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                   </FormControl>
                     );
 
@@ -382,6 +384,7 @@ export default function VariablesInput(props){
                               </MenuItem>
                             ))}
                           </Select>
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                       </FormControl>
                     );
                   }

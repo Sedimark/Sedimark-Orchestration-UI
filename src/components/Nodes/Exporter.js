@@ -17,9 +17,11 @@ import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import ViewMap from '../DataProcessing/dialogs/PredictResults/ViewMap';
 import { setMapData } from '../../reducers/nodeSlice';
+import { parseTheDescription } from '../../utils/parseTheDescription';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import {useDispatch} from 'react-redux';
+import { parseTheType } from '../../utils/parseTheType';
 
  
 export default memo(({ data, isConnectable }) => {
@@ -192,26 +194,30 @@ export default memo(({ data, isConnectable }) => {
     setFullNodeName(data.name);
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
-    const allVarsData = [];
     let varObj;
-    for(let i = 0; i<allVars.length; i++){
-      if(allVarsType[i] == null || (allVarsType[i] != "multiple_selection" && allVarsType[i] != "string" && allVarsType[i] != "number" )){
+    const allVarsData = [];
+    for (let i = 0; i < allVars.length; i++) {
+      const parsedVarType = parseTheType(allVarsType[i]);
+      const parsedVarDescription = parseTheDescription(allVarsType[i]);
+      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" )){
         continue;
-      } else {
-        varObj = {
-          varName:allVars[i],
-          type:allVarsType[i]
+      } else { 
+         varObj = {
+          varName: allVars[i],
+          type: parsedVarType,
+          description: parsedVarDescription
         }
         allVarsData.push(varObj);
       }
+      
     }
 
+    
     if(allVarsData.length != 0){
       setVariablesPresent(true);
     } else {
       setVariablesPresent(false);
     }
-
     setAllVariables(allVarsData);
   },[])
 

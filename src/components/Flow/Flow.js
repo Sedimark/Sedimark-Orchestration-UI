@@ -16,7 +16,8 @@ import {
   setSelectedPipelineName,
   setStoredNodes,
   setSelectedPipelineNamePrediction,
-  setSelectedPipelinePrediction
+  setSelectedPipelinePrediction,
+  setPipelineNumberOfVariables
 } from "../../reducers/nodeSlice.js";
 import {useDispatch} from 'react-redux';
 import { FETCH_PIPELINE_DATA, FETCH_PIPELINE_PREDICT_DATA } from '../../utils/apiEndpoints.js';
@@ -27,6 +28,7 @@ function Flow(props) {
   
   const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
+  const blockVariablesCount = useSelector((state)=> state.pipelineNrOfVariables);
   const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
@@ -38,6 +40,7 @@ function Flow(props) {
   const [edges, setEdges] = useEdgesState(initialEdges);
   const [pipelineEdges, setPipelineEdges] = useState([]);
   const [wereEdgesPlaced, setWereEdgesPlaced] = useState(false);
+  const [currentBlockVariables, setCurrentBlockVariables] = useState({});
   const dispatch = useDispatch();
   const [selectedPipeline, setSelectedPipeline] = useState([]);
   let edgePlaced = false;
@@ -136,7 +139,7 @@ function Flow(props) {
       const nodeData = nodeType.config;
       nodeData.pipelineName = pipeline_name[0];
   
-
+      
       if(nodeType.type == "Loader"){
 
         newNodes.push({
@@ -312,6 +315,34 @@ function Flow(props) {
    setTheNodes();
   } 
 
+  const getVariablesCount = (pipe_obj) => {
+    let variableCount = 0;
+    const allVarsData = Object.values(pipe_obj);
+
+    for(const varData of allVarsData){
+      try{
+        const decodedJsonObjData = JSON.parse(varData);
+        variableCount++;
+      } catch(err){
+        continue;
+      }
+    }
+    return variableCount;
+  }
+
+  const parseAndCountVariables = (pipeline_data, pipeline_name)=>{
+    let nrOfVars = 0;
+    for(const pipe_data of pipeline_data){
+       nrOfVars += getVariablesCount(pipe_data.configuration);
+    }
+    const variablesForPipeline = {
+      pipeline_name:pipeline_name,
+      number_of_variables: nrOfVars
+    }
+
+    dispatch(setPipelineNumberOfVariables(variablesForPipeline));
+    
+  }
  
   const fetchPipelineData = async(pipeline_name)=>{
     
@@ -319,6 +350,7 @@ function Flow(props) {
    
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+      parseAndCountVariables(resp.data.pipeline.blocks, pipeline_name);
       processAndPlaceNodes(resp.data.pipeline.blocks, pipeline_name);
       setIsPipelineLoading(false);
       dispatch(setSelectedPipelineName(pipeline_name));

@@ -4,7 +4,7 @@ export const FETCH_PIPELINE_DATA = (pipeline_name)=>`https://apis.sedimark.work/
 export const FETCH_PIPELINE_PREDICT_DATA = (pipeline_name)=>`https://apis.sedimark.work/mage/pipeline/read/predict/full?model_name=${pipeline_name}`;
 export const FETCH_MINIO_FILE = (pipeline_name) => `https://apis.sedimark.work/balancer/get_object?dataset_path=${pipeline_name}/statistics.json&forever=false`;
 export const FETCH_MINIO_SAMPLE = (pipeline_name) => `https://apis.sedimark.work/balancer/get_object?dataset_path=${pipeline_name}/head.json&forever=false`;
-export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `https://apis.sedimark.work/mage/pipeline/run_data?pipeline_name=${pipeline_name}`;
+export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `https://apis.sedimark.work/mage/pipeline/triggers?name=${pipeline_name}`;
 export const RUN_PIPELINE = "https://apis.sedimark.work/mage/pipeline/run";
 export const BLOCK_STATUS = (pipeline_id, block_name) => `https://apis.sedimark.work/mage/pipeline/status_once?pipeline_id=${pipeline_id}&block_name=${block_name}`;
 export const GET_ALL_MODELS = `https://apis.sedimark.work/sm/models`;

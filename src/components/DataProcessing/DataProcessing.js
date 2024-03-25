@@ -73,7 +73,7 @@ function DataProcessing() {
         }
 
         if (blockVariables.length === 0) {
-            blockAlert("Please enter at least on block variable!");
+            blockAlert("Please enter all the variables!");
             return false;
         }
 
@@ -92,7 +92,7 @@ function DataProcessing() {
                     "Content-Type": "application/json"
                 },
                 data: {
-                    "run_id": runData.run_id,
+                    "run_id": runData.id,
                     "token": runData.token,
                     "variables": variables
                 }
@@ -118,7 +118,7 @@ function DataProcessing() {
                 try {
                     const response = await axios({
                         method: 'GET',
-                        url: PIPELINE_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).run_id),
+                        url: PIPELINE_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id),
                     });
 
                     const data = response.data;
