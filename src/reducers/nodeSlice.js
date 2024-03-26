@@ -50,7 +50,6 @@ export const nodeSlice = createSlice({
             
         },
         setPipelineNumberOfVariables:(state,action)=>{
-            
             state.pipelineNrOfVariables = action.payload;
         },
         setSelectedTrainedModel:(state, action)=>{

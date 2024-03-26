@@ -177,9 +177,19 @@ export default function VariablesInput(props){
         if(value.block_name !== props.fullNodeName){
             parsedArray.push(value);
         }
-       }
-    
-       parsedArray = [...parsedArray, ...newValues];
+      }
+
+      const parsedNewValues = [];
+      for(const val of newValues){
+        if(val["value"].length == 0){
+          continue;
+        } else {
+          parsedNewValues.push(val);
+        }
+      }
+      
+
+       parsedArray = [...parsedArray, ...parsedNewValues];
        return parsedArray;
     }
 
@@ -205,9 +215,10 @@ export default function VariablesInput(props){
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
       }
-    
+     
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       
+
       dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 

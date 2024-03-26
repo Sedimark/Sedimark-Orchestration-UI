@@ -330,17 +330,33 @@ function Flow(props) {
     return variableCount;
   }
 
+  const checkAndSeeIfVariablesPresent = (allVars, pipeline_name)=>{
+    
+      for(const pipeVar of allVars){
+        if(pipeVar["pipeline_name"] == pipeline_name){
+          return true;
+        }
+      }
+
+      return false;
+  }
+
   const parseAndCountVariables = (pipeline_data, pipeline_name)=>{
     let nrOfVars = 0;
     for(const pipe_data of pipeline_data){
        nrOfVars += getVariablesCount(pipe_data.configuration);
     }
+    
     const variablesForPipeline = {
       pipeline_name:pipeline_name,
       number_of_variables: nrOfVars
     }
 
-    dispatch(setPipelineNumberOfVariables(variablesForPipeline));
+    if(!checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
+      
+      const newVar = [...blockVariablesCount, variablesForPipeline];
+      dispatch(setPipelineNumberOfVariables(newVar));
+    }
     
   }
  
@@ -355,6 +371,7 @@ function Flow(props) {
       setIsPipelineLoading(false);
       dispatch(setSelectedPipelineName(pipeline_name));
     } catch(err){
+      blockAlert("There was a problem while fetching pipeline data!")
       console.log(err);
       setIsPipelineLoading(false);
     }
@@ -420,7 +437,7 @@ function Flow(props) {
     }
   },[nodes])
 
-  
+
 
   useEffect(()=>{
     

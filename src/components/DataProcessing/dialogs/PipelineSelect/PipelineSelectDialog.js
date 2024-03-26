@@ -238,11 +238,6 @@ const parseBucketName = (inputString)=>{
   },[filteredPipelines])
 
 
-  const handleElementClick = (za_clicked_element)=>{
-    console.log("Za value is:");
-    console.log(za_clicked_element);
-  }
-
   return (
     
     <div>
@@ -323,7 +318,7 @@ const parseBucketName = (inputString)=>{
                                  }
                                  disablePadding
                                > 
-                                 <ListItemButton onClick={()=>{handleElementClick(value.name)}}>
+                                 <ListItemButton onClick={()=>{}}>
                                    <ListItemAvatar>
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>

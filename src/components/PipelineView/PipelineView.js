@@ -34,6 +34,7 @@ import Flow from "../Flow/Flow";
 export const PipelineView = (props)=>{
 
     const dispatch = useDispatch();
+    const pipelineNrOfVariables = useSelector((state)=> state.pipelineNrOfVariables)
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const blockVariables = useSelector((state) => state.blocksVariables);
     const pipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
@@ -94,18 +95,40 @@ export const PipelineView = (props)=>{
 
         localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
     }
+ 
+    const retrievePipelineVarCount = (allPipeVars, pipeline_name)=>{
+        let varCount;
+        for(const pipe of allPipeVars){
+            if(pipe["pipeline_name"] == pipeline_name){
+                return pipe["number_of_variables"];
+            }
+        }
+        return 0;
+    }
+
+    const parseVarsForPipeline = ()=>{
+        const theVars = [];
+        for(const blockVar of blockVariables){
+            if(blockVar["pipelineName"] == pipelineName){
+                theVars.push(blockVar);
+            }
+        }
+
+        return theVars;
+    }
+
 
     const startPipeline = React.useCallback(async () => {
 
-        if (pipelineNodes.length < 2) {
-            blockAlert("A pipeline should have 2 or more blocks!");
-            return false;
-        }
+        let nrOfVars = 0;
+        nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
+        
+        const blockVars = parseVarsForPipeline();
 
-    
-        if (blockVariables.length === 0) {
-            blockAlert("Please enter all the variables!");
-            return false;
+
+        if(blockVars.length != nrOfVars){
+            blockAlert("Please enter a value for all the variables!");
+            return;
         }
 
         const variables = {};
@@ -366,6 +389,7 @@ export const PipelineView = (props)=>{
             setPipelineName("");
         }
     },[selectedPipelineNamePrediction])
+
 
     return(
         <div>
