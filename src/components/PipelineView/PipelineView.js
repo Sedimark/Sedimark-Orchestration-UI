@@ -2,7 +2,7 @@ import React, {  useState, useEffect }  from "react";
 import { formatString } from "../../utils/formatString";
 import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import {Step, StepLabel, Stepper} from "@mui/material";
+import {Step, StepLabel, Stepper } from "@mui/material";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import Select from "@mui/material/Select";
@@ -29,7 +29,21 @@ import { useDispatch } from 'react-redux';
 import {setSelectedTrainedModel, setIsPredictedSelected} from "../../reducers/nodeSlice";
 import Box from '@mui/material/Box';
 import Flow from "../Flow/Flow";
+import DialogActions from "@mui/material/DialogActions";
+import CircularProgress from '@mui/material/CircularProgress';
 
+
+const CustomTooltip = styled(({ className, ...props }) => (
+    <Tooltip {...props} classes={{ popper: className }} />
+))(({ theme }) => ({
+    [`& .${tooltipClasses.tooltip}`]: {
+        color: 'white',
+        maxWidth: 1000,
+        boxShadow: theme.shadows[1],
+        fontSize: 16, // Custom font size
+        padding: '20px 20px', // Custom padding for larger tooltip
+    },
+}));
 
 export const PipelineView = (props)=>{
 
@@ -50,7 +64,10 @@ export const PipelineView = (props)=>{
     const [activeStep, setActiveStep] = React.useState(-1);
     const [open, setOpen] = React.useState(false);
     const [historyData, setHistoryData] = React.useState(null);
+    const [historyValue, setHistoryValue] = React.useState(10);
     const [pipelineName, setPipelineName] = React.useState("");
+    const [historyLoading, setHistoryLoading] = React.useState(false);
+    const [showTooltip, setShowTooltip] = React.useState(false);
     
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -326,13 +343,16 @@ export const PipelineView = (props)=>{
         setOpen(false);
     }
 
-    const handleChange = async (e) => {
+    const handleChange = (e) => {
+        setHistoryValue(e.target.value);
+    }
 
-
+    const getHistoryData = async () => {
+        setHistoryLoading(true);
         try {
             const response = await axios({
                 method: "GET",
-                url: PIPELINE_HISTORY(pipelineName, e.target.value)
+                url: PIPELINE_HISTORY(pipelineName, historyValue)
             })
 
             const result = [];
@@ -346,11 +366,13 @@ export const PipelineView = (props)=>{
                 })
                 result.push({...entry, "variables": variables});
             }
+            setHistoryLoading(false);
             setHistoryData(result);
         } catch (_) {
+            setHistoryLoading(false);
             blockAlert("Error getting the history");
         }
-    } 
+    }
 
     const selectPipelineBasedOffParameters = (pipelineType)=>{
         
@@ -390,20 +412,24 @@ export const PipelineView = (props)=>{
         }
     },[selectedPipelineNamePrediction])
 
+    useEffect(() => {
+        console.log(historyData);
+    }, [historyData]);
+
 
     return(
         <div>
                     <ThemeProvider theme={darkTheme}>
-                            <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="true" >
+                            <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xll" fullWidth="true" >
                                 <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px", marginTop:"40px", marginBottom:"40px", padding:"20px" }}  bgcolor="#000" >
                                 
-                                    <DialogContent>
-                                        <FormControl sx={{width:"200px", paddingBottom:"20px", paddingTop:"20px"}}>
-                                            <Typography variant="p" sx={{ color: "white", textAlign:"center", width:"100%", marginLeft:"50%", fontSize:"1.7rem" }}>History Limit</Typography>
+                                    <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                                        <FormControl sx={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", maxWidth:"1000px", paddingBottom:"20px", paddingTop:"20px" }}>
+                                            <Typography variant="p" sx={{ color: "white", textAlign:"center", width:"100%", fontSize:"1.7rem" }}>History Limit</Typography>
                                             <Select
                                                 labelId="demo-simple-select-label"
                                                 onChange={handleChange}
-                                                sx={{width:"400px"}}
+                                                sx={{ width: 500 }}
                                             >
                                                 <MenuItem value={10}>10</MenuItem>
                                                 <MenuItem value={15}>15</MenuItem>
@@ -411,16 +437,21 @@ export const PipelineView = (props)=>{
                                                 <MenuItem value={50}>50</MenuItem>
                                                 <MenuItem value={100}>100</MenuItem>
                                             </Select>
+
                                         </FormControl>
 
-                                    
+                                        <CircularProgress sx={{ color: "white", display: historyLoading ? "block" : "none" }} />
+
                                         {historyData && (
-                                            <TableContainer component={Paper}>
+                                            <TableContainer component={Paper} sx={{ display: historyLoading ? "none" : "block" }}>
                                                 <Table sx={{ minWidth: 650 }} aria-label="simple table">
                                                     <TableHead sx={{backgroundColor:"#000", borderBottom:"none"}}>
                                                         <TableRow>
                                                             <TableCell sx={{ fontSize:"1.3rem"}}>Status</TableCell>
                                                             <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Running Date</TableCell>
+                                                            <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Last Completed Block</TableCell>
+                                                            <TableCell align="right" sx={{ fontSize:"1.3rem"}}>First Failed Block</TableCell>
+                                                            <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Error Message</TableCell>
                                                             <TableCell align="right" sx={{ fontSize:"1.3rem"}}>Variables (JSON)</TableCell>
                                                         </TableRow>
                                                     </TableHead>
@@ -434,6 +465,11 @@ export const PipelineView = (props)=>{
                                                                     {row.status}
                                                                 </TableCell>
                                                                 <TableCell align="right" style={{fontSize:"1.3rem"}}>{row.running_date}</TableCell>
+                                                                <TableCell align="right" style={{fontSize:"1.3rem"}}>{row["last_completed_block"]}</TableCell>
+                                                                <TableCell align="right" style={{fontSize:"1.3rem"}}>{row["last_failed_block"]}</TableCell>
+                                                                <CustomTooltip title={row["error_message"]} sx={{ display: showTooltip ? "block" : "none" }}>
+                                                                    <TableCell align="right" style={{fontSize:"1.3rem"}}><Button onClick={() => setShowTooltip(!showTooltip)} sx={{ textAlign: "center", backgroundColor: "#383838", fontSize: "0.75rem" }} >Click For Details</Button></TableCell>
+                                                                </CustomTooltip>
                                                                 <TableCell align="right" style={{fontSize:"1.3rem"}}>
                                                                     <VariablesForm variables={row.variables} />
                                                                 </TableCell>
@@ -445,12 +481,13 @@ export const PipelineView = (props)=>{
                                         )}
 
 
-                                        
-                                        <Button onClick={()=>{setOpen(false)}} sx={{ textAlign:"center", paddingRight:"80px",paddingTop:"20px", marginTop:"10%",bottom:"10px", fontSize:"1.5rem"}} autoFocus>
-                                                OK
-                                        </Button>
                                     </DialogContent>
-
+                                    <DialogActions>
+                                        <Button onClick={getHistoryData} sx={{ textAlign: "center", backgroundColor: "#383838", fontSize: "1rem" }} >Fetch Data</Button>
+                                        <Button onClick={()=>{setOpen(false)}} sx={{ textAlign:"center", backgroundColor: "#383838", fontSize:"1rem"}} autoFocus>
+                                            close
+                                        </Button>
+                                    </DialogActions>
                                 </Box>
                             </Dialog>
                         </ThemeProvider>
