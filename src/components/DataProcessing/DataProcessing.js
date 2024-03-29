@@ -13,7 +13,7 @@ import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import { PipelineView } from "../PipelineView/PipelineView";
-import { setSelectedView} from "../../reducers/nodeSlice";
+import {setSelectedTab, setSelectedView} from "../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 
 function DataProcessing() {
@@ -31,11 +31,8 @@ function DataProcessing() {
     };
 
     useEffect(()=>{
-        if (isRun) return;
-
-        isRun.current = true;
-    
         if(storedSelectedTab["changed"] === true){
+            dispatch(setSelectedTab({"changed": false, "tabSelected": storedSelectedTab["tabSelected"]}));
             setSelectedTabHere(storedSelectedTab["tabSelected"]);
         }
     },[storedSelectedTab])
@@ -49,9 +46,9 @@ function DataProcessing() {
             <TabContext value={selectedTab} className="tabs-container">
                             <Box sx={{ borderBottom: 1, borderColor: 'divider', marginLeft:"250px" }}>
                                 <TabList onChange={handleChangeTab} aria-label="lab API tabs example">
-                                    <Tab label={<div className="tab-name"> <p>pre-processing </p>   {selectedPipelineNameDataPreprocessing.length != 0 && <p class="blue-dot"></p>} </div>} value="1" />
-                                    <Tab label={<div className="tab-name"> <p>Training Pipeline </p> {selectedPipelineNameTrain.length != 0 && <p class="blue-dot"></p>}</div>} value="2" />
-                                    <Tab label={<div className="tab-name"> <p>Predict </p>  {selectedPipelineNamePrediction.length != 0 && <p class="blue-dot"></p>}</div>} value="3" />
+                                    <Tab label={<div className="tab-name"> <p>pre-processing </p>   {selectedPipelineNameDataPreprocessing.length !== 0 && <p class="blue-dot"></p>} </div>} value="1" />
+                                    <Tab label={<div className="tab-name"> <p>Training Pipeline </p> {selectedPipelineNameTrain.length !== 0 && <p class="blue-dot"></p>}</div>} value="2" />
+                                    <Tab label={<div className="tab-name"> <p>Predict </p>  {selectedPipelineNamePrediction.length !== 0 && <p class="blue-dot"></p>}</div>} value="3" />
                                 </TabList>
                             </Box>
                 <TabPanel value="1" sx={{padding:"0px"}}>  

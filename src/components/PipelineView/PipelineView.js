@@ -102,21 +102,12 @@ export const PipelineView = (props)=>{
             });
         });
         setActiveStep(-1);
-
-        const toSave = {
-            "pipelineFinished": false,
-            "isPipelineStarted": false,
-            "stepStatus": [true, true, true],
-            "activeStep": -1
-        };
-
-        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
     }
  
     const retrievePipelineVarCount = (allPipeVars, pipeline_name)=>{
         let varCount;
         for(const pipe of allPipeVars){
-            if(pipe["pipeline_name"] == pipeline_name){
+            if(pipe["pipeline_name"] === pipeline_name){
                 return pipe["number_of_variables"];
             }
         }
@@ -126,7 +117,7 @@ export const PipelineView = (props)=>{
     const parseVarsForPipeline = ()=>{
         const theVars = [];
         for(const blockVar of blockVariables){
-            if(blockVar["pipelineName"] == pipelineName){
+            if(blockVar["pipelineName"] === pipelineName){
                 theVars.push(blockVar);
             }
         }
@@ -143,7 +134,7 @@ export const PipelineView = (props)=>{
         const blockVars = parseVarsForPipeline();
 
 
-        if(blockVars.length != nrOfVars){
+        if(blockVars.length !== nrOfVars){
             blockAlert("Please enter a value for all the variables!");
             return;
         }
@@ -232,14 +223,7 @@ export const PipelineView = (props)=>{
         setIsPipelineStarted(false);
         setPipelineFinished(true);
 
-        const toSave = {
-            "stepStatus": statuses,
-            "activeStep": -1,
-            "pipelineFinished": true,
-            "isPipelineStarted": false
-        }
-
-        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+        localStorage.removeItem(`${pipelineName}-running-steps`);
     }, [runStep, steps, pipelineName]);
 
     const runPipeline = React.useCallback(async (source) => {
@@ -375,46 +359,34 @@ export const PipelineView = (props)=>{
     }
 
     const selectPipelineBasedOffParameters = (pipelineType)=>{
-        
-        if(pipelineType == "training"){
-            if(pipelineNameTrain == "mlflow train_test"){
-                setPipelineName("mlflow_train_test"); 
-            } else {
-                setPipelineName(pipelineNameTrain); 
-            }
-            
-        } else if (pipelineType == "data_preprocessing"){
+        if(pipelineType === "training"){
+            setPipelineName(pipelineNameTrain);
+        } else if (pipelineType === "data_preprocessing"){
             setPipelineName(pipelineNamePreprocessing);
-        } else if (pipelineType == "prediction"){
+        } else if (pipelineType === "prediction"){
             setPipelineName(selectedPipelineNamePrediction);
         }
     }
 
     const handleDeleteTheRestData = ()=>{
-        
-        if(props.pipelineType == "prediction"){
+        if(props.pipelineType === "prediction"){
             dispatch(setSelectedTrainedModel(""));
         }
         dispatch(setIsPredictedSelected(false));
     }
 
     useEffect(()=>{
-        
         selectPipelineBasedOffParameters(props.pipelineType);
-    },[pipelineNameTrain, pipelineNamePreprocessing])
+    },[pipelineNameTrain, pipelineNamePreprocessing]);
  
     useEffect(()=>{
         
-        if(selectedPipelineNamePrediction.length != 0 && props.pipelineType == "prediction"){
+        if(selectedPipelineNamePrediction.length !== 0 && props.pipelineType === "prediction"){
             setPipelineName(selectedPipelineNamePrediction);
-        } else if( props.pipelineType == "prediction" ) {
+        } else if( props.pipelineType === "prediction" ) {
             setPipelineName("");
         }
-    },[selectedPipelineNamePrediction])
-
-    useEffect(() => {
-        console.log(historyData);
-    }, [historyData]);
+    },[selectedPipelineNamePrediction]);
 
 
     return(
@@ -547,7 +519,7 @@ export const PipelineView = (props)=>{
                                                 <FontAwesomeIcon icon={faBroom}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
                                             </Tooltip>
                                             
-                                            <Tooltip title={`${props.pipelineType == "data_preprocessing"? formatString(pipelineName[0]): formatString(pipelineName)}`}>
+                                            <Tooltip title={`${props.pipelineType === "data_preprocessing"? formatString(pipelineName[0]): formatString(pipelineName)}`}>
                                                 <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
                                             </Tooltip>
                                             <Tooltip title="Run History">

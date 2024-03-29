@@ -18,6 +18,7 @@ import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
 import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
 import { parseTheType } from '../../utils/parseTheType';
 import { parseTheDescription } from '../../utils/parseTheDescription';
+import {parseJSONVar} from "../../utils/parseJSONVar";
 
 export default memo(({ data, isConnectable }) => {
 
@@ -146,25 +147,18 @@ export default memo(({ data, isConnectable }) => {
     
     let varObj;
     const allVarsData = [];
- 
     for (let i = 0; i < allVars.length; i++) {
-      const parsedVarType = parseTheType(allVarsType[i]);
-      const parsedVarDescription = parseTheDescription(allVarsType[i]);
-      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" )){
-        continue;
-      } else { 
-         varObj = {
+      const parsedJSONVar = parseJSONVar(allVarsType[i]);
+      if(![undefined, "", null, 0].includes(parsedJSONVar["type"]) && ["multiple_selection", "string", "number", "drop_down"].includes(parsedJSONVar["type"])) {
+        varObj = {
           varName: allVars[i],
-          type: parsedVarType,
-          description: parsedVarDescription
+          ...parsedJSONVar
         }
         allVarsData.push(varObj);
       }
-       
     }
-
     
-    if(allVarsData.length != 0){
+    if(allVarsData.length !== 0){
       setVariablesPresent(true);
     } else {
       setVariablesPresent(false);
@@ -182,13 +176,6 @@ export default memo(({ data, isConnectable }) => {
 
   return (
     <div style={{ borderRadius: "5%", padding: "20px", border: "1px solid blue", backgroundColor: "#e0e9ff", minHeight: "150px" }}>
-      <Handle
-        type="target"
-        position={Position.Left}
-        id="left"
-        style={{ padding: "10px", border: "3px solid blue" }}
-        isConnectable={true}
-      />
       <div>
         <div className='base-node-header'>
           <div className='node-title' title={fullNodeName}> {nodeName ? nodeName : "Loader"} </div>

@@ -16,6 +16,7 @@ import Paper from '@mui/material/Paper';
 import { parseTheType } from '../../utils/parseTheType';
 import { parseTheDescription } from '../../utils/parseTheDescription';
 import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import {parseJSONVar} from "../../utils/parseJSONVar";
 
 export default memo(({ data, isConnectable }) => {
   
@@ -70,23 +71,18 @@ export default memo(({ data, isConnectable }) => {
     let varObj;
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
-      const parsedVarType = parseTheType(allVarsType[i]);
-      const parsedVarDescription = parseTheDescription(allVarsType[i]);
-      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" )){
-        continue;
-      } else { 
-         varObj = {
+      const parsedJSONVar = parseJSONVar(allVarsType[i]);
+      if(![undefined, "", null, 0].includes(parsedJSONVar["type"]) && ["multiple_selection", "string", "number", "drop_down"].includes(parsedJSONVar["type"])) {
+        varObj = {
           varName: allVars[i],
-          type: parsedVarType,
-          description: parsedVarDescription
+          ...parsedJSONVar
         }
         allVarsData.push(varObj);
       }
-      
     }
 
     
-    if(allVarsData.length != 0){
+    if(allVarsData.length !== 0){
       setVariablesPresent(true);
     } else {
       setVariablesPresent(false);

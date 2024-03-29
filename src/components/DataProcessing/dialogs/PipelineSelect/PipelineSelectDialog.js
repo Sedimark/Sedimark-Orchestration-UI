@@ -84,15 +84,15 @@ const parseBucketName = (inputString)=>{
   });
 
   const restoreChecksBasedOnStoredData = (data)=>{
-    if(data.length == 0 || pipeline.length == 0){
+    if(data.length === 0 || pipeline.length === 0){
       return;
     }
     const filteredPipelines = data.filter((dt)=> {
-      return  dt.name == pipeline[0] ;
+      return  dt.name === pipeline[0] ;
     });
 
-    const filteredPipelinesNames = filteredPipelines.length!=0? filteredPipelines[0].name : [];
-    if(filteredPipelinesNames.length !=0){
+    const filteredPipelinesNames = filteredPipelines.length !== 0? filteredPipelines[0].name : [];
+    if(filteredPipelinesNames.length !== 0){
 
       setChecked([filteredPipelinesNames]);
     }
@@ -102,8 +102,8 @@ const parseBucketName = (inputString)=>{
   const fetchAllPipelines = async()=>{
      try{
       const resp = await axios.get(FETCH_PIPELINES);
-      if(resp.data.length!=0){
-        const filteredData = resp.data.filter((item) => item.type == props.pipelineType);
+      if(resp.data.length !== 0){
+        const filteredData = resp.data.filter((item) => item.type === props.pipelineType);
         setAllPipelines(filteredData);
         setfilteredPipelines(filteredData);
         restoreChecksBasedOnStoredData(resp.data);
@@ -112,7 +112,6 @@ const parseBucketName = (inputString)=>{
      } catch(err){
       setIsLoading(false);
       setHasError(true);
-      console.log(err);
      }
   }
   
@@ -142,47 +141,43 @@ const parseBucketName = (inputString)=>{
         return;
     }
 
-    if(props.pipelineType == "train"){
+    if(props.pipelineType === "train"){
 
-      if(selectedPipeline.length == 0){
+      if(selectedPipeline.length === 0){
         dispatch(addPipelineTrain([]));
       }
 
         
-      if(pipelineTrain.length !=0 && pipelineTrain[0] != selectedPipeline)
+      if(pipelineTrain.length !== 0 && pipelineTrain[0] !== selectedPipeline)
       {  
         dispatch(addPipelineTrain(selectedPipeline));
         dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
         dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
-        return;
-      } else if(pipelineTrain.length == 0 ){
+      } else if(pipelineTrain.length === 0 ){
         dispatch(addPipelineTrain(selectedPipeline));
         dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
         dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
-        return;
       } 
 
-    } else if (props.pipelineType == "data_preprocessing"){
+    } else if (props.pipelineType === "data_preprocessing"){
       
-        if(selectedPipeline.length == 0){
+        if(selectedPipeline.length === 0){
           dispatch(addPipelinePreprocessing([]));
         } 
     
-        if(pipelinePreprocessing.length !=0 && pipelinePreprocessing[0] != selectedPipeline)
+        if(pipelinePreprocessing.length !== 0 && pipelinePreprocessing[0] !== selectedPipeline)
         {
           dispatch(addPipelinePreprocessing(selectedPipeline));
           dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
           dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
-          return;
-        } else if(pipelinePreprocessing.length == 0 ){
+        } else if(pipelinePreprocessing.length === 0 ){
           dispatch(addPipelinePreprocessing(selectedPipeline));
           dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
           dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
-          return;
         }
       }
   }
@@ -197,10 +192,10 @@ const parseBucketName = (inputString)=>{
  }
 
   const handleDialogTitle = ()=>{
-    if(props.pipelineType == "data_preprocessing"){
+    if(props.pipelineType === "data_preprocessing"){
       setDialogName("Pipelines - preprocessing");
       setPipeline([pipelinePreprocessing]);
-    } else if (props.pipelineType == "train"){
+    } else if (props.pipelineType === "train"){
       setDialogName("Pipelines - train");
       setPipeline(pipelineTrain);
     }
@@ -210,7 +205,7 @@ const parseBucketName = (inputString)=>{
     let pipelineSelected = false;
 
     for(const pipeline of all_pipelines){
-      if(pipeline.name == the_pipeline){
+      if(pipeline.name === the_pipeline){
         pipelineSelected = true;
       }
     }
@@ -309,7 +304,7 @@ const parseBucketName = (inputString)=>{
                                  key={value.name}
                                  secondaryAction={
                                    <div className='dataset-select-toolbox'>
-                                     {value.name != pipeline[0] ?
+                                     {value.name !== pipeline[0] ?
                                       <FormControlLabel value={value.name} control={<Radio />}  /> :
                                       <p className='pipeline-selected-text'>Selected</p>
                                      }
