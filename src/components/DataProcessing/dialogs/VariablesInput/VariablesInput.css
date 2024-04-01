@@ -25,3 +25,8 @@
 .variable-description{
     padding-top:10px;
 }
+
+.input-err-msg{
+    font-size: 1.1rem;
+    color:red;
+}

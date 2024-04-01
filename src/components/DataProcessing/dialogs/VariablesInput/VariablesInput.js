@@ -65,6 +65,9 @@ export default function VariablesInput(props){
     const [areMultipleVariables, setAreMultipleVariables] = useState(false);
     const [purifiedVariables, setPurifiedVariables] = useState([]);
     const [dropdownValues, setDropDownValues] = useState({});
+    const [rulesForVariables, setRulesForVariables] = useState({});
+    const [hasInputError, setHasInputError] = useState({});
+    const [formHasError, setFormHasError] = useState(false);
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
@@ -128,11 +131,28 @@ export default function VariablesInput(props){
 
 
     const handleChangeNumber = (variableName, event, type)=>{
+
       const { target: { value } } = event;
+
+
       if (!isNaN(value)) {
         const newValue = {...variablesInput};
           newValue[variableName] = value;
         setVariablesInput(newValue);
+      }
+      const rule = rulesForVariables[variableName];
+      
+      if(rule){
+        const errMonitor = {...hasInputError};
+        const parsedNumber = Number.parseInt(value);
+        if(parsedNumber < rule.min_value || parsedNumber > rule.max_value){
+          errMonitor[variableName] = true;
+          setHasInputError(errMonitor);
+          return;
+        } else {
+          errMonitor[variableName] = false;
+        }
+        setHasInputError(errMonitor);
       }
 
       let inputedValuesVariables = [...variableValues];
@@ -148,10 +168,49 @@ export default function VariablesInput(props){
       
     }
 
+    function removeSlashesFromRegexString(regexString) {
+      // Check if the first character is a slash and remove it
+      if (regexString.startsWith('/')) {
+        regexString = regexString.substring(1);
+      }
+    
+      // Check if the last character is a slash and remove it
+      if (regexString.endsWith('/')) {
+        regexString = regexString.substring(0, regexString.length - 1);
+      }
+    
+      return regexString;
+    }
+
     const handleChange = (event, type, variableName) => {
       
-
+      
       const { target: { value } } = event;
+
+      if(type == "text"){
+        const rule = removeSlashesFromRegexString(rulesForVariables[variableName]);
+        
+        const newRegExpRule = new RegExp(rule);
+        const errMonitor = {...hasInputError};
+
+        if(value.length != 0){
+          if(!newRegExpRule.test(value)){
+            errMonitor[variableName] = true;
+            setHasInputError(errMonitor);
+            return;
+          } else {
+            errMonitor[variableName] = false;
+          }
+          setHasInputError(errMonitor);
+  
+        } else {
+          errMonitor[variableName] = false;
+          setHasInputError(errMonitor);
+        }
+       
+      
+      } 
+
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
         block_name:props.fullNodeName,
@@ -250,23 +309,36 @@ export default function VariablesInput(props){
    const createVariableInputObjects = (data, storedVars)=>{
     
       const obj = {...variablesInput};
-      console.log("data:");
-      console.log(data);
+      const errorMonitorObj = {};
+
       for(const value of data){
+
         if(value.type === "multiple_selection"){
           obj[value.varName] = [];
+          errorMonitorObj[value.varName] = false;
         } else if (value.type === "drop_down") {
             obj[value.varName] = [];
             const updatedDropdownValues = dropdownValues;
             updatedDropdownValues[value.varName]  = value["values"];
             setDropDownValues(updatedDropdownValues);
+            errorMonitorObj[value.varName] = false;
         } else if(value.type === "number"){
                 obj[value.varName] = "";
-        } else {
+            if(value.range){
+              const newRules = rulesForVariables;
+              newRules[value.varName] = value.range;
+              setRulesForVariables(newRules);
+            }
+            errorMonitorObj[value.varName] = false;
+        } else if(value.type === "string"){
                 obj[value.varName] = "";
+                if(value.regex){
+                  const newRules = rulesForVariables;
+                  newRules[value.varName] = value.regex;
+                  setRulesForVariables(newRules);
+                }
+                errorMonitorObj[value.varName] = false;
         }
-
-
       }
      
 
@@ -283,6 +355,7 @@ export default function VariablesInput(props){
       }
      }
       setVariablesInput(obj);
+      setHasInputError(errorMonitorObj);
    }
 
    const retrievePipelineBasedOnTab = (the_active_tab)=>{
@@ -317,8 +390,6 @@ export default function VariablesInput(props){
      
    }
 
-  
-
    
    useEffect(()=>{
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
@@ -346,7 +417,19 @@ export default function VariablesInput(props){
      parsePhantomVariables();
    },[])
 
- 
+  useEffect(()=>{
+    
+  for (const key in hasInputError) {
+    if (hasInputError.hasOwnProperty(key)) {
+       if (hasInputError[key] == true){
+          setFormHasError(true);
+          return;
+       }
+    }
+    setFormHasError(false);
+  }
+
+  },[hasInputError])
 
 
     return (
@@ -363,11 +446,13 @@ export default function VariablesInput(props){
                     <h1>Variables</h1>
                 </div>  
                 {purifiedVariables.map((value, index)=>{
-                  
+                    console.log("za value:");
+                    console.log(value);
                   if(value.type == "string"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
-                      <TextField value={variablesInput[value.varName] || ''}  onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"text",value.varName)}} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
+                      <TextField error = {hasInputError[value.varName]} value={variablesInput[value.varName] || ''}  onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"text",value.varName)}} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
+                       {hasInputError[value.varName] && value["example"] && <div className='input-err-msg'>A correct name should look like this: {value["example"]}   </div>} 
                        {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                     </FormControl>
                     
@@ -379,11 +464,13 @@ export default function VariablesInput(props){
                     <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
                       <FormHelperText sx={{ fontSize:"1.1rem" }}>{value.varName}</FormHelperText>
                       <TextField
+                        error = {hasInputError[value.varName]}
                         aria-label={`${value.varName}`}
                         placeholder="Type a number…"
                         value={variablesInput[value.varName]}
                         onChange={(event)=>{ setWasSomethingChanged(true); handleChangeNumber(value.varName,event,"number")}}
                       />
+                      {hasInputError[value.varName] && <div className='input-err-msg'>The number should be in range [{rulesForVariables[value.varName]["min_value"]} , {rulesForVariables[value.varName]["max_value"]}] </div>} 
                       {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                   </FormControl>
                     );
@@ -465,7 +552,7 @@ export default function VariablesInput(props){
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>
-              <Button  disabled={!wasSomethingChanged} onClick={()=>{handleDone()}}>Done</Button>
+              <Button  disabled={!wasSomethingChanged || formHasError} onClick={()=>{handleDone()}}>Done</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>
