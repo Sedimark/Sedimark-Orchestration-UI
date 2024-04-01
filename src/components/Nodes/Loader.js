@@ -144,12 +144,16 @@ export default memo(({ data, isConnectable }) => {
     setFullNodeName(data.name);
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
+
+    console.log(allVars);
     
     let varObj;
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
+      console.log(allVarsType[i]);
       const parsedJSONVar = parseJSONVar(allVarsType[i]);
-      if(![undefined, "", null, 0].includes(parsedJSONVar["type"]) && ["multiple_selection", "string", "number", "drop_down"].includes(parsedJSONVar["type"])) {
+    
+      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
           ...parsedJSONVar

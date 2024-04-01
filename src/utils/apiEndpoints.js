@@ -1,5 +1,5 @@
 export const FETCH_PIPELINES = `https://apis.sedimark.work/mage/pipelines`;
-export const FETCH_MAGE_AI_OAUTH_KEY = `https://mageai.sedimark.work/api/sessions`;
+export const FETCH_MAGE_AI_OAUTH_KEY = `https://mage.sedimark.work/api/sessions`;
 export const FETCH_PIPELINE_DATA = (pipeline_name)=>`https://apis.sedimark.work/mage/pipeline/read/full?pipeline_name=${pipeline_name}`;
 export const FETCH_PIPELINE_PREDICT_DATA = (pipeline_name)=>`https://apis.sedimark.work/mage/pipeline/read/predict/full?model_name=${pipeline_name}`;
 export const FETCH_MINIO_FILE = (pipeline_name) => `https://apis.sedimark.work/balancer/get_object?dataset_path=${pipeline_name}/statistics.json&forever=false`;

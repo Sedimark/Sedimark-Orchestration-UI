@@ -64,6 +64,7 @@ export default function VariablesInput(props){
     const [variablesPresent, setVariablesPresent] = useState(true);
     const [areMultipleVariables, setAreMultipleVariables] = useState(false);
     const [purifiedVariables, setPurifiedVariables] = useState([]);
+    const [dropdownValues, setDropDownValues] = useState({});
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
@@ -148,7 +149,8 @@ export default function VariablesInput(props){
     }
 
     const handleChange = (event, type, variableName) => {
-    
+      
+
       const { target: { value } } = event;
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
@@ -248,17 +250,25 @@ export default function VariablesInput(props){
    const createVariableInputObjects = (data, storedVars)=>{
     
       const obj = {...variablesInput};
+      console.log("data:");
+      console.log(data);
       for(const value of data){
         if(value.type === "multiple_selection"){
           obj[value.varName] = [];
         } else if (value.type === "drop_down") {
-            obj[value.varName] = value["values"];
+            obj[value.varName] = [];
+            const updatedDropdownValues = dropdownValues;
+            updatedDropdownValues[value.varName]  = value["values"];
+            setDropDownValues(updatedDropdownValues);
         } else if(value.type === "number"){
                 obj[value.varName] = "";
         } else {
                 obj[value.varName] = "";
         }
+
+
       }
+     
 
     let foundBlocks = [];
     for(const block of storedVars){
@@ -289,7 +299,7 @@ export default function VariablesInput(props){
       const allBlockVariables = [];
 
      for(const varInstance of props.variablesData){
-        if(varInstance.type && (varInstance.type == "string" || varInstance.type == "number" || varInstance.type == "multiple_selection"))
+        if(varInstance.type && (varInstance.type == "string" || varInstance.type == "number" || varInstance.type == "multiple_selection" || varInstance.type == "drop_down"))
         {
           allBlockVariables.push(varInstance);
         } 
@@ -306,6 +316,8 @@ export default function VariablesInput(props){
      }
      
    }
+
+  
 
    
    useEffect(()=>{
@@ -334,6 +346,8 @@ export default function VariablesInput(props){
      parsePhantomVariables();
    },[])
 
+ 
+
 
     return (
     <div>
@@ -349,6 +363,7 @@ export default function VariablesInput(props){
                     <h1>Variables</h1>
                 </div>  
                 {purifiedVariables.map((value, index)=>{
+                  
                   if(value.type == "string"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -398,6 +413,34 @@ export default function VariablesInput(props){
                           {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                       </FormControl>
                     );
+                  } else if(value.type == "drop_down"){
+                    return(
+                      <div>
+                        <FormControl sx={{ m: 1, width: "60%" }}>
+                          <InputLabel id="demo-multiple-name-label">{`${value.varName}`}</InputLabel>
+                          <Select
+                            labelId="demo-multiple-name-label"
+                            id="demo-multiple-name"
+                            multiple
+                            value={variablesInput[value.varName]}
+                            onChange={(event)=>{setWasSomethingChanged(true); handleChange(event,"drop_down",value.varName) }}
+                            input={<OutlinedInput label="Name" />}
+                            MenuProps={MenuProps}
+                          >
+                            {dropdownValues[value.varName].map((variableName) => (
+                              <MenuItem
+                                key={variableName}
+                                value={variableName}
+                                
+                              >
+                                {variableName}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                        </FormControl>
+                      </div>
+                    )
                   }
                 })}
                 </>

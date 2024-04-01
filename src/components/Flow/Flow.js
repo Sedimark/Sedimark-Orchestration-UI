@@ -134,6 +134,7 @@ function Flow(props) {
     
     setPosition(nodeData, nodeData[firstBlock], 0, 0);
     
+
     for(let nodeType of nodeData){
       
       const nodeData = nodeType.config;
@@ -186,7 +187,7 @@ function Flow(props) {
         
       } 
     }
-
+    
     dispatch(setStoredNodes(newNodes));
     setNodes(newNodes);
     dispatch(setOrderedNodes(newNodes));
@@ -257,6 +258,7 @@ function Flow(props) {
 
     setPipelineEdges([...connectionEdges]);
     setPipelineEdges(connectionEdges);
+   
     addNodes(allNodes, pipeline_name);
   }
 
@@ -354,7 +356,7 @@ function Flow(props) {
       number_of_variables: nrOfVars
     }
 
-    console.log(nrOfVars)
+
 
     if(checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
       const newVar = [...blockVariablesCount, variablesForPipeline];
@@ -437,6 +439,7 @@ function Flow(props) {
     if(nodes.length!==0){
       setWereEdgesPlaced(true); 
     }
+   
   },[nodes])
 
 
