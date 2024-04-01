@@ -140,7 +140,7 @@ function Flow(props) {
       nodeData.pipelineName = pipeline_name[0];
   
       
-      if(nodeType.type == "Loader"){
+      if(nodeType.type === "Loader"){
 
         newNodes.push({
           id: nodeType.node_id,
@@ -150,7 +150,7 @@ function Flow(props) {
        });
       
       } 
-      if (nodeType.type == "Transformer"){
+      if (nodeType.type === "Transformer"){
         
         newNodes.push(
           {
@@ -161,7 +161,7 @@ function Flow(props) {
           });
         
       }  
-      if (nodeType.type == "Exporter"){
+      if (nodeType.type === "Exporter"){
       
         newNodes.push(
           {
@@ -173,7 +173,7 @@ function Flow(props) {
         );
         
       } 
-      if (nodeType.type == "Custom"){
+      if (nodeType.type === "Custom"){
       
         newNodes.push(
           {
@@ -193,7 +193,7 @@ function Flow(props) {
   }
 
   const processAndPlaceEdges = ()=>{
-    if(edges.length==0){
+    if(edges.length === 0){
       const storedEdges = [];
       for(const processedEdge of pipelineEdges){
         const connections = processedEdge.downstream_blocks;
@@ -267,7 +267,7 @@ function Flow(props) {
   
   const verifyAddedEdgeIsOk = ()=>{
     
-   if (edges.length == 0 ){
+   if (edges.length === 0 ){
     return;
 
    } else {
@@ -320,20 +320,22 @@ function Flow(props) {
     const allVarsData = Object.values(pipe_obj);
 
     for(const varData of allVarsData){
+      let condition = false;
       try{
         const decodedJsonObjData = JSON.parse(varData);
         variableCount++;
       } catch(err){
-        continue;
+        condition = true;
       }
+      if (condition) continue;
     }
     return variableCount;
   }
 
   const checkAndSeeIfVariablesPresent = (allVars, pipeline_name)=>{
-    
+      if (allVars === undefined) return false;
       for(const pipeVar of allVars){
-        if(pipeVar["pipeline_name"] == pipeline_name){
+        if(pipeVar["pipeline_name"] === pipeline_name){
           return true;
         }
       }
@@ -352,15 +354,16 @@ function Flow(props) {
       number_of_variables: nrOfVars
     }
 
-    if(!checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
-      
+    console.log(nrOfVars)
+
+    if(checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
       const newVar = [...blockVariablesCount, variablesForPipeline];
       dispatch(setPipelineNumberOfVariables(newVar));
     }
     
   }
  
-  const fetchPipelineData = async(pipeline_name)=>{
+  const fetchPipelineData = async (pipeline_name)=>{
     
     setIsPipelineLoading(true);
    
@@ -403,8 +406,7 @@ function Flow(props) {
       dispatch(setSelectedPipelineNamePrediction(resp.data.name));
       dispatch(setSelectedPipelinePrediction([resp.data.name]));
     }catch(err){
-      console.log(err);
-      if(model.length != 0){
+      if(model.length !== 0){
         blockAlert("No pipeline found for the model!");
       }
       setSelectedPipeline([]);
@@ -443,7 +445,7 @@ function Flow(props) {
     
     if(selectedPipeline.length !== 0){
       const parsedSelectedPipeline = parseSelectedPipelineName(selectedPipeline[0]);
-      fetchPipelineData(parsedSelectedPipeline);
+      fetchPipelineData(parsedSelectedPipeline).then((_) => {}).catch((_) => {});
     } else {
   
       setNodes([]);
@@ -453,19 +455,17 @@ function Flow(props) {
 
    
   useEffect(()=>{
-    if(props.pipelineType == "prediction"){
+    if(props.pipelineType === "prediction"){
       
       fetchPipelineForModel(selectedTrainedModel);
     }
   },[selectedTrainedModel])
 
 
-  const selectPipelineBasedOnProps = (pipeline_type)=>{
-
-  
-    if( pipeline_type == "training"){
+  const selectPipelineBasedOnProps = (pipeline_type)=> {
+    if( pipeline_type === "training"){
       setSelectedPipeline(selectedPipelineTrain);
-    } else if (pipeline_type == "data_preprocessing"){
+    } else if (pipeline_type === "data_preprocessing"){
       setSelectedPipeline(selectedPipelineDataPreProcessing);
     } 
   }

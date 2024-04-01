@@ -22,6 +22,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import {useDispatch} from 'react-redux';
 import { parseTheType } from '../../utils/parseTheType';
+import {parseJSONVar} from "../../utils/parseJSONVar";
 
  
 export default memo(({ data, isConnectable }) => {
@@ -69,7 +70,7 @@ export default memo(({ data, isConnectable }) => {
   }
 
   const checkIfSpecialBlock = ()=>{
-    if(data.name == "Export Map"){
+    if(data.name === "Export Map"){
       setSpecialBlockViewButton(true);
     } else {
       setSpecialBlockViewButton(false);
@@ -106,8 +107,8 @@ export default memo(({ data, isConnectable }) => {
   const processVariablesValues = (varsVals)=>{
     const storedVars = [];
     for(let val of varsVals){
-      if(val.block_name == fullNodeName){
-        if(val.type == "multiple"){
+      if(val.block_name === fullNodeName){
+        if(val.type === "multiple"){
            storedVars.push(
           {
             "variable_name":val.variable_name,
@@ -128,7 +129,7 @@ export default memo(({ data, isConnectable }) => {
   const getStoredVariableValue = (varName)=>{
   
     for(const variable of variablesValues){
-      if(variable.variable_name == varName){
+      if(variable.variable_name === varName){
         if(Array.isArray(variable.value)){
           return parseArray(variable.value);
         } else {
@@ -166,7 +167,6 @@ export default memo(({ data, isConnectable }) => {
       mapLink = await axios.get(PREDICT_RESULTS_LINK(selectedTrainedModel));
       mapLink = mapLink.data.url;
     } catch(err){
-      console.log(err);
       blockAlertError("There was an error while trying to render the map!");
       return;
     }
@@ -197,23 +197,18 @@ export default memo(({ data, isConnectable }) => {
     let varObj;
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
-      const parsedVarType = parseTheType(allVarsType[i]);
-      const parsedVarDescription = parseTheDescription(allVarsType[i]);
-      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" )){
-        continue;
-      } else { 
-         varObj = {
+      const parsedJSONVar = parseJSONVar(allVarsType[i]);
+      if(![undefined, "", null, 0].includes(parsedJSONVar["type"]) && ["multiple_selection", "string", "number", "drop_down"].includes(parsedJSONVar["type"])) {
+        varObj = {
           varName: allVars[i],
-          type: parsedVarType,
-          description: parsedVarDescription
+          ...parsedJSONVar
         }
         allVarsData.push(varObj);
       }
-      
     }
 
     
-    if(allVarsData.length != 0){
+    if(allVarsData.length !== 0){
       setVariablesPresent(true);
     } else {
       setVariablesPresent(false);
@@ -285,14 +280,6 @@ export default memo(({ data, isConnectable }) => {
           <ViewMap open={viewMapOpen} handleClose={()=>{setViewMapOpen(false)}} ></ViewMap>
          }
       </div>
-
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right"
-        style={{padding:"10px",border:"4px solid #e9e008"}}
-        isConnectable={isConnectable}
-      />
     </div>
   );
 });

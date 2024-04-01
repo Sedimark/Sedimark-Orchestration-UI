@@ -49,17 +49,17 @@ export default function TrainModelDialog(props){
     
     const handleDone = ()=>{     
       
-       if(selectedTrainedModel.length!=0 && rowName.length == 0){
+       if(selectedTrainedModel.length !== 0 && rowName.length === 0){
         props.handleClose();
         return;
        }
 
-      if(rowName!= selectedTrainedModel )
+      if(rowName !== selectedTrainedModel )
      {  
           dispatch(setSelectedTrainedModel(rowName));
           setIsPredSelected(true);
          
-     } else if (rowName == selectedTrainedModel){
+     } else if (rowName === selectedTrainedModel){
           dispatch(setSelectedTrainedModel(""));
           dispatch(setSelectedPipelinePrediction([]));
           dispatch(setSelectedPipelineNamePrediction(""));
@@ -76,7 +76,6 @@ export default function TrainModelDialog(props){
         setAllModelsData(response.data);
         setIsDataLoading(false);
       } catch(err){
-        console.log(err);
         setIsDataLoading(false);
       }
       

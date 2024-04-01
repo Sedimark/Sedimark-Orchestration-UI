@@ -181,9 +181,7 @@ export default function VariablesInput(props){
 
       const parsedNewValues = [];
       for(const val of newValues){
-        if(val["value"].length == 0){
-          continue;
-        } else {
+        if(val["value"].length !== 0){
           parsedNewValues.push(val);
         }
       }
@@ -251,12 +249,14 @@ export default function VariablesInput(props){
     
       const obj = {...variablesInput};
       for(const value of data){
-        if(value.type == "multiple_selection"){
+        if(value.type === "multiple_selection"){
           obj[value.varName] = [];
-        } else if(value.type == "number"){
-          obj[value.varName] = "";
+        } else if (value.type === "drop_down") {
+            obj[value.varName] = value["values"];
+        } else if(value.type === "number"){
+                obj[value.varName] = "";
         } else {
-          obj[value.varName] = "";
+                obj[value.varName] = "";
         }
       }
 

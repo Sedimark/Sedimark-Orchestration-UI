@@ -94,9 +94,9 @@ export default function MiniDrawer() {
   const [trainModelsDialogOpen, setTrainModelsDialogOpen] = React.useState(false);
 
   const openPipelineSelectMenu = (dialogType) => {
-    if(dialogType == "train"){
+    if(dialogType === "train"){
       setPipelineType("train");
-    } else if(dialogType == "data_preprocessing"){
+    } else if(dialogType === "data_preprocessing"){
       setPipelineType("data_preprocessing");
     }
 
