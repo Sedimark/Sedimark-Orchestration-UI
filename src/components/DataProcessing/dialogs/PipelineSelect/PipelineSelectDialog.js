@@ -313,7 +313,7 @@ const parseBucketName = (inputString)=>{
                                  }
                                  disablePadding
                                > 
-                                 <ListItemButton onClick={()=>{}}>
+                                 <ListItemButton onClick={()=>{console.log("Hello I was clicked!")}}>
                                    <ListItemAvatar>
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>

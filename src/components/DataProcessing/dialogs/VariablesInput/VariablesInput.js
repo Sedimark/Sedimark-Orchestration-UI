@@ -446,8 +446,7 @@ export default function VariablesInput(props){
                     <h1>Variables</h1>
                 </div>  
                 {purifiedVariables.map((value, index)=>{
-                    console.log("za value:");
-                    console.log(value);
+                    
                   if(value.type == "string"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -476,7 +475,7 @@ export default function VariablesInput(props){
                     );
 
                   } else if(value.type == "multiple_selection"){
-                    
+                  
                     return(
                       <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
                           <InputLabel id="demo-multiple-checkbox-label">{`${value.varName}`}</InputLabel>

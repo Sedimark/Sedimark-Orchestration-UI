@@ -183,10 +183,6 @@ export default memo(({ data, isConnectable }) => {
     }
   }
 
-  // useEffect(()=>{
-  //   processVariablesValues(variablesValues);
-  // },[variablesValues])
-
   
 
   useEffect(()=>{
@@ -214,12 +210,11 @@ export default memo(({ data, isConnectable }) => {
       setVariablesPresent(false);
     }
     setAllVariables(allVarsData);
+
+    checkIfSpecialBlock();
   },[])
 
 
-  // useEffect(()=>{
-  //   checkIfSpecialBlock();
-  // },[])
 
 
 

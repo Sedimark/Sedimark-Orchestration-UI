@@ -201,7 +201,7 @@ export default function MiniDrawer() {
                   >
                     <WidgetsIcon/>
                   </ListItemIcon>
-                  <ListItemText primary={"Train Models"} sx={{ opacity: open ? 1 : 0 }} />
+                  <ListItemText primary={"Predict"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
         </List>

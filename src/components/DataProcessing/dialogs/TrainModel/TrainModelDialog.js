@@ -107,7 +107,7 @@ export default function TrainModelDialog(props){
       <ThemeProvider theme={darkTheme}>
       <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="true" >
       
-          <DialogTitle> Trained Models </DialogTitle>
+          <DialogTitle> Predict </DialogTitle>
             <DialogContent sx={{textAlign:'center'}}>   
             <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="#000" >
             {!isDataLoading && allModelsPage && 

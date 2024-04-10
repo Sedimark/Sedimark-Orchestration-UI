@@ -12,18 +12,37 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Button from '@mui/material/Button';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import CheckIcon from '@mui/icons-material/Check';
+import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
+import OutlinedInput from '@mui/material/OutlinedInput';
+import MenuItem from '@mui/material/MenuItem';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { MODEL_VERSION } from "../../../../../utils/apiEndpoints";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { styled } from '@mui/system';
 import { useSelector } from "react-redux";
 import { useDispatch } from 'react-redux';
+import axios from "axios";
 
 export const AllModelsTable = (props)=>{
 
     const selectedModel =  useSelector((state)=> state.selectedTrainedModel);
     const [selectedTrainedModel, setSelectedTrainedModel] = useState("");
+    const [dropdownValues, setDropDownValues] = useState({});
+    const [selectedValues, setSelectedValues] = useState({});
     const dispatch = useDispatch();
 
+    const ITEM_HEIGHT = 48;
+    const ITEM_PADDING_TOP = 8;
+    const MenuProps = {
+      PaperProps: {
+        style: {
+          maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
+          width: 250,
+        },
+      },
+    };
     const StyledTableCell = styled(TableCell)(({ theme }) => ({
         [`&.${tableCellClasses.head}`]: {
           backgroundColor: theme.palette.common.black,
@@ -72,6 +91,48 @@ export const AllModelsTable = (props)=>{
 
       },[selectedModel])
 
+      const parseSelectedValues = (values, model_name)=>{
+          // const oldSelectedValues = {...selectedValues};
+          // oldSelectedValues[model_name] = values;
+          // setSelectedValues(oldSelectedValues);
+      }
+
+
+
+      const fetchValuesForModel = async(model_name, updatedDropdownValues)=>{
+          try{
+            const resp = await axios.get(MODEL_VERSION(model_name))
+            const allVersions = [];
+            for(const elem of resp.data){
+              allVersions.push(elem.version);
+            }
+            console.log("allVersions:");
+            console.log(allVersions);
+            updatedDropdownValues[model_name] = allVersions;
+          } catch(err){ 
+            console.log(err);
+          }
+      }
+
+      useEffect(()=>{
+        if(props.allModelsData && props.allModelsData.length){
+          const allValues = {};
+          const modelSelectedValues = {};
+          for(const model of props.allModelsData){
+            fetchValuesForModel(model.name,allValues);
+            modelSelectedValues[model] = [];
+          }
+        
+          if(Object.keys(allValues)!=0){
+            setDropDownValues(allValues);
+          }
+
+        }
+        
+      },[props])
+
+      
+
 
     return(
         <div>
@@ -91,12 +152,13 @@ export const AllModelsTable = (props)=>{
               {
                 props.allModelsData.length !=0 && 
                 <TableContainer component={Paper}>
-                    <Table sx={{ minWidth: 700 }} aria-label="customized table">
+                    <Table sx={{ width: "100%" }}  aria-label="customized table">
                       <TableHead>
                         <TableRow >
                            <StyledTableCell sx={{ fontSize:"1.1rem" }}>Model Name</StyledTableCell>
                            <StyledTableCell align="left" sx={{ fontSize:"1.1rem" , paddingLeft:"40px"}}>Date</StyledTableCell>
                            <StyledTableCell align="left" sx={{ fontSize:"1.1rem" , paddingLeft:"40px"}}>Predict</StyledTableCell>
+                           <StyledTableCell align="left" sx={{ fontSize:"1.1rem" , paddingLeft:"40px"}}>Version</StyledTableCell>
                            <StyledTableCell align="right" sx={{ fontSize:"1.1rem" }}>Full Data</StyledTableCell>
                          </TableRow>
                        </TableHead>
@@ -120,6 +182,7 @@ export const AllModelsTable = (props)=>{
         onClick={()=>{handleChangeSelectedModel(row.name)}} 
         endIcon={<LibraryAddCheckIcon/>}>Select</Button>
                               }
+                              
                          
                                 { row.name == selectedTrainedModel && 
 
@@ -130,12 +193,44 @@ export const AllModelsTable = (props)=>{
                             endIcon={<CheckIcon/>}>Selected</Button>
                                 }
                              </StyledTableCell>
+                              <StyledTableCell align="right">
+                                  <FormControl sx={{ m: 1, width: "80%" }}>
+                                            <InputLabel id="demo-multiple-name-label">{`Model Version`}</InputLabel>
+                                            <Select
+                                              labelId="demo-multiple-name-label"
+                                              id="demo-multiple-name"
+                                              
+                                              value={selectedValues}
+                                              onChange={(event)=>{  parseSelectedValues(event.target.value, row.name) }}
+                                              input={<OutlinedInput label="Name" />}
+                                              MenuProps={MenuProps}
+                                            >
+                                              {/* {
+                                                <div>
+                                                  {console.log(dropdownValues[row.name])}
+                                                </div>
+                                              } */}
+                                              {dropdownValues[row.name] && dropdownValues[row.name].map((variableName) => {
+                                                 
+                                                return(
+                                                  <MenuItem
+                                                    key={variableName}
+                                                    value={variableName}
+                                                    
+                                                  >
+                                                    {variableName}
+                                                  </MenuItem>
+                                                );
+                                              })}
+                                            </Select>
+                                    </FormControl>
+                              </StyledTableCell>
 
                              <StyledTableCell align="right"><Button variant="contained"   sx={{ width: 150,
                                                                                                 color: 'white',
                                                                                                 backgroundColor:"#2431bd"
                                                                                       }}
-                                     onClick={()=>{handleSeeMore({model_name:row.name, model_date:row.creation_date})}} 
+                                     onClick={()=>{console.log(row); handleSeeMore({model_name:row.name, model_date:row.creation_date})}} 
                                      endIcon={<OpenInNewIcon/>}>See more</Button></StyledTableCell>
 
                            </StyledTableRow>
