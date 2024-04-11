@@ -17,6 +17,7 @@ import FormControl from '@mui/material/FormControl';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import MenuItem from '@mui/material/MenuItem';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
+import {setTypeForModel, setVersionForModel} from "../../../../../reducers/nodeSlice";
 import { MODEL_VERSION } from "../../../../../utils/apiEndpoints";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
@@ -31,6 +32,8 @@ export const AllModelsTable = (props)=>{
     const [selectedTrainedModel, setSelectedTrainedModel] = useState("");
     const [dropdownValues, setDropDownValues] = useState({});
     const [selectedValues, setSelectedValues] = useState({});
+    const [typeForModel, setTypeForModel] = useState({});
+
     const dispatch = useDispatch();
 
     const ITEM_HEIGHT = 48;
@@ -77,6 +80,7 @@ export const AllModelsTable = (props)=>{
       }
 
       const handleChangeSelectedModel = (row_name)=>{
+    
         props.setRowName(row_name);
           if(row_name!= selectedTrainedModel )
           { 
@@ -88,57 +92,70 @@ export const AllModelsTable = (props)=>{
 
       useEffect(()=>{
         setSelectedTrainedModel(selectedModel);
-
       },[selectedModel])
 
       const parseSelectedValues = (values, model_name)=>{
-          // const oldSelectedValues = {...selectedValues};
-          // oldSelectedValues[model_name] = values;
-          // setSelectedValues(oldSelectedValues);
+      
+        dispatch(setTypeForModel(typeForModel[model_name][values]));
+        dispatch(setVersionForModel(values));
+        const oldSelectedValues = {...selectedValues};
+        if(values == oldSelectedValues[model_name]){
+          oldSelectedValues[model_name] = [];
+        } else {
+          oldSelectedValues[model_name] = [values];
+        }
+        
+        setSelectedValues(oldSelectedValues);
       }
 
 
 
-      const fetchValuesForModel = async(model_name, updatedDropdownValues)=>{
+      const fetchValuesForModel = async(model_name, values_obj, types_obj)=>{
           try{
             const resp = await axios.get(MODEL_VERSION(model_name))
+            const typeObj = {};
             const allVersions = [];
             for(const elem of resp.data){
               allVersions.push(elem.version);
+              typeObj[elem.version] = elem.type;
             }
-            console.log("allVersions:");
-            console.log(allVersions);
-            updatedDropdownValues[model_name] = allVersions;
+          
+            types_obj[model_name] = typeObj;
+            values_obj[model_name] = allVersions;
           } catch(err){ 
             console.log(err);
+            return [];
           }
       }
 
       useEffect(()=>{
-        if(props.allModelsData && props.allModelsData.length){
-          const allValues = {};
-          const modelSelectedValues = {};
+        if (props.allModelsData && props.allModelsData.length) {
+          const fetchData = async () => {
+            const allVersions = {};
+            const typeObj = {};
+            await Promise.all(props.allModelsData.map(async (model) => {
+              await fetchValuesForModel(model.name, allVersions, typeObj);
+            }));
+            const newDropdownValues = { ...allVersions }; // Creăm o nouă copie a obiectului pentru a evita mutarea datelor
+            setDropDownValues(newDropdownValues);
+            setTypeForModel(typeObj);
+            props.setIsDataLoading(false);
+          };
+          
+          fetchData();
+          const allSelectedVals = {};
           for(const model of props.allModelsData){
-            fetchValuesForModel(model.name,allValues);
-            modelSelectedValues[model] = [];
+            allSelectedVals[model.name]=[];
           }
-        
-          if(Object.keys(allValues)!=0){
-            setDropDownValues(allValues);
-          }
-
+          setSelectedValues(allSelectedVals);
         }
-        
       },[props])
-
-      
-
 
     return(
         <div>
             
               {
-                props.allModelsData.length === 0 && 
+               !props.isLoading && props.allModelsData.length === 0 && 
                 <div className="no-models-container">
                   
                   <p className="no-models-text"> 
@@ -149,8 +166,9 @@ export const AllModelsTable = (props)=>{
                   </p>
                 </div>
               }
+             
               {
-                props.allModelsData.length !=0 && 
+                !props.isLoading && props.allModelsData.length !=0 && 
                 <TableContainer component={Paper}>
                     <Table sx={{ width: "100%" }}  aria-label="customized table">
                       <TableHead>
@@ -200,16 +218,12 @@ export const AllModelsTable = (props)=>{
                                               labelId="demo-multiple-name-label"
                                               id="demo-multiple-name"
                                               
-                                              value={selectedValues}
+                                              value={selectedValues[row.name]}
                                               onChange={(event)=>{  parseSelectedValues(event.target.value, row.name) }}
                                               input={<OutlinedInput label="Name" />}
                                               MenuProps={MenuProps}
                                             >
-                                              {/* {
-                                                <div>
-                                                  {console.log(dropdownValues[row.name])}
-                                                </div>
-                                              } */}
+                                             
                                               {dropdownValues[row.name] && dropdownValues[row.name].map((variableName) => {
                                                  
                                                 return(
@@ -230,7 +244,7 @@ export const AllModelsTable = (props)=>{
                                                                                                 color: 'white',
                                                                                                 backgroundColor:"#2431bd"
                                                                                       }}
-                                     onClick={()=>{console.log(row); handleSeeMore({model_name:row.name, model_date:row.creation_date})}} 
+                                     onClick={()=>{handleSeeMore({model_name:row.name, model_date:row.creation_date})}} 
                                      endIcon={<OpenInNewIcon/>}>See more</Button></StyledTableCell>
 
                            </StyledTableRow>

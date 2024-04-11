@@ -13,7 +13,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {ModelDetails} from "./ModelDetails/ModelDetails";
 import { GET_ALL_MODELS} from '../../../../utils/apiEndpoints';
 import {setSelectedTrainedModel} from "../../../../reducers/nodeSlice";
-import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedTab } from '../../../../reducers/nodeSlice';
+import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedTab,} from '../../../../reducers/nodeSlice';
 import { useSelector } from "react-redux";
 
 
@@ -40,7 +40,7 @@ export default function TrainModelDialog(props){
     const [isPredSelected, setIsPredSelected] = React.useState(false);
     const [rowName, setRowName] = React.useState("");
     const dispatch = useDispatch();
-
+ 
     const darkTheme = createTheme({
       palette: {
         mode: 'dark',
@@ -57,6 +57,7 @@ export default function TrainModelDialog(props){
       if(rowName !== selectedTrainedModel )
      {  
           dispatch(setSelectedTrainedModel(rowName));
+          handleChangeSelectedTab();
           setIsPredSelected(true);
          
      } else if (rowName === selectedTrainedModel){
@@ -73,6 +74,7 @@ export default function TrainModelDialog(props){
 
       try{
         const response = await axios.get(GET_ALL_MODELS);
+    
         setAllModelsData(response.data);
         setIsDataLoading(false);
       } catch(err){
@@ -113,7 +115,7 @@ export default function TrainModelDialog(props){
             {!isDataLoading && allModelsPage && 
               <>
                
-                  <AllModelsTable setRowName={setRowName} allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected}></AllModelsTable>
+                  <AllModelsTable isLoading={isDataLoading} setIsDataLoading={setIsDataLoading} setRowName={setRowName} allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected}></AllModelsTable>
               </>
               } 
               {
@@ -133,7 +135,7 @@ export default function TrainModelDialog(props){
             </DialogContent>
             <DialogActions>
               
-              <Button   onClick={()=>{handleCloseDialog(); handleChangeSelectedTab()}}>Ok</Button>
+              <Button   onClick={()=>{handleCloseDialog(); }}>Ok</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

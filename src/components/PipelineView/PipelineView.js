@@ -48,6 +48,9 @@ const CustomTooltip = styled(({ className, ...props }) => (
 export const PipelineView = (props)=>{
 
     const dispatch = useDispatch();
+    const typeForTheModel = useSelector((state)=> state.typeForModel);
+    const versionForModel = useSelector((state)=> state.versionForModel);
+    const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
     const pipelineNrOfVariables = useSelector((state)=> state.pipelineNrOfVariables)
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const blockVariables = useSelector((state) => state.blocksVariables);
@@ -156,7 +159,10 @@ export const PipelineView = (props)=>{
                 data: {
                     "run_id": runData.id,
                     "token": runData.token,
-                    "variables": variables
+                    "variables" : variables,
+                    "model_type" : typeForTheModel,
+                    "model_name" : selectedTrainedModel,
+                    "model_version" : versionForModel
                 }
             })
             return true;
@@ -387,6 +393,7 @@ export const PipelineView = (props)=>{
             setPipelineName("");
         }
     },[selectedPipelineNamePrediction]);
+
 
 
     return(

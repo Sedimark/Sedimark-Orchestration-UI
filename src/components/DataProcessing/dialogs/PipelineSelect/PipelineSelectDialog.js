@@ -184,10 +184,12 @@ const parseBucketName = (inputString)=>{
 
 
   const handleRadioClick = (value)=>{
+    if(value!=undefined){
+        setSelectedPipeline(value);
+        setOnlyOneOptionSelected(false);
+        setFoundPipeline(false);
+    }
     
-    setSelectedPipeline(value.target.value);
-    setOnlyOneOptionSelected(false);
-    setFoundPipeline(false);
     
  }
 
@@ -231,6 +233,7 @@ const parseBucketName = (inputString)=>{
     setOnlyOneOptionSelected(!checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
     setFoundPipeline(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
   },[filteredPipelines])
+
 
 
   return (
@@ -293,12 +296,12 @@ const parseBucketName = (inputString)=>{
                      }
                      { !isLoading && 
                         
-                     <RadioGroup onClick={(val)=>{handleRadioClick(val)}}>
+                     <RadioGroup value={selectedPipeline} onClick={(val)=>{handleRadioClick(val.target.value)}}>
   
                       {
                            filteredPipelines.map((value) => {
                             const labelId = `checkbox-list-secondary-label-${value.name}`;
-                        
+                           
                              return (
                                <ListItem
                                  key={value.name}
@@ -313,7 +316,7 @@ const parseBucketName = (inputString)=>{
                                  }
                                  disablePadding
                                > 
-                                 <ListItemButton onClick={()=>{console.log("Hello I was clicked!")}}>
+                                 <ListItemButton onClick={()=>{handleRadioClick(value.name)}}>
                                    <ListItemAvatar>
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>

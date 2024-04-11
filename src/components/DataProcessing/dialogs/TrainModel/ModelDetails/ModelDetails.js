@@ -175,6 +175,7 @@ export const ModelDetails = (props) =>{
        
         try{
             const response = await axios.get(GET_PARAMETERS_FOR_MODEL(props.model_data.model_name));
+            
             setHasParametersLoaded(true);
             parseParameters(response.data);
           } catch(err){
@@ -231,8 +232,6 @@ export const ModelDetails = (props) =>{
       },[])
 
      
-
-
     return(
     <div className="model-details-container">
       <div>
@@ -399,7 +398,7 @@ export const ModelDetails = (props) =>{
                   <Divider/>
                 </div>
                 <div>
-                    <p className="param-name">Training metrics</p>
+                    <p className="param-name">Model Images</p>
                   {
                     hasTrainingMetricsImagesLoaded &&  metricsImages.length == 0 && 
                       <div className="no-parameters-container">
