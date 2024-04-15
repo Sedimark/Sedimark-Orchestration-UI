@@ -1,5 +1,8 @@
 import React from "react";
-import {useState, useEffect} from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import SelectModelVersion from "../../../dialogs/SelectModelVersion/SelectModelVersion";
+import axios from "axios";
 import style from "./AllModelsTable.css";
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -12,27 +15,25 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import Button from '@mui/material/Button';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import CheckIcon from '@mui/icons-material/Check';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import MenuItem from '@mui/material/MenuItem';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
-import {setTypeForModel, setVersionForModel} from "../../../../../reducers/nodeSlice";
-import { MODEL_VERSION } from "../../../../../utils/apiEndpoints";
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import {setSelectModelVersionStore} from "../../../../../reducers/nodeSlice"
+import toast, { Toaster } from 'react-hot-toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { styled } from '@mui/system';
-import { useSelector } from "react-redux";
-import { useDispatch } from 'react-redux';
-import axios from "axios";
+
+
 
 export const AllModelsTable = (props)=>{
 
     const selectedModel =  useSelector((state)=> state.selectedTrainedModel);
+    const selectedModelVersion = useSelector((state)=> state.selectedModelVersion);
     const [selectedTrainedModel, setSelectedTrainedModel] = useState("");
-    const [dropdownValues, setDropDownValues] = useState({});
-    const [selectedValues, setSelectedValues] = useState({});
-    const [typeForModel, setTypeForModel] = useState({});
+    const [modelSelectedVersionName, setModelSelectedVersionName] = useState("");
+    const [selectModelVersionDialog, setSelectModelVersionDialog] = useState(false);
+    const [modelNameForVersion, setModelNameForVersion] = useState({});
+    const isFirstRun = useRef(true);
+
 
     const dispatch = useDispatch();
 
@@ -67,6 +68,7 @@ export const AllModelsTable = (props)=>{
       }));
 
     const truncateString = (inputString, maxLength)=>{
+      inputString = inputString.trim();
         if (inputString.length <= maxLength) {
           return inputString;
         } else {
@@ -75,12 +77,33 @@ export const AllModelsTable = (props)=>{
       }
 
       const handleSeeMore = (model_data)=>{
+          if(!checkModelSelected(model_data.model_name)){
+            return;
+          }
           props.handleSwitch();
           props.selectModel(model_data);
       }
 
+      const blockAlert = (msg) => {
+        toast.error(msg, {
+            duration: 2000,
+            position: 'top-right',
+        })
+      };
+
+      const checkModelSelected = (model_name) =>{
+          if( Object.keys(modelNameForVersion).length == 0 ||  modelNameForVersion[model_name].length == 0){
+            blockAlert(`There is no version selected for the model: ${model_name}`)
+            return false
+          }
+          return true;
+      }
+
       const handleChangeSelectedModel = (row_name)=>{
-    
+        
+        if(!checkModelSelected(row_name)){
+          return;
+        }
         props.setRowName(row_name);
           if(row_name!= selectedTrainedModel )
           { 
@@ -90,66 +113,29 @@ export const AllModelsTable = (props)=>{
           }
       }
 
+      const handleChangeModelVersion = (model_name, versionObj)=>{
+          const oldObj = {...modelNameForVersion};
+          oldObj[model_name] = versionObj;
+          setModelNameForVersion(oldObj);
+          dispatch(setSelectModelVersionStore(oldObj));
+      }
+
       useEffect(()=>{
         setSelectedTrainedModel(selectedModel);
       },[selectedModel])
 
-      const parseSelectedValues = (values, model_name)=>{
-      
-        dispatch(setTypeForModel(typeForModel[model_name][values]));
-        dispatch(setVersionForModel(values));
-        const oldSelectedValues = {...selectedValues};
-        if(values == oldSelectedValues[model_name]){
-          oldSelectedValues[model_name] = [];
-        } else {
-          oldSelectedValues[model_name] = [values];
-        }
-        
-        setSelectedValues(oldSelectedValues);
-      }
 
-
-
-      const fetchValuesForModel = async(model_name, values_obj, types_obj)=>{
-          try{
-            const resp = await axios.get(MODEL_VERSION(model_name))
-            const typeObj = {};
-            const allVersions = [];
-            for(const elem of resp.data){
-              allVersions.push(elem.version);
-              typeObj[elem.version] = elem.type;
-            }
-          
-            types_obj[model_name] = typeObj;
-            values_obj[model_name] = allVersions;
-          } catch(err){ 
-            console.log(err);
-            return [];
-          }
-      }
+    
 
       useEffect(()=>{
-        if (props.allModelsData && props.allModelsData.length) {
-          const fetchData = async () => {
-            const allVersions = {};
-            const typeObj = {};
-            await Promise.all(props.allModelsData.map(async (model) => {
-              await fetchValuesForModel(model.name, allVersions, typeObj);
-            }));
-            const newDropdownValues = { ...allVersions }; // Creăm o nouă copie a obiectului pentru a evita mutarea datelor
-            setDropDownValues(newDropdownValues);
-            setTypeForModel(typeObj);
-            props.setIsDataLoading(false);
-          };
+        if (isFirstRun.current) {
           
-          fetchData();
-          const allSelectedVals = {};
-          for(const model of props.allModelsData){
-            allSelectedVals[model.name]=[];
+          if(selectedModelVersion){
+            setModelNameForVersion(selectedModelVersion);
           }
-          setSelectedValues(allSelectedVals);
-        }
-      },[props])
+          isFirstRun.current = false;
+        } 
+      },[selectedModelVersion])
 
     return(
         <div>
@@ -209,35 +195,22 @@ export const AllModelsTable = (props)=>{
                                       }}
                             onClick={()=>{handleChangeSelectedModel(row.name)}} 
                             endIcon={<CheckIcon/>}>Selected</Button>
-                                }
+                                } 
                              </StyledTableCell>
-                              <StyledTableCell align="right">
-                                  <FormControl sx={{ m: 1, width: "80%" }}>
-                                            <InputLabel id="demo-multiple-name-label">{`Model Version`}</InputLabel>
-                                            <Select
-                                              labelId="demo-multiple-name-label"
-                                              id="demo-multiple-name"
-                                              
-                                              value={selectedValues[row.name]}
-                                              onChange={(event)=>{  parseSelectedValues(event.target.value, row.name) }}
-                                              input={<OutlinedInput label="Name" />}
-                                              MenuProps={MenuProps}
-                                            >
-                                             
-                                              {dropdownValues[row.name] && dropdownValues[row.name].map((variableName) => {
-                                                 
-                                                return(
-                                                  <MenuItem
-                                                    key={variableName}
-                                                    value={variableName}
-                                                    
-                                                  >
-                                                    {variableName}
-                                                  </MenuItem>
-                                                );
-                                              })}
-                                            </Select>
-                                    </FormControl>
+                              <StyledTableCell align="center">
+                                  <div className="version-container">
+                                    { (modelNameForVersion[row.name] && modelNameForVersion[row.name].length!==0)? 
+                                      <div className="version-text-simple"> {truncateString(modelNameForVersion[row.name],10)} </div> :
+                                      <div className="version-text"> Select </div>
+                                    }
+                                  
+                                      <div  className="edit-version-btn" onClick={()=>{setSelectModelVersionDialog(true); setModelSelectedVersionName(row.name);}}>
+                                          <EditOutlinedIcon className="edit-version-btn-icon"/>
+                                      </div>
+                                    <div>
+
+                                    </div>
+                                  </div>
                               </StyledTableCell>
 
                              <StyledTableCell align="right"><Button variant="contained"   sx={{ width: 150,
@@ -254,6 +227,7 @@ export const AllModelsTable = (props)=>{
                      </Table>
               </TableContainer>    
               }     
+           {selectModelVersionDialog && <SelectModelVersion handleVersionForModel={(model_name,version)=>{handleChangeModelVersion(model_name , version)}} open={selectModelVersionDialog} modelForVersion={modelSelectedVersionName} handleClose={()=>{setSelectModelVersionDialog(false)}} /> }
         </div>
     );
 

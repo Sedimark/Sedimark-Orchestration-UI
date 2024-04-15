@@ -9,6 +9,46 @@
     padding-top:15%;
     text-align: center;
     width: 100%;
-    margin-left:50%;
+    margin-left:50%;   
+}
+.version-container{
+    display: flex;
+    padding:0px;
+    margin-left:40%;
+    /* flex-direction: row; */
+}
+
+.edit-version-btn{
+    position: fixed;
     
+    margin-left: 5%;
+    padding-left: 1px;
+    padding-right: 1px;
+    border-radius: 5px;
+    background-color: white;
+    color: #000;
+    -webkit-box-shadow: 10px 10px 5px -4px rgba(0,0,0,0.75);
+-moz-box-shadow: 10px 10px 5px -4px rgba(0,0,0,0.75);
+box-shadow: 10px 10px 5px -4px rgba(0,0,0,0.75);
+}
+
+.edit-version-btn:hover{
+    cursor: pointer;
+}
+
+.edit-version-btn-icon{
+    margin-top:2px;
+    padding-top:2px;
+}
+
+.version-text{
+    color:rgb(201, 201, 201);
+    font-style: italic;
+    margin-right: 10px;
+}
+
+.version-text-simple{
+    margin: left 10px;
+    text-align: center;
+    color:rgb(233, 233, 233);
 }

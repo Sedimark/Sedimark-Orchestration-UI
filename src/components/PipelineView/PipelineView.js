@@ -58,7 +58,6 @@ export const PipelineView = (props)=>{
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const selectedPipelineNamePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
-    const [pipelineFinished, setPipelineFinished] = useState(false);
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [isAreYouSureOpen, setIsAreYouSureOpen] = useState(false);
@@ -96,16 +95,6 @@ export const PipelineView = (props)=>{
             position: 'top-right',
         })
     };
-
-    const handleStop = () => {
-        setPipelineFinished(false);
-        setStepStatus((prevState) => {
-            return prevState.map(() => {
-                return true;
-            });
-        });
-        setActiveStep(-1);
-    }
  
     const retrievePipelineVarCount = (allPipeVars, pipeline_name)=>{
         let varCount;
@@ -170,7 +159,7 @@ export const PipelineView = (props)=>{
             blockAlert("Error occurred when starting the pipeline");
             return false;
         }
-    }, [setActiveStep, setStepStatus, setPipelineFinished, blockAlert, blockVariables, runData, pipelineNodes]);
+    }, [setActiveStep, setStepStatus, blockAlert, blockVariables, runData, pipelineNodes]);
 
     const runStep = React.useCallback( async () => {
         let counter = 0;
@@ -193,7 +182,7 @@ export const PipelineView = (props)=>{
 
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
-                        const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "pipelineFinished": true, "isPipelineStarted": false}
+                        const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "isPipelineStarted": false}
                         localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
                         resolve(data);
                     } else {
@@ -227,7 +216,6 @@ export const PipelineView = (props)=>{
 
         setStepStatus(statuses)
         setIsPipelineStarted(false);
-        setPipelineFinished(true);
 
         localStorage.removeItem(`${pipelineName}-running-steps`);
     }, [runStep, steps, pipelineName]);
@@ -254,19 +242,17 @@ export const PipelineView = (props)=>{
                         return false;
                     });
                 });
-                setPipelineFinished(true);
 
                 localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
                     "activeStep": -1,
                     "stepStatus": [false, false, false],
-                    "pipelineFinished": true,
                     "isPipelineStarted": false
                 }));
             }
         } else {
             callStep().then((_) => {});
         }
-    }, [startPipeline, setPipelineFinished, setActiveStep, setStepStatus, pipelineName, steps,
+    }, [startPipeline, setActiveStep, setStepStatus, pipelineName, steps,
         setIsPipelineStarted, callStep]);
 
     useEffect(() => {
@@ -294,10 +280,9 @@ export const PipelineView = (props)=>{
             savedState = JSON.parse(savedState);
             setStepStatus(savedState.stepStatus);
             setActiveStep(savedState.activeStep);
-            setPipelineFinished(savedState.pipelineFinished);
             setIsPipelineStarted(savedState.isPipelineStarted);
 
-            if (!savedState.pipelineFinished && savedState.isPipelineStarted) {
+            if (savedState.isPipelineStarted) {
                 setTimeout(() => {
                     runPipeline("useEffect").then((_) => {});
                 }, 2000)
@@ -306,7 +291,6 @@ export const PipelineView = (props)=>{
             localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
                 "stepStatus": stepStatus,
                 "activeStep": -1,
-                "pipelineFinished": pipelineFinished,
                 "isPipelineStarted": isPipelineStarted
             }))
         }
@@ -484,12 +468,7 @@ export const PipelineView = (props)=>{
                                             <div className="pipeline-controller pipeline-started">
                                                 <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
                                                 <p>Running...</p>
-                                            </div> : pipelineFinished ?
-                                                <div className="pipeline-controller pipeline-started">
-                                                    <p className="play-btn" onClick={handleStop}><FontAwesomeIcon icon={faTrash} /></p>
-                                                    <p>Clear Run</p>
-                                                </div>
-                                                :
+                                            </div> :
                                                 <div className="pipeline-controller">
                                                     <p className="play-btn" onClick={() => runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
                                                     <p>Start Pipeline</p>
