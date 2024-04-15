@@ -38,6 +38,7 @@ export default function TrainModelDialog(props){
     const [modelsDetailsPage, setModelsDetailPage] = React.useState(false);
     const [selectedModelData, setSelectedModelData] = React.useState({});
     const [isPredSelected, setIsPredSelected] = React.useState(false);
+    const [allModelVersions, setAllModelVersions] = React.useState({});
     const [rowName, setRowName] = React.useState("");
     const dispatch = useDispatch();
  
@@ -115,7 +116,7 @@ export default function TrainModelDialog(props){
             {!isDataLoading && allModelsPage && 
               <>
                
-                  <AllModelsTable isLoading={isDataLoading} setIsDataLoading={setIsDataLoading} setRowName={setRowName} allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected}></AllModelsTable>
+                  <AllModelsTable isLoading={isDataLoading} setIsDataLoading={setIsDataLoading} setRowName={setRowName} allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected} setAllModelVersions={setAllModelVersions}></AllModelsTable>
               </>
               } 
               {
@@ -128,7 +129,7 @@ export default function TrainModelDialog(props){
                 </div>
               }
               {
-                !isDataLoading && modelsDetailsPage && <ModelDetails handleSwitch={handleSwitch} model_data={selectedModelData} />
+                !isDataLoading && modelsDetailsPage && <ModelDetails allModelVersions={allModelVersions} handleSwitch={handleSwitch} model_data={selectedModelData} />
               }
               
               </Box>

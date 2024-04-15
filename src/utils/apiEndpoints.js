@@ -8,9 +8,9 @@ export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `https://apis.sedimark
 export const RUN_PIPELINE = "https://apis.sedimark.work/mage/pipeline/run";
 export const BLOCK_STATUS = (pipeline_id, block_name) => `https://apis.sedimark.work/mage/pipeline/status_once?pipeline_id=${pipeline_id}&block_name=${block_name}`;
 export const GET_ALL_MODELS = `https://apis.sedimark.work/sm/models`;
-export const GET_PARAMETERS_FOR_MODEL = (model_name)=>`https://apis.sedimark.work/sm/model/parameters?name=${model_name}`;
-export const GET_METRICS_FOR_MODEL = (model_name)=>`https://apis.sedimark.work/sm/model/metrics?name=${model_name}`;
-export const GET_TRAINING_METRICS_IMAGES = (model_name) => `https://apis.sedimark.work/sm/model/images?name=${model_name}`;
+export const GET_PARAMETERS_FOR_MODEL = (model_name,version)=>`https://apis.sedimark.work/sm/model/parameters?name=${model_name}&version=${version}`;
+export const GET_METRICS_FOR_MODEL = (model_name, version)=>`https://apis.sedimark.work/sm/model/metrics?name=${model_name}&version=${version}`;
+export const GET_TRAINING_METRICS_IMAGES = (model_name, version) => `https://apis.sedimark.work/sm/model/images?name=${model_name}&version=${version}`;
 export const PIPELINE_STATUS = (pipeline_id) => `https://apis.sedimark.work/mage/pipeline/batch_status?pipeline_id=${pipeline_id}`;
 export const PIPELINE_HISTORY = (pipeline_name, limit) => `https://apis.sedimark.work/mage/pipeline/history?pipeline_name=${pipeline_name}&limit=${limit}`;
 export const PREDICT_RESULTS_LINK = (model_name) => `https://ingress.sedimark.work/balancer/get_object?dataset_path=${model_name.split("_").join("-")}/map.html&forever=false`;

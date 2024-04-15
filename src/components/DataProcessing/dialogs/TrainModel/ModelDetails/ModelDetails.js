@@ -103,12 +103,12 @@ export const ModelDetails = (props) =>{
     const [hasMetricsLoaded, setHasMetricsLoaded] = React.useState(false);
     const [hasTrainingMetricsImagesLoaded, setHasTrainingMetricsImagesLoaded] = React.useState(false);
     const [metricsImages, setMetricsImages] = React.useState([]);
-  
+    const [modelVersion, setModelVersion] = React.useState("");
 
     const emptyRows =
       page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rowsParameters.length) : 0;
   
-  
+
   
     const handleChangePage = (event, newPage, menuType) =>{
       if(menuType == "parameters"){
@@ -174,7 +174,7 @@ export const ModelDetails = (props) =>{
       const fetchParametersForModel = async()=>{
        
         try{
-            const response = await axios.get(GET_PARAMETERS_FOR_MODEL(props.model_data.model_name));
+            const response = await axios.get(GET_PARAMETERS_FOR_MODEL(props.model_data.model_name, modelVersion));
             
             setHasParametersLoaded(true);
             parseParameters(response.data);
@@ -187,7 +187,7 @@ export const ModelDetails = (props) =>{
 
       const fetchMetricsForModel = async ()=>{
         try{
-          const response = await axios.get(GET_METRICS_FOR_MODEL(props.model_data.model_name));
+          const response = await axios.get(GET_METRICS_FOR_MODEL(props.model_data.model_name, modelVersion));
           parseMetrics(response.data);
           setHasMetricsLoaded(true);
         } catch(err){
@@ -198,7 +198,7 @@ export const ModelDetails = (props) =>{
 
       const fetchTrainingMetrics = async ()=>{
         try{
-          const response = await axios.get(GET_TRAINING_METRICS_IMAGES(props.model_data.model_name));
+          const response = await axios.get(GET_TRAINING_METRICS_IMAGES(props.model_data.model_name, modelVersion));
           parseImagesMetrics(response.data);
           setHasTrainingMetricsImagesLoaded(true);
         } catch(err){
@@ -226,10 +226,26 @@ export const ModelDetails = (props) =>{
 
 
       useEffect(()=>{
-        fetchParametersForModel();
-        fetchMetricsForModel();
-        fetchTrainingMetrics();
-      },[])
+        if(modelVersion.length!=0){
+          fetchParametersForModel();
+          fetchMetricsForModel();
+          fetchTrainingMetrics();
+        }
+      
+      },[modelVersion])
+
+      
+       useEffect(()=>{
+          console.log("props:");
+          console.log(props);
+        if(props.allModelVersions.hasOwnProperty(props.model_data.model_name)){
+          console.log("HELLO I AM HERE!!")
+          setModelVersion(props.allModelVersions[props.model_data.model_name]);
+        } else {
+          setModelVersion("");
+        }
+       },[props])
+
 
      
     return(

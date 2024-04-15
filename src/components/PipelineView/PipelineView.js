@@ -179,13 +179,14 @@ export const PipelineView = (props)=>{
                     });
 
                     const data = response.data;
-
+                    
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
                         const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "isPipelineStarted": false}
-                        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                        // localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
                         resolve(data);
                     } else {
+                        
                         counter += 1;
                         setTimeout(retry, 5000);
                     }
@@ -223,13 +224,14 @@ export const PipelineView = (props)=>{
     const runPipeline = React.useCallback(async (source) => {
         if (source === "button") {
             const result = await startPipeline();
-
+              
+            
             if (result) {
                 setActiveStep(steps.indexOf("running"));
                 setIsPipelineStarted(true);
                 const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)),
                     "activeStep": steps.indexOf("running"), "isPipelineStarted": true};
-
+                
                 localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
 
                 await delay(10000);
@@ -242,7 +244,8 @@ export const PipelineView = (props)=>{
                         return false;
                     });
                 });
-
+                
+            
                 localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
                     "activeStep": -1,
                     "stepStatus": [false, false, false],
@@ -266,35 +269,36 @@ export const PipelineView = (props)=>{
             }).catch((_) => {
                 blockAlert("Error loading pipeline run data!");
             })
+
+            if (isRun.current) return;
+
+            isRun.current = true;
+           
+            let savedState = localStorage.getItem(`${pipelineName[0]}-running-steps`);
+           
+            if (savedState) {
+                savedState = JSON.parse(savedState);
+                // setStepStatus(savedState.stepStatus);
+                setActiveStep(savedState.activeStep);
+                setIsPipelineStarted(savedState.isPipelineStarted);
+    
+                if (savedState.isPipelineStarted) {
+                    setTimeout(() => {
+                        runPipeline("useEffect").then((_) => {});
+                    }, 2000)
+                }
+            } else {
+                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
+                    "stepStatus": stepStatus,
+                    "activeStep": -1,
+                    "isPipelineStarted": isPipelineStarted
+                }))
+            }
         }
+
     }, [pipelineName]);
 
-    useEffect(() => {
-        if (isRun.current) return;
-
-        isRun.current = true;
-
-        let savedState = localStorage.getItem(`${pipelineName}-running-steps`);
-
-        if (savedState) {
-            savedState = JSON.parse(savedState);
-            setStepStatus(savedState.stepStatus);
-            setActiveStep(savedState.activeStep);
-            setIsPipelineStarted(savedState.isPipelineStarted);
-
-            if (savedState.isPipelineStarted) {
-                setTimeout(() => {
-                    runPipeline("useEffect").then((_) => {});
-                }, 2000)
-            }
-        } else {
-            localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
-                "stepStatus": stepStatus,
-                "activeStep": -1,
-                "isPipelineStarted": isPipelineStarted
-            }))
-        }
-    })
+  
 
     const closAreYouSure = ()=>{
         setIsAreYouSureOpen(false);

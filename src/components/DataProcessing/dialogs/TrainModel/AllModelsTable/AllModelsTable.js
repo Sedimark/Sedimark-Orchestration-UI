@@ -92,11 +92,16 @@ export const AllModelsTable = (props)=>{
       };
 
       const checkModelSelected = (model_name) =>{
-          if( Object.keys(modelNameForVersion).length == 0 ||  modelNameForVersion[model_name].length == 0){
+          if( Object.keys(modelNameForVersion).length == 0 ||  !modelNameForVersion.hasOwnProperty(model_name)){
+            blockAlert(`There is no version selected for the model: ${model_name}`)
+            return false
+          } else if(modelNameForVersion[model_name].length == 0) {
             blockAlert(`There is no version selected for the model: ${model_name}`)
             return false
           }
           return true;
+           
+          
       }
 
       const handleChangeSelectedModel = (row_name)=>{
@@ -118,6 +123,7 @@ export const AllModelsTable = (props)=>{
           oldObj[model_name] = versionObj;
           setModelNameForVersion(oldObj);
           dispatch(setSelectModelVersionStore(oldObj));
+          props.setAllModelVersions(oldObj);
       }
 
       useEffect(()=>{
