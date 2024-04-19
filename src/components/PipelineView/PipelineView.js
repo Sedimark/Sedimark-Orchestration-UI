@@ -98,8 +98,10 @@ export const PipelineView = (props)=>{
  
     const retrievePipelineVarCount = (allPipeVars, pipeline_name)=>{
         let varCount;
+        
+        
         for(const pipe of allPipeVars){
-            if(pipe["pipeline_name"] === pipeline_name){
+            if(pipe["pipeline_name"] === pipeline_name[0]){
                 return pipe["number_of_variables"];
             }
         }
@@ -107,9 +109,12 @@ export const PipelineView = (props)=>{
     }
 
     const parseVarsForPipeline = ()=>{
+        
         const theVars = [];
+        
         for(const blockVar of blockVariables){
-            if(blockVar["pipelineName"] === pipelineName){
+           
+            if(blockVar["pipelineName"][0] == pipelineName){
                 theVars.push(blockVar);
             }
         }
@@ -125,8 +130,7 @@ export const PipelineView = (props)=>{
         
         const blockVars = parseVarsForPipeline();
 
-
-        if(blockVars.length !== nrOfVars){
+        if(blockVars.length !== nrOfVars || nrOfVars == 0){
             blockAlert("Please enter a value for all the variables!");
             return;
         }
@@ -137,6 +141,8 @@ export const PipelineView = (props)=>{
             variables[value["variable_name"]] = value["value"];
         })
 
+
+        setStepStatus([true, true, true])
         setActiveStep(steps.indexOf("start"));
         try {
             await axios({
@@ -183,7 +189,7 @@ export const PipelineView = (props)=>{
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
                         const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "isPipelineStarted": false}
-                        // localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                        // localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));`
                         resolve(data);
                     } else {
                         
@@ -382,8 +388,7 @@ export const PipelineView = (props)=>{
         }
     },[selectedPipelineNamePrediction]);
 
-
-
+  
     return(
         <div>
                     <ThemeProvider theme={darkTheme}>

@@ -121,7 +121,7 @@ export default memo(({ data, isConnectable }) => {
     for (let i = 0; i < allVars.length; i++) {
       const parsedVarType = parseTheType(allVarsType[i]);
       const parsedVarDescription = parseTheDescription(allVarsType[i]);
-      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" )){
+      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" && parsedVarType != "date" )){
         continue;
       } else { 
          varObj = {

@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useRef} from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -23,12 +23,18 @@ import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
 import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { FETCH_MINIO_FILE } from '../../../../utils/apiEndpoints';
+import { format } from 'date-fns';
+import dayjs from 'dayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DateField } from '@mui/x-date-pickers/DateField';
 import {
   Unstable_NumberInput as BaseNumberInput,
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
 
 import { setBlocksVariables } from '../../../../reducers/nodeSlice';
+import { isValid, isBefore, parseISO } from 'date-fns'
 import axios from "axios";
 
 const ITEM_HEIGHT = 48;
@@ -48,6 +54,9 @@ const MenuProps = {
 export default function VariablesInput(props){
 
     const dispatch = useDispatch();
+    const dateFieldRef = useRef(null);
+    const [defaultDate, setDefaultDate] = useState("");
+    const [isDateOk, setIsDateOk] = useState(true);
     const pipelineProcessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
     const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
     const activeTab = useSelector((state)=> state.selectedView);
@@ -68,6 +77,8 @@ export default function VariablesInput(props){
     const [rulesForVariables, setRulesForVariables] = useState({});
     const [hasInputError, setHasInputError] = useState({});
     const [formHasError, setFormHasError] = useState(false);
+    
+
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
@@ -169,12 +180,11 @@ export default function VariablesInput(props){
     }
 
     function removeSlashesFromRegexString(regexString) {
-      // Check if the first character is a slash and remove it
+      
       if (regexString.startsWith('/')) {
         regexString = regexString.substring(1);
       }
-    
-      // Check if the last character is a slash and remove it
+  
       if (regexString.endsWith('/')) {
         regexString = regexString.substring(0, regexString.length - 1);
       }
@@ -263,6 +273,7 @@ export default function VariablesInput(props){
       
       let inputedValuesVariables = [...variableValues];
       let objToStore;
+      
       for(const key in variablesInput){
          objToStore = {
           block_name:props.fullNodeName,
@@ -277,14 +288,12 @@ export default function VariablesInput(props){
      
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       
-
       dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
     const handleDone = ()=>{
         props.handleClose();
         createObjToStore();
-           
     }
 
     const convertToSnakeCase = (inputString)=>{
@@ -305,6 +314,10 @@ export default function VariablesInput(props){
     setColumns(datasetColumns);
    },[datasetColumns])
 
+
+   useEffect(()=>{
+
+   },[variableValues])
 
    const createVariableInputObjects = (data, storedVars)=>{
     
@@ -338,6 +351,9 @@ export default function VariablesInput(props){
                   setRulesForVariables(newRules);
                 }
                 errorMonitorObj[value.varName] = false;
+        } else if(value.type === "date"){
+          obj[value.varName] = [];
+          errorMonitorObj[value.varName] = false;
         }
       }
      
@@ -372,7 +388,7 @@ export default function VariablesInput(props){
       const allBlockVariables = [];
 
      for(const varInstance of props.variablesData){
-        if(varInstance.type && (varInstance.type == "string" || varInstance.type == "number" || varInstance.type == "multiple_selection" || varInstance.type == "drop_down"))
+        if(varInstance.type && (varInstance.type == "string" || varInstance.type == "number" || varInstance.type == "multiple_selection" || varInstance.type == "drop_down" || varInstance.type == "date"))
         {
           allBlockVariables.push(varInstance);
         } 
@@ -390,6 +406,57 @@ export default function VariablesInput(props){
      
    }
 
+   function transformDateFormat(dateString) {
+    const parts = dateString.split("-");
+    parts[0] = parts[0].toLowerCase();
+    parts[2] = parts[2].toLowerCase();
+    
+    const transformedString = parts.join(".");
+    
+    return transformedString;
+  }
+
+   const handleDateChange = (newValue, dateFormat, type, variableName) => {
+    
+    try{
+      const newDate = new Date(newValue);
+      const currentDate = new Date();
+      const parsedDate = format(newDate, transformDateFormat(dateFormat));
+      const isNewDateBeforeOrEqualsCurrentDate = newDate.getTime() <= currentDate.getTime();
+      const errMonitor = {...hasInputError};
+      const variableInput = {...variablesInput};
+
+      setWasSomethingChanged(true);
+
+      
+      if(!isNewDateBeforeOrEqualsCurrentDate){
+        errMonitor[variableName] = true;
+      } else {
+        errMonitor[variableName] = false;
+      } 
+      setHasInputError(errMonitor);
+
+
+      let inputedValuesVariables = [...variableValues];
+      let objToStore = {
+        block_name:props.fullNodeName,
+        variable_name:variableName,
+        value:parsedDate,
+        type:type
+      }
+      
+      variableInput[variableName] = [parsedDate];
+      setVariablesInput(variableInput);
+      inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+      setVariableValues(inputedValuesVariables);
+      setIsDateOk(true);
+    } catch(err){
+      setIsDateOk(false);
+      console.log(err);
+      hasInputError[variableName] = true;
+    }
+   
+  };
    
    useEffect(()=>{
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
@@ -432,14 +499,16 @@ export default function VariablesInput(props){
   },[hasInputError])
 
 
+
+
     return (
     <div>
       <ThemeProvider theme={darkTheme}>
       <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg" fullWidth="true" >
     
             <DialogTitle> {props.fullNodeName} </DialogTitle>
-            <DialogContent sx={{textAlign:'center'}}>   
-            <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px" }}  bgcolor="#000" >
+            <DialogContent sx={{textAlign:'center'}} >   
+            <Box sx={{ height: "140%", width: '100%', padding:"10px", margin:"auto",borderRadius:"5px" }}  bgcolor="#000" >
             {!isDataLoading && 
               <>
               <div className='section-title'>
@@ -528,6 +597,25 @@ export default function VariablesInput(props){
                       </div>
                     )
                   }
+                   else if(value.type == "date"){
+                    
+                    return(
+                      <div className="date-container">
+                         <LocalizationProvider dateAdapter={AdapterDayjs} >  
+                            <DateField
+                              ref={dateFieldRef}
+                              label={`${value.varName}`}
+                              defaultValue={variablesInput[value.varName].length!=0? dayjs(variablesInput[value.varName][0]) : dayjs(variablesInput[value.varName][0])}
+                              format={`${value.format}`}
+                              sx={{width:"66%", mt:2}}
+                              
+                              onChange={(evt)=>{handleDateChange(evt,value.format,"date",value.varName)}}
+                            />
+                         </LocalizationProvider>       
+                         {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> }        
+                      </div>
+                    )
+                  }
                 })}
                 </>
               } 
@@ -551,7 +639,7 @@ export default function VariablesInput(props){
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>
-              <Button  disabled={!wasSomethingChanged || formHasError} onClick={()=>{handleDone()}}>Done</Button>
+              <Button  disabled={!wasSomethingChanged || formHasError } onClick={()=>{handleDone()}}>Done</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

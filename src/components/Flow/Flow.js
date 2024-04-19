@@ -336,6 +336,7 @@ function Flow(props) {
 
   const checkAndSeeIfVariablesPresent = (allVars, pipeline_name)=>{
       if (allVars === undefined) return false;
+      
       for(const pipeVar of allVars){
         if(pipeVar["pipeline_name"] === pipeline_name){
           return true;
@@ -346,6 +347,7 @@ function Flow(props) {
   }
 
   const parseAndCountVariables = (pipeline_data, pipeline_name)=>{
+
     let nrOfVars = 0;
     for(const pipe_data of pipeline_data){
        nrOfVars += getVariablesCount(pipe_data.configuration);
@@ -357,8 +359,8 @@ function Flow(props) {
     }
 
 
-
-    if(checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
+    
+    if(!checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
       const newVar = [...blockVariablesCount, variablesForPipeline];
       dispatch(setPipelineNumberOfVariables(newVar));
     }

@@ -236,10 +236,9 @@ export const ModelDetails = (props) =>{
 
       
        useEffect(()=>{
-          console.log("props:");
-          console.log(props);
+       
         if(props.allModelVersions.hasOwnProperty(props.model_data.model_name)){
-          console.log("HELLO I AM HERE!!")
+          
           setModelVersion(props.allModelVersions[props.model_data.model_name]);
         } else {
           setModelVersion("");

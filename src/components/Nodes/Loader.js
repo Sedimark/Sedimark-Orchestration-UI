@@ -151,7 +151,7 @@ export default memo(({ data, isConnectable }) => {
       
       const parsedJSONVar = parseJSONVar(allVarsType[i]);
     
-      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down"].includes(parsedJSONVar["type"])) {
+      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
           ...parsedJSONVar
@@ -171,6 +171,7 @@ export default memo(({ data, isConnectable }) => {
 
   useEffect(() => {
     processVariablesValues(variablesValues);
+
   }, [variablesValues])
 
  

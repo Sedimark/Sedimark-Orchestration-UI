@@ -30,3 +30,15 @@
     font-size: 1.1rem;
     color:red;
 }
+
+.date-container{
+    width: 90%;
+    margin: auto;
+}
+
+.date-localization{
+    width: 40%;
+    margin:auto;
+    padding:10px;
+    margin-bottom: 10px;
+}
