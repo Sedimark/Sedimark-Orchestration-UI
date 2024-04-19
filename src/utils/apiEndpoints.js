@@ -1,5 +1,5 @@
 const {DEVELOPMENT} = process.env
-const base_url = DEVELOPMENT ? "https://apis.sedimark.work" : "http://ingress-nginx-controller.default.svc.cluster.local";
+const base_url = "http://ingress-nginx-controller.default.svc.cluster.local";
 
 export const FETCH_PIPELINES = `${base_url}/mage/pipelines`;
 export const FETCH_MAGE_AI_OAUTH_KEY = `https://mage.sedimark.work/api/sessions`;
