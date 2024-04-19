@@ -130,7 +130,7 @@ export const PipelineView = (props)=>{
         
         const blockVars = parseVarsForPipeline();
 
-        if(blockVars.length !== nrOfVars || nrOfVars == 0){
+        if(blockVars.length !== nrOfVars || (blockVars.length == 0 && nrOfVars!=0)){
             blockAlert("Please enter a value for all the variables!");
             return;
         }
@@ -189,7 +189,7 @@ export const PipelineView = (props)=>{
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
                         const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "isPipelineStarted": false}
-                        // localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));`
+                        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
                         resolve(data);
                     } else {
                         
@@ -279,9 +279,17 @@ export const PipelineView = (props)=>{
             if (isRun.current) return;
 
             isRun.current = true;
+            
+            let savedState;
+           if(Array.isArray(pipelineName)){
+            savedState = localStorage.getItem(`${pipelineName[0]}-running-steps`);
+           } else {
+            savedState = localStorage.getItem(`${pipelineName}-running-steps`);
+           }
            
-            let savedState = localStorage.getItem(`${pipelineName[0]}-running-steps`);
-           
+            console.log("savedState:");
+            console.log(savedState);
+            console.log(pipelineName)
             if (savedState) {
                 savedState = JSON.parse(savedState);
                 // setStepStatus(savedState.stepStatus);
