@@ -133,6 +133,7 @@ export const nodeSlice = createSlice({
             state.selectedPipelineTrain = [action.payload];
         },
         addPipelinePreprocessing:(state, action)=>{
+           
             state.selectedPipelineDataPreprocessing = [];
             state.selectedPipelineDataPreprocessing = [action.payload];
         },
@@ -148,6 +149,7 @@ export const nodeSlice = createSlice({
         },
 
         setSelectedPipelineNamePreprocessing:(state, action)=>{
+         
             state.selectedPipelineNameDataPreprocessing = action.payload;
         },
         setSelectedView:(state,action)=>{

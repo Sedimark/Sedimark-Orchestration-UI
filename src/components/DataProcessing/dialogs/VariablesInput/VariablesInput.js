@@ -56,7 +56,7 @@ export default function VariablesInput(props){
     const dispatch = useDispatch();
     const dateFieldRef = useRef(null);
     const [defaultDate, setDefaultDate] = useState("");
-    const [isDateOk, setIsDateOk] = useState(true);
+    const [isDateOk, setIsDateOk] = useState(false);
     const pipelineProcessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
     const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
     const activeTab = useSelector((state)=> state.selectedView);
@@ -77,6 +77,7 @@ export default function VariablesInput(props){
     const [rulesForVariables, setRulesForVariables] = useState({});
     const [hasInputError, setHasInputError] = useState({});
     const [formHasError, setFormHasError] = useState(false);
+    const [hasDate, setHasDate] = useState(false);
     
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
@@ -227,6 +228,8 @@ export default function VariablesInput(props){
         variable_name:variableName,
         value:value,
       }
+
+      
   
       const newValue = {...variablesInput};
       newValue[variableName] = value;
@@ -420,9 +423,12 @@ export default function VariablesInput(props){
     
     try{
       const newDate = new Date(newValue);
-      const currentDate = new Date();
+      const currentDate = new Date("2100-01-01");
+      const januaryFirst1900 = new Date('1899-12-31');
       const parsedDate = format(newDate, transformDateFormat(dateFormat));
-      const isNewDateBeforeOrEqualsCurrentDate = newDate.getTime() <= currentDate.getTime();
+      const isNewDateAfter1900 = newDate.getTime() >= januaryFirst1900.getTime();
+      const isNewDateBeforeOrEqualsCurrentDate = isNewDateAfter1900 && newDate.getTime() <= currentDate.getTime();
+
       const errMonitor = {...hasInputError};
       const variableInput = {...variablesInput};
 
@@ -431,11 +437,13 @@ export default function VariablesInput(props){
       
       if(!isNewDateBeforeOrEqualsCurrentDate){
         errMonitor[variableName] = true;
+        return;
       } else {
         errMonitor[variableName] = false;
       } 
       setHasInputError(errMonitor);
 
+     
 
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
@@ -445,12 +453,15 @@ export default function VariablesInput(props){
         type:type
       }
       
+
       variableInput[variableName] = [parsedDate];
       setVariablesInput(variableInput);
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
       setIsDateOk(true);
+
     } catch(err){
+      
       setIsDateOk(false);
       console.log(err);
       hasInputError[variableName] = true;
@@ -499,7 +510,30 @@ export default function VariablesInput(props){
   },[hasInputError])
 
 
+  const checkDateOk = (varName)=>{
+    
+    let wasFound = false;
+    for(const blockVar of blocksVariablesStored){
+      if(blockVar["variable_name"] == varName){
+        wasFound = true;
+      }
+    }
+    return wasFound;
+  }
 
+ useEffect(()=>{
+
+  for(const variable_pur of purifiedVariables){
+    if(variable_pur.type == "date"){
+      setHasDate(true);
+    }
+    if(!checkDateOk(variable_pur.varName)){
+      setIsDateOk(false);
+      return;
+    }
+  }
+   setIsDateOk(true);
+ },[purifiedVariables])
 
     return (
     <div>
@@ -576,7 +610,7 @@ export default function VariablesInput(props){
                           <Select
                             labelId="demo-multiple-name-label"
                             id="demo-multiple-name"
-                            multiple
+                            
                             value={variablesInput[value.varName]}
                             onChange={(event)=>{setWasSomethingChanged(true); handleChange(event,"drop_down",value.varName) }}
                             input={<OutlinedInput label="Name" />}
@@ -639,7 +673,7 @@ export default function VariablesInput(props){
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>
-              <Button  disabled={!wasSomethingChanged || formHasError } onClick={()=>{handleDone()}}>Done</Button>
+              <Button  disabled={!wasSomethingChanged || formHasError || (hasDate && !isDateOk)} onClick={()=>{handleDone()}}>Done</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

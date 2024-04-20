@@ -20,6 +20,7 @@ export default function SelectModelVersion(props) {
   const [selectedPipeline,setSelectedPipeline] = useState("");
   const [allVersions, setAllVersions] = useState([]);
   const [age, setAge] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(true);
   const [selectedVersion, setSelectedVersion] = useState("");
 
   const handleChange = (event) => {
@@ -50,9 +51,11 @@ export default function SelectModelVersion(props) {
       for(const elem of resp.data){
         allVersions.push(elem.version);
       }
+      setIsLoading(false);
       setAllVersions(allVersions);
     
     } catch(err){ 
+      setIsLoading(false);
       console.log(err);
     }
 }
@@ -83,7 +86,16 @@ export default function SelectModelVersion(props) {
             </DialogTitle>
             <DialogContent>
             <DialogContentText id="alert-dialog-description" style={{"padding":"20px", width:"300px"}}>
-              <div style={{"paddingLeft":"40px","paddingRight":"40px"}}>
+            {
+                      isLoading &&
+                      <div className="loading-circle-container">
+                        <div className="loading-circle"></div>
+                        <p style={{"textAlign":"center", "paddingTop":"10px"}}>Loading...</p>
+                      </div>
+              }
+              {
+                !isLoading &&
+                <div style={{"paddingLeft":"40px","paddingRight":"40px"}}>
                 <Select
                   labelId="demo-simple-select-label"
                   id="demo-simple-select"
@@ -99,6 +111,8 @@ export default function SelectModelVersion(props) {
                   })}
                 </Select>
               </div>
+              }
+              
             </DialogContentText>
             </DialogContent>
             <DialogActions>

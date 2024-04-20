@@ -28,8 +28,9 @@ import axios from "axios";
 import {setSelectedTab, addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineName, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { setDatasetColumns, setDatasetInfo, setDatasetColumnNames, setSelectedView } from '../../../../reducers/nodeSlice';
+import { setDatasetColumns, setBlocksVariables, setDatasetInfo, setDatasetColumnNames, setSelectedView } from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import { useEdges } from 'reactflow';
 
 
 
@@ -37,6 +38,7 @@ export default function PipelineSelectDialog(props) {
 
   
   const dispatch = useDispatch();
+  const storedVariables = useSelector((state)=>state.blocksVariables);
   const nodes = useSelector((state)=>state.nodes);
   const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
   const pipelinePreprocessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
@@ -137,8 +139,27 @@ const parseBucketName = (inputString)=>{
 
   const addCorespondingPipeline = ()=>{
    
+  
+
     if(isLoading){
         return;
+    }
+
+    if(selectedPipeline){
+      let pipeline;
+      if(Array.isArray(selectedPipeline)) {
+        pipeline = selectedPipeline;
+      } else {
+        pipeline = selectedPipeline
+      }
+      const filteredVariables = [];
+
+      for(const variable of storedVariables){
+        if(variable["pipelineName"][0] !== pipeline){
+            filteredVariables.push(variable);
+        }
+      }
+      dispatch(setBlocksVariables(filteredVariables));
     }
 
     if(props.pipelineType === "train"){
@@ -151,12 +172,10 @@ const parseBucketName = (inputString)=>{
       if(pipelineTrain.length !== 0 && pipelineTrain[0] !== selectedPipeline)
       {  
         dispatch(addPipelineTrain(selectedPipeline));
-        dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
         dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
       } else if(pipelineTrain.length === 0 ){
         dispatch(addPipelineTrain(selectedPipeline));
-        dispatch(setSelectedPipelineName(selectedPipeline));
         dispatch(setSelectedPipelineNameTrain(selectedPipeline));
         dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
       } 
@@ -170,12 +189,11 @@ const parseBucketName = (inputString)=>{
         if(pipelinePreprocessing.length !== 0 && pipelinePreprocessing[0] !== selectedPipeline)
         {
           dispatch(addPipelinePreprocessing(selectedPipeline));
-          dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
           dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
         } else if(pipelinePreprocessing.length === 0 ){
+          
           dispatch(addPipelinePreprocessing(selectedPipeline));
-          dispatch(setSelectedPipelineName(selectedPipeline));
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
           dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
         }
@@ -196,7 +214,7 @@ const parseBucketName = (inputString)=>{
   const handleDialogTitle = ()=>{
     if(props.pipelineType === "data_preprocessing"){
       setDialogName("Pipelines - preprocessing");
-      setPipeline([pipelinePreprocessing]);
+      setPipeline(pipelinePreprocessing);
     } else if (props.pipelineType === "train"){
       setDialogName("Pipelines - train");
       setPipeline(pipelineTrain);
@@ -205,11 +223,19 @@ const parseBucketName = (inputString)=>{
 
   const checkIfPipelineIsSelected = (all_pipelines, the_pipeline) => {
     let pipelineSelected = false;
-
+    
+    
     for(const pipeline of all_pipelines){
-      if(pipeline.name === the_pipeline){
-        pipelineSelected = true;
+      if(Array.isArray(the_pipeline)){
+        if(pipeline.name === the_pipeline[0]){
+          pipelineSelected = true;
+        }
+      } else {
+        if(pipeline.name === the_pipeline){
+          pipelineSelected = true;
+        }
       }
+      
     }
     return pipelineSelected;
   }
@@ -230,10 +256,13 @@ const parseBucketName = (inputString)=>{
 
 
   React.useEffect(()=>{
+    let thePipeline = pipeline;
+    
     setOnlyOneOptionSelected(!checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
     setFoundPipeline(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
-  },[filteredPipelines])
 
+    
+  },[filteredPipelines])
 
 
   return (
@@ -316,7 +345,7 @@ const parseBucketName = (inputString)=>{
                                  }
                                  disablePadding
                                > 
-                                 <ListItemButton onClick={()=>{handleRadioClick(value.name)}}>
+                                 <ListItemButton onClick={()=>{ if(value.name !== pipeline[0]) { handleRadioClick(value.name)}}}>
                                    <ListItemAvatar>
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>

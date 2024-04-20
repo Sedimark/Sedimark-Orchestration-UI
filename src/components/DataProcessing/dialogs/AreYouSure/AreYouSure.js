@@ -26,8 +26,14 @@ export default function AreYouSure(props) {
 
   const deleteVariablesForPipeline = ()=>{
     if(props.pipelineName){
-      const pipeline = props.thePipelineName[0];
+      let pipeline;
+      if(Array.isArray(props.thePipelineName)) {
+        pipeline = props.thePipelineName[0];
+      } else {
+        pipeline = props.thePipelineName;
+      }
       const filteredVariables = [];
+
       for(const variable of storedVariables){
         if(variable["pipelineName"][0] !== pipeline){
             filteredVariables.push(variable);
@@ -40,8 +46,7 @@ export default function AreYouSure(props) {
   const deleteSelectedPipeline = () => {
 
     if(props.pipelineType == "training"){
-
-      dispatch(setSelectedPipelineName(""));
+      
       dispatch(clearPipelineTrain());
       dispatch(setSelectedPipelineNameTrain(""));
       props.handleClose();

@@ -57,6 +57,7 @@ export const PipelineView = (props)=>{
     const pipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const selectedPipelineNamePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
+    const pipelinePreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -99,19 +100,23 @@ export const PipelineView = (props)=>{
     const retrievePipelineVarCount = (allPipeVars, pipeline_name)=>{
         let varCount;
         
-        
+        if(Array.isArray(pipeline_name)){
+            pipeline_name = pipeline_name[0];        
+        }
+
+        console.log()
+
         for(const pipe of allPipeVars){
-            if(pipe["pipeline_name"] === pipeline_name[0]){
+            
+            if(pipe["pipeline_name"] === pipeline_name){
                 return pipe["number_of_variables"];
             }
         }
         return 0;
     }
 
-    const parseVarsForPipeline = ()=>{
-        
+    const parseVarsForPipeline = ()=>{    
         const theVars = [];
-        
         for(const blockVar of blockVariables){
            
             if(blockVar["pipelineName"][0] == pipelineName){
@@ -126,8 +131,8 @@ export const PipelineView = (props)=>{
     const startPipeline = React.useCallback(async () => {
 
         let nrOfVars = 0;
-        nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
         
+        nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);        
         const blockVars = parseVarsForPipeline();
 
         if(blockVars.length !== nrOfVars || (blockVars.length == 0 && nrOfVars!=0)){
@@ -287,9 +292,6 @@ export const PipelineView = (props)=>{
             savedState = localStorage.getItem(`${pipelineName}-running-steps`);
            }
            
-            console.log("savedState:");
-            console.log(savedState);
-            console.log(pipelineName)
             if (savedState) {
                 savedState = JSON.parse(savedState);
                 // setStepStatus(savedState.stepStatus);
@@ -380,11 +382,18 @@ export const PipelineView = (props)=>{
         if(props.pipelineType === "prediction"){
             dispatch(setSelectedTrainedModel(""));
         }
+        
+        setIsPipelineStarted(false);
+        setActiveStep(-1);
+        setStepStatus([true, true,true])
         dispatch(setIsPredictedSelected(false));
     }
 
     useEffect(()=>{
         selectPipelineBasedOffParameters(props.pipelineType);
+        setIsPipelineStarted(false);
+        setActiveStep(-1);
+        setStepStatus([true, true,true])
     },[pipelineNameTrain, pipelineNamePreprocessing]);
  
     useEffect(()=>{
@@ -394,7 +403,12 @@ export const PipelineView = (props)=>{
         } else if( props.pipelineType === "prediction" ) {
             setPipelineName("");
         }
+
+        setIsPipelineStarted(false);
+        setActiveStep(-1);
+        setStepStatus([true, true,true])
     },[selectedPipelineNamePrediction]);
+
 
   
     return(
