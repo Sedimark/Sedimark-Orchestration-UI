@@ -160,9 +160,9 @@ export const PipelineView = (props)=>{
                     "run_id": runData.id,
                     "token": runData.token,
                     "variables" : variables,
-                    "model_type" : typeForTheModel,
-                    "model_name" : selectedTrainedModel,
-                    "model_version" : versionForModel
+                    // "model_type" : typeForTheModel,
+                    // "model_name" : selectedTrainedModel,
+                    // "model_version" : versionForModel
                 }
             })
             return true;
@@ -178,7 +178,7 @@ export const PipelineView = (props)=>{
         return new Promise((resolve) => {
             const retry = async () => {
                 if (isResolved) return;
-                if (counter === 10) {
+                if (counter === 100) {
                     isResolved = true;
                     resolve("failed");
                     return;
