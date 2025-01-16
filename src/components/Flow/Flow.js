@@ -2,10 +2,10 @@ import React, { useCallback,useState, useMemo, useEffect } from 'react';
 import style from "./Flow.css";
 import ReactFlow, { MiniMap,Background, Controls, useNodesState, useEdgesState, addEdge, applyEdgeChanges, applyNodeChanges } from 'reactflow';
 import Loader from '../Nodes/Loader.js';
-import 'reactflow/dist/style.css';
 import Transformer from '../Nodes/Transformer.js';
 import Exporter from '../Nodes/Exporter.js';
 import Custom from '../Nodes/Custom.js';
+import 'reactflow/dist/style.css';
 import {formatString} from "../../utils/formatString.js";
 import {useSelector} from "react-redux/es/hooks/useSelector";
 import toast from 'react-hot-toast';
@@ -26,11 +26,14 @@ import axios from "axios";
 
 function Flow(props) {
   
+  const selectedTab = useSelector((state)=> state.selectedTab);
   const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const blockVariablesCount = useSelector((state)=> state.pipelineNrOfVariables);
+  const storedPipelineBlocksInfo = useSelector((state)=> state.pipelinesBlocks);
   const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
+  const selectedPipelineStreaming = useSelector((state)=> state.selectedPipelineStreaming);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
   const edgeTypes = useMemo(() => ({ }), []);
   const initialNodes = []; 
@@ -43,6 +46,7 @@ function Flow(props) {
   const [currentBlockVariables, setCurrentBlockVariables] = useState({});
   const dispatch = useDispatch();
   const [selectedPipeline, setSelectedPipeline] = useState([]);
+ 
   let edgePlaced = false;
   
   const onNodesChange = useCallback(
@@ -138,7 +142,7 @@ function Flow(props) {
     for(let nodeType of nodeData){
       
       const nodeData = nodeType.config;
-      nodeData.pipelineName = pipeline_name[0];
+      nodeData.pipelineName = selectedPipeline[0];
   
       
       if(nodeType.type === "Loader"){
@@ -146,7 +150,7 @@ function Flow(props) {
         newNodes.push({
           id: nodeType.node_id,
           type: 'loader',
-          data: { label: 'Loader', config:nodeData , name: nodeType.node_name},
+          data: { label: 'Loader', config:nodeData , name: nodeType.node_name, pipelineType: props.pipelineType},
           position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
        });
       
@@ -187,6 +191,8 @@ function Flow(props) {
         
       } 
     }
+
+  
     
     dispatch(setStoredNodes(newNodes));
     setNodes(newNodes);
@@ -223,7 +229,9 @@ function Flow(props) {
     setEdges([]);
     const allNodes = [];
     const connectionEdges = [];
+
     for(const block of blocks){
+     
       if(block.type === "data_loader"){
         allNodes.push({type:"Loader", node_id:block.name.replace(/ /g, "_"),config:block.configuration, node_name: formatString(block.name), upstream_blocks: block.upstream_blocks, downstream_blocks: block.downstream_blocks});
         connectionEdges.push({
@@ -254,11 +262,12 @@ function Flow(props) {
           downstream_blocks:block.downstream_blocks
         });
       }
-    }
 
+    }
     setPipelineEdges([...connectionEdges]);
     setPipelineEdges(connectionEdges);
    
+ 
     addNodes(allNodes, pipeline_name);
   }
 
@@ -320,17 +329,26 @@ function Flow(props) {
   const getVariablesCount = (pipe_obj) => {
     let variableCount = 0;
     const allVarsData = Object.values(pipe_obj);
+    const allVarsKeys = Object.keys(pipe_obj)
+
+    let i = 0;
 
     for(const varData of allVarsData){
       let condition = false;
-      try{
-        const decodedJsonObjData = JSON.parse(varData);
+      if(typeof pipe_obj[allVarsKeys[i]] === 'object' && pipe_obj[allVarsKeys[i]] !== null){
         variableCount++;
-      } catch(err){
-        condition = true;
+      } else {
+        try{
+          const _ = JSON.parse(varData);
+          variableCount++;
+        } catch(err){
+          condition = true;
+        }
+        if (condition) continue;
       }
-      if (condition) continue;
+      i++;
     }
+    
     return variableCount;
   }
 
@@ -348,7 +366,9 @@ function Flow(props) {
 
   const parseAndCountVariables = (pipeline_data, pipeline_name)=>{
 
+
     let nrOfVars = 0;
+    
     for(const pipe_data of pipeline_data){
        nrOfVars += getVariablesCount(pipe_data.configuration);
     }
@@ -358,7 +378,7 @@ function Flow(props) {
       number_of_variables: nrOfVars
     }
 
-
+  
     
     if(!checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
       const newVar = [...blockVariablesCount, variablesForPipeline];
@@ -373,6 +393,7 @@ function Flow(props) {
    
     try{
       const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+
       parseAndCountVariables(resp.data.pipeline.blocks, pipeline_name);
       processAndPlaceNodes(resp.data.pipeline.blocks, pipeline_name);
       setIsPipelineLoading(false);
@@ -410,7 +431,8 @@ function Flow(props) {
       dispatch(setSelectedPipelineNamePrediction(resp.data.name));
       dispatch(setSelectedPipelinePrediction([resp.data.name]));
     }catch(err){
-      if(model.length !== 0){
+
+      if(model.length !== 0 && selectedTab.tabSelected==="3"){
         blockAlert("No pipeline found for the model!");
       }
       setSelectedPipeline([]);
@@ -426,10 +448,14 @@ function Flow(props) {
    },[pipelineEdges])
 
   useEffect(()=>{
+    
     verifyAddedEdgeIsOk();
     setTheEdges();
     processAndPlaceEdges();
+  
   },[edges])
+
+
 
   useEffect(()=>{
     if(wereEdgesPlaced){
@@ -456,6 +482,7 @@ function Flow(props) {
       setNodes([]);
       setEdges([]);
     }
+    
   },[selectedPipeline])
 
    
@@ -472,7 +499,9 @@ function Flow(props) {
       setSelectedPipeline(selectedPipelineTrain);
     } else if (pipeline_type === "data_preprocessing"){
       setSelectedPipeline(selectedPipelineDataPreProcessing);
-    } 
+    } else if (pipeline_type === "streaming"){
+      setSelectedPipeline(selectedPipelineStreaming);
+    }
   }
 
 

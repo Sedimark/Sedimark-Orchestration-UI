@@ -20,6 +20,8 @@ import VariablesInput from '../DataProcessing/dialogs/VariablesInput/VariablesIn
  
 export default memo(({ data, isConnectable }) => {
 
+  const allRunningPipelines = useSelector((state)=> state.runningPipelines);
+  const [pipelineIsRunning, setPipelineIsRunning] = useState(false);
   const variablesValues = useSelector((state)=> state.blocksVariables);
   const [variablesPresent, setVariablesPresent] = useState(false);
   const [nodeName, setNodeName] = useState("");
@@ -47,7 +49,7 @@ export default memo(({ data, isConnectable }) => {
       border: 0,
     },
   }));
-
+ 
 
   const parseString = (str)=>{
     if(str.length > 20){
@@ -74,8 +76,8 @@ export default memo(({ data, isConnectable }) => {
   const processVariablesValues = (varsVals)=>{
     const storedVars = [];
     for(let val of varsVals){
-      if(val.block_name == fullNodeName){
-        if(val.type == "multiple"){
+      if(val.block_name === fullNodeName){
+        if(val.type === "multiple"){
            storedVars.push(
           {
             "variable_name":val.variable_name,
@@ -108,8 +110,8 @@ export default memo(({ data, isConnectable }) => {
     
     
   
-    if(Object.keys(data.config).length == 1){
-      if(data.config[Object.keys(data.config)[0]] == null){
+    if(Object.keys(data.config).length === 1){
+      if(data.config[Object.keys(data.config)[0]] === null){
         setVariablesPresent(false);
       }
     }
@@ -121,7 +123,7 @@ export default memo(({ data, isConnectable }) => {
     for (let i = 0; i < allVars.length; i++) {
       const parsedVarType = parseTheType(allVarsType[i]);
       const parsedVarDescription = parseTheDescription(allVarsType[i]);
-      if(parsedVarType == null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" && parsedVarType != "date" )){
+      if(parsedVarType === null || (parsedVarType != "multiple_selection" && parsedVarType != "string" && parsedVarType != "number" && parsedVarType != "date" )){
         continue;
       } else { 
          varObj = {
@@ -164,7 +166,7 @@ export default memo(({ data, isConnectable }) => {
   const getStoredVariableValue = (varName)=>{
   
     for(const variable of variablesValues){
-      if(variable.variable_name == varName){
+      if(variable.variable_name === varName){
         if(Array.isArray(variable.value)){
           return parseArray(variable.value);
         } else {
@@ -175,6 +177,21 @@ export default memo(({ data, isConnectable }) => {
     return "";
   }
 
+  useEffect(()=>{
+
+    if(data && allRunningPipelines){
+      let found = false;
+      for(const pipeline of allRunningPipelines){
+        if(pipeline == data.config.pipelineName){
+          found = true;
+          setPipelineIsRunning(true);
+        }
+      }
+      if(!found){
+        setPipelineIsRunning(false);
+      }
+    }
+  },[allRunningPipelines, data])
 
   return (
     <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #000", backgroundColor:"#d6d6d4", minHeight:"200px" }}>
@@ -215,7 +232,7 @@ export default memo(({ data, isConnectable }) => {
                 </TableContainer>
               
               <div className='custom-node-bottom-toolbox'>
-                  <button className='custom-node-toolbox-btn'onClick={()=>{openVariablesEditMenu()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+                  <button className='custom-node-toolbox-btn'onClick={()=>{openVariablesEditMenu()}} disabled={pipelineIsRunning}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
               </div>
           </div>
          }

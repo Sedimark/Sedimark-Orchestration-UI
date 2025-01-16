@@ -1,0 +1,18 @@
+.table-cell {
+    border-left: 1px solid #8c8c8c;
+  }
+  .table-cell:last-child {
+    border-left: none;
+  }
+
+  .loading-text-see-variables{
+    margin-left:47%;
+    margin-top:4  0px;
+  }
+
+  .block-no-variables-container{
+    margin-top:20px;
+    padding:10px;
+    text-align: center;
+    font-size: 1.4rem;
+  }

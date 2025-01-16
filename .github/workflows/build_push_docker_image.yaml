@@ -1,0 +1,30 @@
+name: Create Package
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  push:
+    runs-on: sefl-hosted
+    permissions:
+      packages: write
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Kaniko build & push
+        uses: aevea/action-kaniko@master
+        with:
+          image: orchestrator
+          cache: "true"
+          tag: development
+          path: .
+          debug: true
+          registry: ghcr.io
+          password: ${{ secrets.GITHUB_TOKEN }}

@@ -5,7 +5,6 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Box from '@mui/material/Box';
-import styles from "./TrainModelDialog.css";
 import {useDispatch} from 'react-redux';
 import axios from "axios";
 import { AllModelsTable } from './AllModelsTable/AllModelsTable';
@@ -15,18 +14,11 @@ import { GET_ALL_MODELS} from '../../../../utils/apiEndpoints';
 import {setSelectedTrainedModel} from "../../../../reducers/nodeSlice";
 import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedTab,} from '../../../../reducers/nodeSlice';
 import { useSelector } from "react-redux";
-
+import styles from "./TrainModelDialog.css";
 
 const ITEM_HEIGHT = 48;
 const ITEM_PADDING_TOP = 8;
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-};
+
  
 
 export default function TrainModelDialog(props){
@@ -39,6 +31,7 @@ export default function TrainModelDialog(props){
     const [selectedModelData, setSelectedModelData] = React.useState({});
     const [isPredSelected, setIsPredSelected] = React.useState(false);
     const [allModelVersions, setAllModelVersions] = React.useState({});
+    const [hasError, setHasError] = React.useState(false);
     const [rowName, setRowName] = React.useState("");
     const dispatch = useDispatch();
  
@@ -74,11 +67,14 @@ export default function TrainModelDialog(props){
     const fetchAllModelsAndSet = async()=>{
 
       try{
-        const response = await axios.get(GET_ALL_MODELS);
-    
-        setAllModelsData(response.data);
+        // const response = await axios.get(GET_ALL_MODELS);
+
+        const response = await axios.get("dasdsadas");
+        // setAllModelsData(response.data);
         setIsDataLoading(false);
+        setHasError(false);
       } catch(err){
+        setHasError(true);
         setIsDataLoading(false);
       }
       
@@ -108,7 +104,7 @@ export default function TrainModelDialog(props){
     return ( 
     <div>
       <ThemeProvider theme={darkTheme}>
-      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="true" >
+      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth={true} >
       
           <DialogTitle> Predict </DialogTitle>
             <DialogContent sx={{textAlign:'center'}}>   
@@ -116,7 +112,7 @@ export default function TrainModelDialog(props){
             {!isDataLoading && allModelsPage && 
               <>
                
-                  <AllModelsTable isLoading={isDataLoading} setIsDataLoading={setIsDataLoading} setRowName={setRowName} allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected} setAllModelVersions={setAllModelVersions}></AllModelsTable>
+                  <AllModelsTable hasError={hasError} isLoading={isDataLoading} setIsDataLoading={setIsDataLoading} setRowName={setRowName} allModelsData={allModelsData} handleSwitch={handleSwitch} selectModel={setSelectedModelData} setIsPredSelected={setIsPredSelected} setAllModelVersions={setAllModelVersions}></AllModelsTable>
               </>
               } 
               {

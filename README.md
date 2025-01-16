@@ -1,4 +1,5 @@
 # Getting Started with Create React App
+![Docker Workflow](https://github.com/DanielS01ss/SediMarkOrchestration/actions/workflows/docker-images.yml/badge.svg)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 

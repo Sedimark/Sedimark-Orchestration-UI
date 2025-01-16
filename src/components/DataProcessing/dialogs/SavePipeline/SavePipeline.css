@@ -1,0 +1,135 @@
+.pipeline-save-steps{
+    padding:10px;
+    margin-top:20px;
+}
+
+.pipeline-being-created-text{
+    margin-top:5px;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color:#fff;
+    width: 500px;
+}
+
+.pipeline-save-step{
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left:10px;
+    padding-right: 10px;
+    background-color: gray;
+    border-radius: 50%;
+    color:#fff;
+}
+
+.pipeline-save-step-container{
+    margin-top:10px;
+}
+
+.pipeline-save-step-container-done{
+    margin-top:20px;
+    font-weight: bold;
+    color:#fff;
+    font-size: 1.3rem;
+}
+
+.step-not-fullfield{
+    background-color: gray;
+}
+
+.step-fullfilling{
+    background-color: green;
+}
+
+.pipeline-name-text-field-container{
+    width: 500px;
+    text-align: center;
+    padding:10px;
+    margin-left: 20%;
+    padding-bottom: 20px;
+}
+
+.close-button-save-pipeline{
+    margin-left: 30px;
+    position: relative;
+    float:right;
+    font-size: 1.3rem;
+    bottom:5px;
+    color:#fff;
+    width: 30px;
+    padding-left:9px;
+    padding-right:10px;
+    border-radius: 5px;
+    font-weight: bold;
+    background-color: #000;
+}
+
+.close-button-save-pipeline:hover{
+    cursor: pointer;
+}
+
+.info-icon-container{
+    margin-top:20px;
+    margin-bottom: 5px;
+}
+
+.center-loader{
+    margin-left:50px;
+}
+
+.loader-container{
+    padding-left:40%;
+    position: relative;
+    margin-bottom: 30px;
+    margin-top:10px;
+}
+
+.pipeline-creation-failed{
+    font-size: 1.4rem;
+    text-align: center;
+    margin:auto;
+   
+    
+}
+
+.pipeline-failed-icon{
+    padding-top:10px;
+    padding-left:20px;
+    padding-right: 20px;
+    font-weight: bold;
+    font-size: 1.7rem;
+    color:red;
+
+}
+
+.pipeline-name-container{
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+}
+
+.top-step{
+    margin-top: 40px;
+}
+
+.there-was-an-error-icon{
+    margin-left: 50%;
+    margin-top:10px;
+    margin-bottom: 5px;;
+    font-weight: bold;
+    font-size: 1.9rem;
+    color: red;
+}
+
+.pipeline-creation-failed-msg{
+    font-size: 1.1rem;
+    margin-top:10px;
+    color:#FFA500;
+    font-weight: bold;
+    /* color:#c4bebe; */
+}
+
+.export-buttons-save-toolbox{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+}

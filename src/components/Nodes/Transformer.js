@@ -4,7 +4,7 @@ import styles from "./BaseNodesStyles.css";
 import { styled } from '@mui/material/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { faDiagramProject } from '@fortawesome/free-solid-svg-icons';
+import { faDiagramProject, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import TableRow from '@mui/material/TableRow';
 import VariablesInput from '../DataProcessing/dialogs/VariablesInput/VariablesInput';
 import Table from '@mui/material/Table';
@@ -13,13 +13,22 @@ import TableCell, { tableCellClasses } from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import Paper from '@mui/material/Paper';
-import { parseTheType } from '../../utils/parseTheType';
-import { parseTheDescription } from '../../utils/parseTheDescription';
-import { faArrowUpRightFromSquare } from '@fortawesome/free-solid-svg-icons';
+import ChangeBlockName from '../DataProcessing/dialogs/ChangeBlockName/ChangeBlockName';
+import SeeVariables from '../DataProcessing/dialogs/SeeVariables/SeeVariables';
+import { truncateString } from '../../utils/truncateString';
+import { faArrowUpRightFromSquare, faPencil, faListUl, faScroll } from '@fortawesome/free-solid-svg-icons';
+import { setStoredPipelineName,setPipelineStudioNodes,setPipelineStudioEdgeToDelete,setBlockCatalogSelectedOptions} from "../../reducers/nodeSlice";
 import {parseJSONVar} from "../../utils/parseJSONVar";
+import {useDispatch} from 'react-redux';
+import Logs from '../DataProcessing/dialogs/Logs/Logs';
+import { current } from '@reduxjs/toolkit';
 
 export default memo(({ data, isConnectable }) => {
   
+  const allRunningPipelines = useSelector((state)=> state.runningPipelines);
+  const [pipelineIsRunning, setPipelineIsRunning] = useState(false);
+  const [seeVariablesMenuOpen, setSeeVariablesMenuOpen] = useState(false);
+  const allEdges = useSelector((state)=> state.pipelineStudioEdges);
   const variablesValues = useSelector((state)=> state.blocksVariables);
   const [variablesInputOpen, setVariablesInputOpen] = useState(false);
   const [variablesPresent, setVariablesPresent] = useState(false);
@@ -27,6 +36,14 @@ export default memo(({ data, isConnectable }) => {
   const [nodeName, setNodeName] = useState("");
   const [allVariables, setAllVariables] = useState([]);
   const [storedVariables, setStoredVariables] = useState([]);
+  const [isFromPipelineStudio, setIsFromPipelineStudio] = useState(false);
+  const [pipelineStudioName, setPipelineStudioName] = useState("");
+  const [changeBlockNameOpen, setChangeBlockNameOpen] = useState(false);
+  const [pipelineStudioDescription, setPipelineStudioDescription] = useState("");
+  const [seeLogs, setSeeLogs] = useState(false);
+  const storedPipelineNodes = useSelector((state)=>state.pipelineStudioNodes);
+  const blockCatalogSelectedOptions = useSelector((state)=> state.blockCatalogSelectedOptions);
+  const dispatch = useDispatch();
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
       backgroundColor: theme.palette.common.black,
@@ -52,6 +69,35 @@ export default memo(({ data, isConnectable }) => {
     setVariablesInputOpen(true);
   }
 
+  const deleteNode = ()=>{
+
+    dispatch(setStoredPipelineName(""));
+    const currentNodeName = data.fromPipelineStudio.name;
+    const newNodes = storedPipelineNodes.filter( obj => obj.data.fromPipelineStudio.name !== currentNodeName );
+    dispatch(setPipelineStudioNodes(newNodes));
+    const filteredOptions = blockCatalogSelectedOptions.filter((block)=> block.name !== currentNodeName);
+    dispatch(setBlockCatalogSelectedOptions(filteredOptions));
+
+
+    const nodeId = data.nodeId;
+    const edgesToDelete = [];
+    for(const edge of allEdges){
+      if(edge.source === nodeId || edge.target === nodeId){
+        edgesToDelete.push(edge.id);
+      }
+    }
+    
+    for(const edge of edgesToDelete){
+      let i = 1;
+      setTimeout(()=>{
+        dispatch(setPipelineStudioEdgeToDelete(edge));
+      },200*i);
+      i++
+      
+    }
+
+  }
+  
   const processName = (str)=>{
     const truncateString = "...";
     const maxLength = 29;
@@ -66,6 +112,26 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name);
+ 
+    if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
+       
+      const allVarsData = [];
+      for(const varValue of Object.keys(data.config)){
+        if(varValue === "pipelineName"){
+          continue;
+        }
+        const newObj = {
+          varName:varValue,
+          ...data.config[varValue]
+        }
+        allVarsData.push(newObj);
+      }
+      
+      setAllVariables(allVarsData);
+      setVariablesPresent(true);
+      return;
+   }
+
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
     let varObj;
@@ -94,8 +160,8 @@ export default memo(({ data, isConnectable }) => {
   const processVariablesValues = (varsVals)=>{
     const storedVars = [];
     for(let val of varsVals){
-      if(val.block_name == fullNodeName){
-        if(val.type == "multiple"){
+      if(val.block_name === fullNodeName){
+        if(val.type === "multiple"){
            storedVars.push(
           {
             "variable_name":val.variable_name,
@@ -142,7 +208,7 @@ export default memo(({ data, isConnectable }) => {
   const getStoredVariableValue = (varName)=>{
   
     for(const variable of variablesValues){
-      if(variable.variable_name == varName){
+      if(variable.variable_name === varName){
         if(Array.isArray(variable.value)){
           return parseArray(variable.value);
         } else {
@@ -153,23 +219,97 @@ export default memo(({ data, isConnectable }) => {
     return "";
   }
 
+  useEffect(()=>{
+    if("fromPipelineStudio" in data){
+      setIsFromPipelineStudio(true);
+      setPipelineStudioName(data.fromPipelineStudio.name);
+      setPipelineStudioDescription(data.fromPipelineStudio.description);
+    } else {
+      setPipelineStudioName("");
+      setPipelineStudioDescription("");
+      setIsFromPipelineStudio(false);
+    }
+  },[data])
+
+  const changeBlockName = (name)=>{
+    
+    const oldNodes = [...storedPipelineNodes];
+    const newNodes = [];
+    
+    for(const node of oldNodes){
+       if(node.id === data.nodeId){
+         const updatedNode = {
+           ...node,
+           data: {
+               ...node.data,
+               fromPipelineStudio: {
+                   ...node.data.fromPipelineStudio,
+                   name: name
+               }
+           }
+       };
+       newNodes.push(updatedNode);
+       } else {
+         newNodes.push(node);
+       }
+    }
+    
+    dispatch(setPipelineStudioNodes(newNodes));
+    setChangeBlockNameOpen(false);
+ } 
+ 
+ useEffect(()=>{
+
+  if(data && allRunningPipelines){
+    let found = false;
+    for(const pipeline of allRunningPipelines){
+      if(pipeline == data.config.pipelineName){
+        found = true;
+        setPipelineIsRunning(true);
+      }
+    }
+    if(!found){
+      setPipelineIsRunning(false);
+    }
+  }
+},[allRunningPipelines, data])
+
+
 
   return (
-    <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px" }}>
+    <div style={{ width:"500px", borderRadius:"6%",padding:"10px",border:"2px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px", height:"auto" }}>
         <Handle
-        type="target"
+        type="target" 
         position={Position.Left}
         id="left"
         style={{padding:"10px",border:"3px solid #ff33cc"}}
         isConnectable={isConnectable}
       />  
+      {isFromPipelineStudio && <p className='remove-node-btn-container' onClick={()=>{deleteNode()}}><span className='remove-node-btn'>x</span></p> } 
       <div>
+        {
+          isFromPipelineStudio?
+          <div className='base-node-header node-header-filter processing-node-header' title={pipelineStudioName}>
+            {pipelineStudioName}
+          </div>
+          :
         <div className='base-node-header node-header-filter processing-node-header' title={fullNodeName}>
-            {nodeName? nodeName:"Transformer"}
+          {nodeName? nodeName:"Transformer"}
         </div>
-       
-         {variablesPresent && 
-            <div className='base-node-info-section-container'>
+        }
+  
+        {
+          isFromPipelineStudio && 
+          <div className='base-node-info-section-container base-node-from-pipeline-studio'>
+            <FontAwesomeIcon icon={faCircleInfo} style={{fontSize:"1.8rem"}} />
+            <div title={pipelineStudioDescription}>
+              {truncateString(pipelineStudioDescription)}
+            </div>
+          </div>
+        }
+          
+         {variablesPresent && !isFromPipelineStudio && 
+            <div className='base-node-info-section-container '>
                   <h3> Variables</h3>
                   <TableContainer component={Paper}>
                    <Table sx={{ minWidth: 200 }} aria-label="customized table">
@@ -188,19 +328,31 @@ export default memo(({ data, isConnectable }) => {
                           <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                         </StyledTableRow>
                       ))}
-                    </TableBody>
+                    </TableBody>  
                   </Table>
                 </TableContainer>
               
-              <div className='custom-node-bottom-toolbox'>
-   			        <button className='processing-node-toolbox-btn' onClick={()=>{openVariablesEditMenu()}}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+              <div className='custom-node-bottom-toolbox '>
+   			         <button className='processing-node-toolbox-btn' onClick={()=>{openVariablesEditMenu()}} disabled={pipelineIsRunning}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
+                 <button className='processing-node-toolbox-btn same-width-btn' onClick={()=>{setSeeLogs(true)}} disabled={pipelineIsRunning}>  See Logs <FontAwesomeIcon icon={faScroll}/></button>
 		         </div>
           </div>
-         } 
-        {
-          !variablesPresent && <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
-        }
-        {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
+         }  
+        { 
+          !variablesPresent && !isFromPipelineStudio && 
+          <div className='empty-node-box'>  
+              <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' /> 
+              <button className='processing-node-toolbox-btn same-width-btn no-variables-loader no-variables-btn-exporter' onClick={()=>{setSeeLogs(true)}} disabled={pipelineIsRunning}>  See Logs <FontAwesomeIcon icon={faScroll}/></button>
+          </div> 
+        } 
+        { isFromPipelineStudio && 
+        <div className='from-pipeline-studio-buttons-container'>
+          <button className='edit-variables-btn-loader pipeline-studio-node-btn transformer-edit-btn' onClick={() => { setChangeBlockNameOpen(true)}}> Edit  <FontAwesomeIcon className='pipeline-studio-edit-node-icon ' icon={faPencil} /></button>
+          <button className='edit-variables-btn-loader pipeline-studio-node-btn transformer-edit-btn' onClick={() => { setSeeVariablesMenuOpen(true)}}> Variables  <FontAwesomeIcon className='pipeline-studio-edit-node-icon ' icon={faListUl} /></button>
+        </div>
+         }
+        { variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
+        { changeBlockNameOpen && <ChangeBlockName name={pipelineStudioName} handleAction={(name)=>{changeBlockName(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}}></ChangeBlockName>}
       </div>
       <Handle
         type="source"
@@ -209,7 +361,8 @@ export default memo(({ data, isConnectable }) => {
         style={{padding:"10px",border:"3px solid #ff33cc"}}
         isConnectable={isConnectable}
       />
-     
+     {seeVariablesMenuOpen && <SeeVariables blockName={data.fromPipelineStudio.initialName} handleClose={()=>{setSeeVariablesMenuOpen(false)}} open={seeVariablesMenuOpen} />}
+     {seeLogs && <Logs open={seeLogs} blockData={data} handleClose={()=>{setSeeLogs(false)}} />}
     </div>
   );
-});
+}); 

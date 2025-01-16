@@ -22,7 +22,7 @@ export default function ViewMap(props) {
     
     <div>
       <ThemeProvider theme={darkTheme}>
-        <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth={true} >
+        <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600"  >
   
              <DialogTitle> ViewMap </DialogTitle>
               <DialogContent>   

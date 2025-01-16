@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { useEffect, useState, useRef } from 'react';
-import style from "./ViewData.css";
 import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
@@ -23,7 +22,17 @@ import { FETCH_MINIO_FILE , FETCH_MINIO_SAMPLE} from '../../../../utils/apiEndpo
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { BarChart, Bar,  Tooltip } from 'recharts';
 import axios from 'axios';
+import { w3cwebsocket as W3CWebSocket } from 'websocket';
+import List from "@mui/material/List";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItem from "@mui/material/ListItem";
+import Checkbox from "@mui/material/Checkbox";
+import ListItemText from "@mui/material/ListItemText";
+import CommentIcon from '@mui/icons-material/Comment';
+import Typography from "@mui/material/Typography";
+import Divider from "@mui/material/Divider";
 
+const WEBSOCKET_URL = "wss://endpoints.sedimark.work/mage/ws";
 
 export default function ViewData(props) {
 
@@ -38,6 +47,7 @@ export default function ViewData(props) {
     const [allHistValues,setAllHistValues] = useState({});
     const [selectedPipeline, setSelectedPipeline] = useState("");
     const [errorEncountered, setErrorEncountered] = useState(false);
+    const [streamingData, setStreamingData] = useState([]);
     const initialized = useRef(false);
    
     const CustomTooltip = ({ active, payload, label }) => {
@@ -127,7 +137,7 @@ export default function ViewData(props) {
         
         const resultObject = {};
         for(const val of allValues){
-          if(val.type == "hist"){
+          if(val.type === "hist"){
             resultObject[val.column_name] = parseHistogram(val.hist);
           }
         }
@@ -210,14 +220,15 @@ export default function ViewData(props) {
       }
 
       useEffect(() => {
-       
-        if(selectedPipeline.length !== 0){
-          
-            if (!initialized.current) {
-              initialized.current = true
-              fetchAndParseMinioJson(selectedPipeline);
-              fetchSampleData(selectedPipeline);
-              }
+        if (selectedPipeline) {
+            if(selectedPipeline.length > 0 && props.pipelineType !== "streaming"){
+
+                if (!initialized.current) {
+                    initialized.current = true
+                    fetchAndParseMinioJson(selectedPipeline);
+                    fetchSampleData(selectedPipeline);
+                }
+            }
         }
        
         },[selectedPipeline])
@@ -226,19 +237,19 @@ export default function ViewData(props) {
         setSelectedPipeline();
       },[])
 
-      useEffect(()=>{
-        if(columnNames.length!=0 && allColumnsSamples.length!=0){
-              setIsLoading(false);
+    useEffect(()=>{
+        if(columnNames.length!=0 && allColumnsSamples.length!=0 && props.pipelineType !== "streaming") {
+            setIsLoading(false);
         }
-      },[ columnNames , allColumnsSamples])
+        },[ columnNames , allColumnsSamples])
 
     
       useEffect(()=>{
         
         
-          if(selectedTab == 1){
+          if(selectedTab === 1){
             setSelectedPipeline(pipelinePreprocessing[0]);
-          } else if(selectedTab == 2) {
+          } else if(selectedTab === 2) {
             setSelectedPipeline(pipelineTrain[0]);
           } else {
             
@@ -255,10 +266,12 @@ export default function ViewData(props) {
                     aria-labelledby="customized-dialog-title"
                     open={props.open}
                     maxWidth={300}
-                    fullWidth={true}
+                   
                 >
                     <DialogTitle sx={{ m: 0, p: 2 }} id="customized-dialog-title">
-                        View Data
+                        {
+                            props.pipelineType === "streaming" ? "Last Data" : "View Data"
+                        }
                     </DialogTitle>
                     <IconButton
                         aria-label="close"
@@ -272,93 +285,123 @@ export default function ViewData(props) {
                     >
                         <CloseIcon />
                     </IconButton>
-                    <DialogContent dividers>
-                        {
-                        isLoading &&
-                        <div className="loading-circle-container">
-                            <div className="loading-circle"></div>
-                            
-                        </div>
-                        }
-                        {
-                          errorEncountered && 
-                          <div className='error-container'>
-                              <FontAwesomeIcon icon={faCircleExclamation}/> 
-                             <p>We have encountered an error!</p>
-                             <p>Please try again later</p>
-                          </div>
-                        }
-                        {
-                          !isLoading && 
-                          <TableContainer component={Paper} >
-                            <Table  aria-label="simple table" sx={{ minWidth: 1950, padding:"10px" }}>
-                                <TableHead>
-                                    <TableRow>
-                                        {columnNames.map((colName, index)=>{
-                                            return(
-                                                <TableCell style={{ border: '1px solid #000' }}><p style={{ fontSize:"1.1rem", textAlign:"center"}} className='truncate-text' title={colName}>{truncateString(colName)}</p></TableCell>
-                                            );
-                                        })}
-                                        
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                   
-                                    <TableRow
-                                        key={"ldksad"}
-                                        sx={{ '&:last-child td, &:last-child th': { border: 0 } , padding:"30px"}}
-                                    >
-                                        {allColumnsData && allColumnsData.map((row,index)=>{
-                                         
-                                            if(row.type == "unique_values"){
-                                                return(<div style={{  width: '300px' ,  borderLeft: '1px solid #000', height:"150px" , fontSize:"1.2rem" ,textAlign:"center", paddingTop:"40px"}}>
-                                                        <p >{row.unique_values} </p>
-                                                        <p style={{fontWeight:"bold"}}> UNIQUE VALUES </p>
-                                                    </div>);
-                                            } else if(row.type == "hist"){
-                                          
-                                            const fetchedData = allHistValues[row.column_name];
-                    
-                                                return(    
-                                                    <TableCell  style={{ border: '1px solid #000' }}>
-                                                        <div style={{ width: '300px', marginLeft:"60px" }}>
-                                                            <BarChart width={150} height={80} data={fetchedData}>
-                                                                <Tooltip   content={<CustomTooltip />}/>
-                                                                <Bar dataKey="value" fill="#8884d8" />
-                                                            </BarChart>
-                                                        </div>
-                                                    </TableCell>
-                                                    
-                                                );
-                                            }
+              {
+                  props.pipelineType !== "streaming" ?
+                      <DialogContent dividers>
+                          {
+                              isLoading &&
+                              <div className="loading-circle-container">
+                                  <div className="loading-circle"></div>
 
-                                        })}
-                                  
-                                    </TableRow>
-                                   {
-                                    loopArray.map((value, indexLoop) => {
-                                      return(
-                                        <TableRow>
-                                              { columnNames.map((data, index)=>{
-                                                     return(
-                                                     <TableCell style={{ border: '1px solid #000', textAlign:"center" }}>
-                                                          {allColumnsSamples[data][indexLoop]}
-                                                     </TableCell>
-                                                     )
-                                                  })
-                                                }
-                                        </TableRow>
-                                      )
-                                    })
-                                  
-                                   }     
+                              </div>
+                          }
+                          {
+                              errorEncountered &&
+                              <div className='error-container'>
+                                  <FontAwesomeIcon icon={faCircleExclamation}/>
+                                  <p>We have encountered an error!</p>
+                                  <p>Please try again later</p>
+                              </div>
+                          }
+                          {
+                              !isLoading &&
+                              <TableContainer component={Paper} >
+                                  <Table  aria-label="simple table" sx={{ minWidth: 1950, padding:"10px" }}>
+                                      <TableHead>
+                                          <TableRow>
+                                              {columnNames.map((colName, index)=>{
+                                                  return(
+                                                      <TableCell style={{ border: '1px solid #000' }}><p style={{ fontSize:"1.1rem", textAlign:"center"}} className='truncate-text' title={colName}>{truncateString(colName)}</p></TableCell>
+                                                  );
+                                              })}
 
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                        }
-                        
-                    </DialogContent>
+                                          </TableRow>
+                                      </TableHead>
+                                      <TableBody>
+
+                                          <TableRow
+                                              key={"ldksad"}
+                                              sx={{ '&:last-child td, &:last-child th': { border: 0 } , padding:"30px"}}
+                                          >
+                                              {allColumnsData && allColumnsData.map((row,index)=>{
+
+                                                  if(row.type === "unique_values"){
+                                                      return(<div style={{  width: '300px' ,  borderLeft: '1px solid #000', height:"150px" , fontSize:"1.2rem" ,textAlign:"center", paddingTop:"40px"}}>
+                                                          <p >{row.unique_values} </p>
+                                                          <p style={{fontWeight:"bold"}}> UNIQUE VALUES </p>
+                                                      </div>);
+                                                  } else if(row.type === "hist"){
+
+                                                      const fetchedData = allHistValues[row.column_name];
+
+                                                      return(
+                                                          <TableCell  style={{ border: '1px solid #000' }}>
+                                                              <div style={{ width: '300px', marginLeft:"60px" }}>
+                                                                  <BarChart width={150} height={80} data={fetchedData}>
+                                                                      <Tooltip   content={<CustomTooltip />}/>
+                                                                      <Bar dataKey="value" fill="#8884d8" />
+                                                                  </BarChart>
+                                                              </div>
+                                                          </TableCell>
+
+                                                      );
+                                                  }
+
+                                              })}
+
+                                          </TableRow>
+                                          {
+                                              loopArray.map((value, indexLoop) => {
+                                                  return(
+                                                      <TableRow>
+                                                          { columnNames.map((data, index)=>{
+                                                              return(
+                                                                  <TableCell style={{ border: '1px solid #000', textAlign:"center" }}>
+                                                                      {allColumnsSamples[data][indexLoop]}
+                                                                  </TableCell>
+                                                              )
+                                                          })
+                                                          }
+                                                      </TableRow>
+                                                  )
+                                              })
+
+                                          }
+
+                                      </TableBody>
+                                  </Table>
+                              </TableContainer>
+                          }
+
+                      </DialogContent>
+                      :
+                      <DialogContent dividers>
+                          {streamingData ? streamingData.length > 0 ? (
+                              <List>
+                                  {streamingData.map((data, index) => (
+                                      <>
+                                          <ListItem key={index} alignItems="flex-start">
+                                              <ListItemText
+                                                  primary={<Typography variant="body1" color="textPrimary">{`Received at: ${data.timestamp}`}</Typography>}
+                                                  secondary={
+                                                      <Typography variant="body2" color="textSecondary" component="div">
+                                                          <pre>{JSON.stringify(data, null, 2)}</pre>
+                                                      </Typography>
+                                                  }
+                                              />
+                                          </ListItem>
+                                          <Divider sx={{ backgroundColor: "white" }}/>
+                                      </>
+                                  ))}
+                              </List>
+                          ) : (
+                              <Typography variant="body2" color="textSecondary">No data received yet.</Typography>
+                              ) : (
+                              <Typography variant="body2" color="textSecondary">No data received yet.</Typography>
+                          )}
+                      </DialogContent>
+              }
+
                     <DialogActions>
                         <Button autoFocus onClick={props.handleClose}>
                             Ok

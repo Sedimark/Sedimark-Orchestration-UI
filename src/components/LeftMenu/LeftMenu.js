@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { styled, useTheme } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar';
+import MuiAppBar from '@mui/material/AppBar';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -13,10 +13,17 @@ import WidgetsIcon from '@mui/icons-material/Widgets';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import PipelineSelectDialog from '../DataProcessing/dialogs/PipelineSelect/PipelineSelectDialog';
 import HubIcon from '@mui/icons-material/Hub';
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone';
+import Divider from '@mui/material/Divider';
 import SettingsIcon from '@mui/icons-material/Settings';
-import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import TrainModelDialog from '../DataProcessing/dialogs/TrainModel/TrainModelDialog';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
+import PaletteIcon from '@mui/icons-material/Palette';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import { useNavigate } from 'react-router-dom';
+import LogoutIcon from '@mui/icons-material/Logout';
+import PipelineManager from '../DataProcessing/dialogs/PipelineManager/PipelineManager';
+import Settings from '../DataProcessing/dialogs/Settings/Settings';
+
 
 const drawerWidth = 240;
 
@@ -87,17 +94,21 @@ const BigDrawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'ope
 );
 
 export default function MiniDrawer() {
-  const theme = useTheme();
   const [open, setOpen] = useState(true);
+  const [pipelineManagerOpen, setIsPipelineManagerOpen] = useState(false);
   const [selectDataDialog, setSelectDataDialog] = useState(false);
   const [pipelineType, setPipelineType] = useState("");
   const [trainModelsDialogOpen, setTrainModelsDialogOpen] = React.useState(false);
+  const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
+  const navigate = useNavigate();
 
   const openPipelineSelectMenu = (dialogType) => {
     if(dialogType === "train"){
       setPipelineType("train");
     } else if(dialogType === "data_preprocessing"){
       setPipelineType("data_preprocessing");
+    } else if (dialogType === "streaming"){
+      setPipelineType("streaming");
     }
 
     setSelectDataDialog(true);
@@ -115,7 +126,9 @@ export default function MiniDrawer() {
     setTrainModelsDialogOpen(false);
   }
 
-
+  const handleLogout = () => {
+      
+  };
 
   return (
     <Box sx={{ display: 'flex' , width:"20px !important"}}>
@@ -181,7 +194,7 @@ export default function MiniDrawer() {
                   <ListItemText primary={"Training pipeline"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-            <ListItem key={"Trained Models"} disablePadding sx={{ display: 'block' }} onClick={()=>{openTrainModelsMenu()}}>
+            <ListItem key={"Predict"} disablePadding sx={{ display: 'block' }} onClick={()=>{openTrainModelsMenu()}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -204,13 +217,7 @@ export default function MiniDrawer() {
                   <ListItemText primary={"Predict"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-        </List>
-
-    
-
-      <List style={{position:"absolute",bottom:"10px"}}>
-      <h2 style={{color:"#fff"}}>Account</h2>
-        <ListItem key={"Notifications"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+            <ListItem key={"Streaming"} disablePadding sx={{ display: 'block' }} onClick={()=>{openPipelineSelectMenu("streaming")}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -228,13 +235,89 @@ export default function MiniDrawer() {
                       color:"white"
                     }}
                   >
-                    <NotificationsNoneIcon/>
+                    <SettingsInputAntennaIcon/>
                   </ListItemIcon>
-                  <ListItemText primary={"Notifications"} sx={{ opacity: open ? 1 : 0 }} />
+                  <ListItemText primary={"Streaming"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem>
+              <Divider component="li"/>
+            <ListItem key={"Pipeline Creator"} disablePadding sx={{ display: 'block' }} onClick={()=>{ navigate("/pipeline-studio") }}>
+                <ListItemButton
+                    sx={{
+                        minHeight: 48,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                        color:"white"
+                    }}
+                    key={2}
+                >
+                    <ListItemIcon
+                        sx={{
+                            minWidth: 0,
+                            mr: open ? 3 : 'auto',
+                            justifyContent: 'center',
+                            color:"white"
+                        }}
+                    >
+                        <PaletteIcon/>
+                    </ListItemIcon>
+                    <ListItemText primary={"Pipeline Creator"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
 
-            <ListItem key={"Settings"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+            <ListItem key={"Pipeline Manager"} disablePadding sx={{ display: 'block' }} onClick={()=>{setIsPipelineManagerOpen(true)}}>
+                <ListItemButton
+                    sx={{
+                        minHeight: 48,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                        color:"white"
+                    }}
+                    key={2}
+                >
+                    <ListItemIcon
+                        sx={{
+                            minWidth: 0,
+                            mr: open ? 3 : 'auto',
+                            justifyContent: 'center',
+                            color:"white"
+                        }}
+                    >
+                        <EngineeringIcon/>
+                    </ListItemIcon>
+                    <ListItemText primary={"Pipeline Manager"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem>
+        
+       </List>
+
+      <List style={{position:"absolute",bottom:"10px"}}>
+       <h2 style={{color:"#fff"}}>Account</h2>
+        <ListItem key={"Notifications"} disablePadding sx={{ display: 'block' }} onClick={handleLogout}>
+              <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                    color:"white"
+                  }}
+                  key={2}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : 'auto',
+                      justifyContent: 'center',
+                      color:"white"
+                    }}
+                  >
+                    <LogoutIcon/>
+                  </ListItemIcon>
+                  <ListItemText primary={"Logout"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem>
+
+            <ListItem key={"Settings"} disablePadding sx={{ display: 'block' }} onClick={()=>{setSettingsDialogOpen(true)}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -258,36 +341,15 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
 
-            <ListItem key={"FAQ"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
-           
-              <ListItemButton
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                    color:"white"
-                  }}
-                  key={2}
-                > 
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
-                      justifyContent: 'center',
-                      color:"white"
-                    }}
-                  >
-                    <HelpOutlineIcon/>
-                  </ListItemIcon>
-                  <ListItemText primary={"FAQ"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-            </ListItem>
+         
         </List>
       </BigDrawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
       </Box>
      {selectDataDialog && <PipelineSelectDialog pipelineType={pipelineType} open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
      {trainModelsDialogOpen && <TrainModelDialog handleClose={handleTrainModelsMenuClose} open={trainModelsDialogOpen} close={handleTrainModelsMenuClose} /> }
+     {pipelineManagerOpen && <PipelineManager open={pipelineManagerOpen} handleClose={()=>{setIsPipelineManagerOpen(false)}}/>}
+     {settingsDialogOpen && <Settings open={settingsDialogOpen} handleClose={()=>{setSettingsDialogOpen(false)}}/>}
     </Box>
   );
 }

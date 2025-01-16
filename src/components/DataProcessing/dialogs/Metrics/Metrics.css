@@ -1,0 +1,38 @@
+.metrics-dialog-container{
+    width: 500px;
+    padding: 10px;
+}
+
+.centered-text{
+    text-align: center;
+}
+
+.pipeline-name-container{
+    padding: 3px;
+    font-weight: bold;
+    font-size: 1.3rem;
+    color: aliceblue;
+    
+    
+}
+
+.no-metrics-container{
+    padding:10px;
+    margin-top: 40px;
+    text-align: center;
+    font-size: 1.4rem;
+}
+
+.block-name-container{
+    font-size: 1.3rem;
+    color: #fff;
+    padding:10px;
+}
+
+.block-data-container{
+    margin-top: 20px;
+}
+
+.highlighted-table-head{
+    font-weight: bold;
+}

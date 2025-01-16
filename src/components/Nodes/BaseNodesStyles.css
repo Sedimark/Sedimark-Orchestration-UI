@@ -2,7 +2,8 @@
     background: rgb(24, 1, 231);
     color:#fff;
     padding:10px;
-    width: 400px;
+    width: 340px;
+    margin-right: 10px;
     font-size: 1.3rem;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px; 
@@ -20,23 +21,41 @@
 }
 
 .base-node-info-section{
-    padding-top:1px;
-    
     color:#fff;
 }
 
+ .loader-header{
+    background: rgb(24, 1, 231);
+ }
+
+ .exporter-header{
+    background: #ece93b;
+ }
+
 .base-node-info-section-container{
     text-align: center;
-    padding-top:15px;
+    height: 220px;
+    margin-top:20px;
+    margin-bottom: 60px;
+    padding-top:0px;
     padding-left:15px;
     padding:20px;
 }
+
+.info-section-exporter{
+    margin-bottom: 120px;
+}
+
+.base-node-from-pipeline-studio{
+    height: 150px;
+}
+
 
 .base-toolbox-btn{
 
     background-color: #2d3748;
     border:none;
-    margin-top:10px;
+    /* margin-top:10px; */
     margin-bottom: 10px;
     border: 2px solid rgb(255, 242, 0);
     padding:8px;
@@ -76,7 +95,9 @@
 }
 
 .node-header-filter{
-    width: 480px;
+    margin-top:7px;
+    margin-left: 5px;
+    width: 465px;
 }
 
 .applied-alg{
@@ -230,15 +251,25 @@
 .processing-node-toolbox-btn{
     background-color: #cc0da2;
     border:none;
-    margin-top:20px;
+    margin-top:60px;
     border-radius: 5px;    
     color:#fff;
     padding: 11px;
 }
 
+.processing-node-toolbox-btn:disabled:hover{
+    cursor: not-allowed;
+}
+
 .processing-node-toolbox-btn:hover{
     cursor: pointer;
 }
+
+.processing-node-toolbox-btn:disabled{
+    background-color: #cc8cbe;
+    border-color: #cc8cbe;
+}
+
 
 .dropdown-container {
     margin-top:20px;
@@ -435,7 +466,7 @@
 
 .custom-node-header:hover{
     cursor: pointer;
-}
+} 
 
 .custom-node-toolbox-btn{
     padding:10px;
@@ -449,10 +480,21 @@
     cursor: pointer;
 }
 
+.custom-node-toolbox-btn:disabled{
+    background-color: #adadad;
+    border-color: #adadad;
+}
+
+.custom-node-toolbox-btn:disabled:hover{
+    cursor: not-allowed;
+}
+
 
 .empty-node-container{
-    margin-top:40px;
-    font-size: 2.2rem;
+    margin-top: 10px;
+    font-size: 4.6rem;
+    padding-top:50px;
+    padding-bottom: 30px;
 }
 
 .node-title{
@@ -461,7 +503,7 @@
 }
 
 .node-title:hover::after {
-    content: attr("Uga buga ");
+    content: attr("");
     position: absolute;
     top: 30%;
     left: 50%;
@@ -475,12 +517,13 @@
   }
 
   .edit-variables-btn-loader{
-    margin-top:9px;
+    
     width:150px;
     height: 40px;
     background-color: blue;
     border: 2px solid #0000ff;
     border-radius: 5px;
+    margin-bottom: 10px;
     color:white;
   }
 
@@ -488,14 +531,121 @@
     cursor: pointer;
   }
 
-  .no-variables-container{
-    /* padding:15px; */
+  .edit-variables-btn-loader:disabled{
+    background-color: #b2b2ff;
+    border-color: #b2b2ff;
   }
 
-  .no-variables-present{
-    margin-top:40px;
+  .edit-variables-btn-loader:disabled:hover {
+    cursor: not-allowed; /* Sau cursor: default; dacă vrei să nu arate mâna */
+    /* Orice alt stil dorit când butonul este dezactivat și hoverat */
   }
 
   .view-map-btn{
     margin-top:60px;
   }
+
+  .remove-node-btn{
+    position: absolute;
+    right:5px;
+    top:1px;
+    width: 25px;
+    height: 25px;
+    font-size: 1.1rem;
+    background: #000000;
+    border: 3px solid red;
+    cursor: pointer;
+    color:white;
+    border-radius: 50%;
+    line-height: 1;
+}
+
+.pipeline-studio-node-btn{
+    margin-bottom: 10px;
+    font-size: 1.2rem;
+    border: 3px solid #0000ff;
+    background-color: aliceblue;
+    font-weight: bold;
+    color:#0000ff;
+}
+
+.pipeline-studio-edit-node-icon{
+    margin-left: 5px;
+}
+
+.transformer-edit-btn{
+    border: 3px solid rgb(181, 38, 176);
+    background-color: rgb(251, 245, 251);
+    color:rgb(181, 38, 176);
+}
+
+.exporter-edit-btn{
+    border: 3px solid #000;
+    background-color: #fbfbe2;
+    color:#000;
+}
+
+.generated-block-header{
+    background-color: "#f56a00";
+}
+
+.generated-node-actions{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+
+.generated-node-edit-btn{
+    
+    border: 3px solid #000;
+    background-color: #fbfbe2;
+    color:#000;
+}
+
+.from-pipeline-studio-buttons-container{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.custom-node-bottom-toolbox{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+.same-width-btn{
+    width: 130px;
+}
+
+.no-variables-btn-exporter{
+    margin-right: 20px;
+}
+
+.empty-node-box{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.no-variables-btn-exporter{
+    width: 130px;
+    margin-left: 40%;
+    bottom: 10px;
+}
+
+.no-variables-loader{
+    margin-top: 30px;
+    margin-bottom: 10px;
+}
+
+.empty-node-container-loader{
+    margin-bottom: 10px;
+    /* padding-left:20% ; */
+}
+
+.btn-loader-no-variables{
+    margin-left: 40%;
+}
+

@@ -1,6 +1,12 @@
 import React, {  useState, useEffect }  from "react";
 import { formatString } from "../../utils/formatString";
-import {FETCH_PIPELINE_RUN_DATA, PIPELINE_HISTORY, PIPELINE_STATUS, RUN_PIPELINE} from "../../utils/apiEndpoints";
+import {
+    FETCH_PIPELINE_RUN_DATA,
+    PIPELINE_HISTORY,
+    PIPELINE_STATUS,
+    RUN_PIPELINE,
+    RUN_STREAMING_PIPELINE, STREAMING_PIPELINE_STATUS
+} from "../../utils/apiEndpoints";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {Step, StepLabel, Stepper } from "@mui/material";
 import Dialog from "@mui/material/Dialog";
@@ -18,15 +24,26 @@ import TableContainer from "@mui/material/TableContainer";
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import AreYouSure from "../DataProcessing/dialogs/AreYouSure/AreYouSure";
+import Metrics from "../DataProcessing/dialogs/Metrics/Metrics";
 import axios from "axios";
 import toast, { Toaster } from 'react-hot-toast';
 import {createTheme, styled} from '@mui/material/styles';
-import { faCirclePlay, faSpinner, faTrash, faCircleInfo, faTrashCan, faArrowsRotate, faBroom } from '@fortawesome/free-solid-svg-icons';
+import {
+    faCirclePlay,
+    faSpinner,
+    faCircleInfo,
+    faArrowsRotate,
+    faBroom,
+    faImages,
+    faCircleStop,
+    faMicrochip
+} from '@fortawesome/free-solid-svg-icons';
 import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useDispatch } from 'react-redux';
-import {setSelectedTrainedModel, setIsPredictedSelected} from "../../reducers/nodeSlice";
+import {setSelectedTrainedModel, setIsPredictedSelected, setRunningPipelines} from "../../reducers/nodeSlice";
+import { deleteElement } from "../../utils/deleteElement";
 import Box from '@mui/material/Box';
 import Flow from "../Flow/Flow";
 import DialogActions from "@mui/material/DialogActions";
@@ -46,18 +63,19 @@ const CustomTooltip = styled(({ className, ...props }) => (
 }));
 
 export const PipelineView = (props)=>{
-
+ 
     const dispatch = useDispatch();
-    const typeForTheModel = useSelector((state)=> state.typeForModel);
-    const versionForModel = useSelector((state)=> state.versionForModel);
-    const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
+    const runningPipelines = useSelector((state)=> state.runningPipelines);
     const pipelineNrOfVariables = useSelector((state)=> state.pipelineNrOfVariables)
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const blockVariables = useSelector((state) => state.blocksVariables);
+    // ** These are the values for the pipelines names **//
     const pipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const selectedPipelineNamePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
+    const pipelineNameStreaming = useSelector((state)=> state.selectedPipelineStreaming);
     const pipelinePreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
+    // ** Here values for the pipelines names end ** //
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -71,6 +89,7 @@ export const PipelineView = (props)=>{
     const [pipelineName, setPipelineName] = React.useState("");
     const [historyLoading, setHistoryLoading] = React.useState(false);
     const [showTooltip, setShowTooltip] = React.useState(false);
+    const [metricsOpen, setMetricsOpen]  = React.useState(false);
     
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -90,21 +109,27 @@ export const PipelineView = (props)=>{
     }
       
 
-    const blockAlert = (msg) => {
-        toast.error(msg, {
-            duration: 2000,
-            position: 'top-right',
-        })
+    const blockAlert = (msg, type = "error") => {
+        if (type === "error") {
+            toast.error(msg, {
+                duration: 2000,
+                position: 'top-right',
+            })
+        } else {
+            toast.success(msg, {
+                duration: 2000,
+                position: 'top-right',
+            })
+        }
     };
  
     const retrievePipelineVarCount = (allPipeVars, pipeline_name)=>{
+        
         let varCount;
         
         if(Array.isArray(pipeline_name)){
             pipeline_name = pipeline_name[0];        
         }
-
-        console.log()
 
         for(const pipe of allPipeVars){
             
@@ -116,10 +141,11 @@ export const PipelineView = (props)=>{
     }
 
     const parseVarsForPipeline = ()=>{    
+        
         const theVars = [];
         for(const blockVar of blockVariables){
            
-            if(blockVar["pipelineName"][0] == pipelineName){
+            if(blockVar["pipelineName"] == pipelineName){
                 theVars.push(blockVar);
             }
         }
@@ -127,14 +153,11 @@ export const PipelineView = (props)=>{
         return theVars;
     }
 
-
     const startPipeline = React.useCallback(async () => {
 
         let nrOfVars = 0;
-        
-        nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);        
+        nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
         const blockVars = parseVarsForPipeline();
-
         if(blockVars.length !== nrOfVars || (blockVars.length == 0 && nrOfVars!=0)){
             blockAlert("Please enter a value for all the variables!");
             return;
@@ -149,6 +172,8 @@ export const PipelineView = (props)=>{
 
         setStepStatus([true, true, true])
         setActiveStep(steps.indexOf("start"));
+        
+
         try {
             await axios({
                 method: "POST",
@@ -160,11 +185,9 @@ export const PipelineView = (props)=>{
                     "run_id": runData.id,
                     "token": runData.token,
                     "variables" : variables,
-                    // "model_type" : typeForTheModel,
-                    // "model_name" : selectedTrainedModel,
-                    // "model_version" : versionForModel
                 }
             })
+            
             return true;
         } catch(_) {
             blockAlert("Error occurred when starting the pipeline");
@@ -186,15 +209,21 @@ export const PipelineView = (props)=>{
                 try {
                     const response = await axios({
                         method: 'GET',
-                        url: PIPELINE_STATUS(JSON.parse(localStorage.getItem(`${pipelineName}-runData`)).id),
+                        url: PIPELINE_STATUS(JSON.parse(sessionStorage.getItem(`${pipelineName}-runData`)).id),
                     });
 
                     const data = response.data;
                     
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
-                        const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)), "isPipelineStarted": false}
-                        localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+
+                        // here we find all the pipelines
+                        let allRunningPipelines = runningPipelines;
+                        
+                       
+                        
+                        const toSave = {...JSON.parse(sessionStorage.getItem(`${pipelineName}-running-steps`)), "isPipelineStarted": false}
+                        sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
                         resolve(data);
                     } else {
                         
@@ -207,7 +236,7 @@ export const PipelineView = (props)=>{
             };
             retry();
         });
-    }, [pipelineName]);
+    }, [pipelineName]); 
 
     const callStep = React.useCallback(async () => {
         const result = await runStep();
@@ -228,11 +257,13 @@ export const PipelineView = (props)=>{
 
         setStepStatus(statuses)
         setIsPipelineStarted(false);
+       
 
-        localStorage.removeItem(`${pipelineName}-running-steps`);
+        sessionStorage.removeItem(`${pipelineName}-running-steps`);
     }, [runStep, steps, pipelineName]);
 
     const runPipeline = React.useCallback(async (source) => {
+        // aici ar fii pipeline starting code
         if (source === "button") {
             const result = await startPipeline();
               
@@ -240,10 +271,12 @@ export const PipelineView = (props)=>{
             if (result) {
                 setActiveStep(steps.indexOf("running"));
                 setIsPipelineStarted(true);
-                const toSave = {...JSON.parse(localStorage.getItem(`${pipelineName}-running-steps`)),
+                
+                // pipeline starting code
+                const toSave = {...JSON.parse(sessionStorage.getItem(`${pipelineName}-running-steps`)),
                     "activeStep": steps.indexOf("running"), "isPipelineStarted": true};
                 
-                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
 
                 await delay(10000);
 
@@ -257,7 +290,7 @@ export const PipelineView = (props)=>{
                 });
                 
             
-                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
+                sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
                     "activeStep": -1,
                     "stepStatus": [false, false, false],
                     "isPipelineStarted": false
@@ -276,7 +309,7 @@ export const PipelineView = (props)=>{
                 url: FETCH_PIPELINE_RUN_DATA(pipelineName)
             }).then((response) => {
                 setRunData(response.data);
-                localStorage.setItem(`${pipelineName}-runData`, JSON.stringify(response.data));
+                sessionStorage.setItem(`${pipelineName}-runData`, JSON.stringify(response.data));
             }).catch((_) => {
                 blockAlert("Error loading pipeline run data!");
             })
@@ -287,15 +320,15 @@ export const PipelineView = (props)=>{
             
             let savedState;
            if(Array.isArray(pipelineName)){
-            savedState = localStorage.getItem(`${pipelineName[0]}-running-steps`);
+            savedState = sessionStorage.getItem(`${pipelineName[0]}-running-steps`);
            } else {
-            savedState = localStorage.getItem(`${pipelineName}-running-steps`);
+            savedState = sessionStorage.getItem(`${pipelineName}-running-steps`);
            }
            
             if (savedState) {
                 savedState = JSON.parse(savedState);
-                // setStepStatus(savedState.stepStatus);
                 setActiveStep(savedState.activeStep);
+             
                 setIsPipelineStarted(savedState.isPipelineStarted);
     
                 if (savedState.isPipelineStarted) {
@@ -304,7 +337,7 @@ export const PipelineView = (props)=>{
                     }, 2000)
                 }
             } else {
-                localStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
+                sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
                     "stepStatus": stepStatus,
                     "activeStep": -1,
                     "isPipelineStarted": isPipelineStarted
@@ -369,12 +402,16 @@ export const PipelineView = (props)=>{
     }
 
     const selectPipelineBasedOffParameters = (pipelineType)=>{
+
+    
         if(pipelineType === "training"){
             setPipelineName(pipelineNameTrain);
         } else if (pipelineType === "data_preprocessing"){
             setPipelineName(pipelineNamePreprocessing);
         } else if (pipelineType === "prediction"){
             setPipelineName(selectedPipelineNamePrediction);
+        } else if (pipelineType === "streaming"){
+            setPipelineName(pipelineNameStreaming);
         }
     }
 
@@ -391,10 +428,29 @@ export const PipelineView = (props)=>{
 
     useEffect(()=>{
         selectPipelineBasedOffParameters(props.pipelineType);
-        setIsPipelineStarted(false);
-        setActiveStep(-1);
-        setStepStatus([true, true,true])
-    },[pipelineNameTrain, pipelineNamePreprocessing]);
+        if (pipelineNameStreaming.length > 0 && props.pipelineType === "streaming") {
+            axios({
+                method: "GET",
+                url: STREAMING_PIPELINE_STATUS(pipelineNameStreaming)
+            }).then((response) => {
+             
+                if (response.data === "active") {
+                    setIsPipelineStarted(true);
+                    
+                } else {
+                    setIsPipelineStarted(false);
+                    
+                }
+            }).catch((_) => {
+                blockAlert(`Encounter an error when trying to get the status for pipeline ${pipelineName}`)
+            })
+        }
+        if (props.pipelineType !== "streaming") {
+            setIsPipelineStarted(false);
+            setActiveStep(-1);
+            setStepStatus([true, true,true]);
+        }
+    },[pipelineNameTrain, pipelineNamePreprocessing, pipelineNameStreaming]);
  
     useEffect(()=>{
         
@@ -410,11 +466,101 @@ export const PipelineView = (props)=>{
     },[selectedPipelineNamePrediction]);
 
 
+    const deleteCurrentPipeline = ()=>{
+        let allRunningPipelines = [...runningPipelines];
+                    
+        if(allRunningPipelines){
+            let localPipelineName = "";
+            if(Array.isArray(pipelineName)){
+                localPipelineName = pipelineName[0];
+            } else {
+                localPipelineName = pipelineName;
+            }
+
+            deleteElement(allRunningPipelines,localPipelineName);
+            dispatch(setRunningPipelines(allRunningPipelines));
+        }
+    }
+
+    const addCurrentPipeline = ()=>{
+       
+        let allRunningPipelines = [...runningPipelines];
+
+        let currentPipeline = "";
+        if(Array.isArray(pipelineName)){
+            currentPipeline = pipelineName[0];
+        } else {
+            currentPipeline = pipelineName;
+        }
+        
+        for(const pipeline of allRunningPipelines){
+            if(pipeline == currentPipeline){
+                return;
+            }
+        }
+
+        if(!allRunningPipelines){
+            allRunningPipelines = [];
+        }
+        if(Array.isArray(pipelineName)){
+            allRunningPipelines.push(pipelineName[0]);
+        } else {
+            allRunningPipelines.push(pipelineName);
+        }
+        
+        dispatch(setRunningPipelines(allRunningPipelines));
+    }
+
+
+    const handleStreamingPipeline = async (status) => {
+        try {
+            const response = await axios({
+                method:  "PUT",
+                url: RUN_STREAMING_PIPELINE,
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                data: {
+                    "trigger_id": runData.id,
+                    "status": status,
+                    "pipeline_uuid": pipelineNameStreaming[0]
+                }
+            })
+
+            if (response.status === 200) {
+                blockAlert("Pipeline status updated successfully!", "success");
+                if(!isPipelineStarted){
+                    addCurrentPipeline();
+                } else {
+                    deleteCurrentPipeline();
+                }
+                setIsPipelineStarted(!isPipelineStarted);
+            }
+        } catch (_) {
+            blockAlert("Encounter an error when updating the status of the pipeline!")
+        }
+    }
+
+    useEffect(()=>{
+       
+        if(pipelineName.length == 0){
+            return;
+        }
+        if(isPipelineStarted){
+            addCurrentPipeline();
+        } else {
+            
+            deleteCurrentPipeline();
+        }
+    },[isPipelineStarted, pipelineName])
+
+  
+
   
     return(
         <div>
                     <ThemeProvider theme={darkTheme}>
-                            <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xll" fullWidth="true" >
+                            <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="xl" >
                                 <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px", marginTop:"40px", marginBottom:"40px", padding:"20px" }}  bgcolor="#000" >
                                 
                                     <DialogContent sx={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
@@ -488,24 +634,34 @@ export const PipelineView = (props)=>{
                         <div className="flow-container">
 
                          {
-                            pipelineName.length != 0  && 
+                            pipelineName.length !== 0  &&
                             <>
                                <div className="container">
-                                    {loading ? <div className="pipeline-controller pipeline-loading">
-                                        <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
-                                        <p>Starting Pipeline...</p>
-                                    </div>
+                                    <>
+                                       {loading ?
+                                           <div className="pipeline-controller pipeline-loading">
+                                                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                                                <p>Starting Pipeline...</p>
+                                            </div>
                                         : isPipelineStarted ?
                                             <div className="pipeline-controller pipeline-started">
-                                                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                                                {props.pipelineType !== "streaming" ?
+                                                    <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                                                    :
+                                                    <p className="play-btn" onClick={() => handleStreamingPipeline("stop")}><FontAwesomeIcon icon={faCircleStop} /></p>
+                                                }
+
                                                 <p>Running...</p>
                                             </div> :
                                                 <div className="pipeline-controller">
-                                                    <p className="play-btn" onClick={() => runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
+                                                    <p className="play-btn" onClick={() => props.pipelineType === "streaming" ? handleStreamingPipeline("start") : runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
                                                     <p>Start Pipeline</p>
                                                 </div>
-                                    }
-
+                                        }
+                                    </>
+                                 
+                                 {
+                                    props.pipelineType !== "streaming" &&
                                     <div className="steps" style={{ width: "100%" }}>
                                         {pipelineName && (
                                             <Stepper activeStep={activeStep} sx={{ width: "100%" }}>
@@ -530,31 +686,64 @@ export const PipelineView = (props)=>{
                                             </Stepper>
                                         )}
                                     </div>
+                                 }
+                                
                                     {pipelineName.length !== 0 &&
-                                        <div className="side-info-container">
+
+                                   <>
+
+                                    {
+                                        props.pipelineType === "streaming" ?
+                                        <div className="side-info-container-small">
                                             <Tooltip title="Clear">
                                                 <FontAwesomeIcon icon={faBroom}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
                                             </Tooltip>
                                             
-                                            <Tooltip title={`${props.pipelineType === "data_preprocessing"? formatString(pipelineName[0]): formatString(pipelineName)}`}>
+                                            <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName[0]): formatString(pipelineName)}`}>
                                                 <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
                                             </Tooltip>
-                                            <Tooltip title="Run History">
-                                                <FontAwesomeIcon icon={faArrowsRotate} onClick={() => setOpen(true)} className="info-icon-side"/>
-                                            </Tooltip>
-                                        </div>
+
+                                           </div>
+
+                                           :
+
+                                           <div className="side-info-container">
+                                           <Tooltip title="Clear">
+                                               <FontAwesomeIcon icon={faBroom}  onClick={()=>{setIsAreYouSureOpen(true)}} className="trash-icon-side"/>
+                                           </Tooltip>
+                                           
+                                           <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName[0]): formatString(pipelineName)}`}>
+                                               <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
+                                           </Tooltip>
+                                            
+                                               
+                                               <Tooltip title="Run History">
+                                                   <FontAwesomeIcon icon={faArrowsRotate} onClick={() => setOpen(true)} className="info-icon-side"/>
+                                               </Tooltip>
+
+                                            <Tooltip title="Resources">
+                                                 <FontAwesomeIcon icon={faMicrochip}  onClick={()=>{setMetricsOpen(true)}} className="info-icon-side"/>
+                                             </Tooltip>
+                                              
+                                          </div>
+
+                                       }
+                                      
+                                   </>
+                                        
+                        
                                     } 
-                                </div>
+                            </div>
                           </>
                          }                            
-                           
                             
                             <Toaster />
                                 
                             <Flow pipelineType={props.pipelineType}/>
                                 
-                            { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps={handleDeleteTheRestData} thePipelineName={pipelineName} ></AreYouSure>}
-                            
+                            { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps={handleDeleteTheRestData} thePipelineName={pipelineName} pipelineStudio={false} ></AreYouSure>}
+                            { metricsOpen && <Metrics open={metricsOpen} pipelineName={pipelineName} handleClose={()=>{setMetricsOpen(false)}} />}
+                        
                         </div>
 
                     </div>

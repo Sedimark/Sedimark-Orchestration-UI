@@ -1,0 +1,19 @@
+.delete-pipeline-loading-text{
+    margin-left: 45%;
+}
+
+.no-results-pipeline-manager{
+
+    text-align: center;
+    font-size: 1.5rem;
+    margin-bottom: 40px;
+}
+
+.no-results-pipeline-manager-icon{
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+}
+
+.pipeline-manager-error{
+    text-align: center;
+}

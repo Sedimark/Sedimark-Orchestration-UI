@@ -1,4 +1,5 @@
 import {createSlice, nanoid} from '@reduxjs/toolkit'
+import { act } from 'react';
 
 const initialState = {
     selectedView:[1],
@@ -12,6 +13,7 @@ const initialState = {
     mappedNodes:[], 
     edges:[],
     mageAIOauthToken:"",
+    runningPipelines: [],
     dataset_info:[], 
     dataset_columns:[],
     is_data_fetching:false,
@@ -21,31 +23,123 @@ const initialState = {
     selectedPipelineNameDataPreprocessing:"",
     selectedPipelineNameTrain:"",
     selectedPipelineNamePrediction:"",
+    selectedPipelineNameStreaming: "",
     storedNodes:[],
     selectedPipelineTrain:[],
     selectedPipelineDataPreprocessing:[],
     selectedPipelinePrediction:[],
+    selectedPipelineStreaming: [],
     noPipelineFound:false,
     selectedTab:{"changed":false, tabSelected:"1"},
     mapData:"",
     typeForModel:"",
     versionForModel : "",
-    pipelineNrOfVariables:[],
-    selectedModelVersion:{}
-    
-}   
+    pipelineNrOfVariables:[], 
+    selectedModelVersion:{},
+    pipelineStudioNodes:[],
+    pipelineStudioEdges:[],
+    pipelineStudioEdgeToDelete:"",
+    pipelineStudioFirstTime:true,
+    pipelineStudioPipelineType:"",
+    pipelineStudioPipelineName:"",
+    blockCatalogSelectedOptions:[],
+    generatedBlockCode:"",
+    generatedBlockName:"",
+    resultsGenerated:false,
+    blockIsGenerating:false,
+    generatedBlockType:"",
+    editorValue:"",
+    generateBlockPayload:{},
+    socketBlockIsGenerating:false,
+    generatedBlockData:{},
+    generatedBlockResult:"",
+    blockWasGenerated: false,
+    notifyBlockGenerated:false,
+    errorWhileGenerating: false,
+    pipelinesBlocks:{},
+    blockPrompt:""
+}    
 
 export const nodeSlice = createSlice({
     name:'nodes',
     initialState,
     reducers:{
+        setBlockPrompt:(state, action)=>{
+            state.blockPrompt = action.payload;
+        },
+        setGeneratedBlockData:(state, action)=>{
+            state.generatedBlockData = action.payload;
+        },
+        setPipelinesBlocks:(state, action)=>{
+            state.pipelinesBlocks = action.payload;
+        },
+        setRunningPipelines:(state, action)=>{
+            state.runningPipelines = action.payload;
+        },
+        setErrorWhileGenerating:(state, action)=>{
+            state.errorWhileGenerating = action.payload;
+        },
+        setNotifyBlockGenerated:(state, action)=>{
+            state.notifyBlockGenerated = action.payload;
+        },
+        setGeneratedBlockResult:(state, action)=>{
+            state.generatedBlockResult = action.payload;
+        },
+        setGeneratedBlockPayload:(state, action) =>{
+            state.generateBlockPayload = action.payload;
+        },
+        setBlockWasGenerated:(state, action)=>{
+            state.blockWasGenerated = action.payload;
+        },
+        setSocketBlockIsGenerating:(state, action)=>{
+            state.socketBlockIsGenerating = action.payload;
+        },  
+        setStoredPipelineName:(state, action)=>{
+            state.pipelineStudioPipelineName = action.payload;
+        },
+        setStoredGeneratedBlockType:(state, action)=>{
+            state.generatedBlockType = action.payload;
+        },
+        setStoredGeneratedBlockName:(state, action)=>{
+            state.generatedBlockName = action.payload;
+        } ,
+        setGeneratedBlockCode:(state, action)=>{
+            state.generatedBlockCode = action.payload;
+        },
+        setResultsGenerated:(state, action)=>{
+            state.resultsGenerated = action.payload;
+        },
+        setStoredBlockIsGenerating:(state, action)=>{
+            state.blockIsGenerating = action.payload;
+        },
+        setEditorValueBlockGenerating:(state, action)=>{
+            state.editorValue = action.payload;
+        },
+        setBlockCatalogSelectedOptions: (state, action)=>{
+            state.blockCatalogSelectedOptions = action.payload;
+        },
+        setPipelineStudioFirstTime:(state, action)=>{
+            state.pipelineStudioFirstTime = action.payload;
+        },
+        setPipelineStudioPipelineType:(state, action)=>{
+            state.pipelineStudioPipelineType = action.payload;
+        },
+        setPipelineStudioNodes:(state,action)=>{
+            state.pipelineStudioNodes = action.payload;
+        },
+        setPipelineStudioEdges:(state, action)=>{
+            state.pipelineStudioEdges = action.payload;
+        },
+        setPipelineStudioEdgeToDelete:(state, action)=>{
+            state.pipelineStudioEdgeToDelete = action.payload;
+        },
         addNode: (state,action) => {
             
             const newNode = {
                 id:nanoid(),
                 nodeData:action.payload
             }
-            const containsID = state.nodes.filter(obj => obj.nodeData.type == action.payload.type );
+            const containsID = state.nodes.filter(obj => obj.nodeData.type === action.payload.type );
             if(containsID.length == 0)
             {
                 state.nodes.push(newNode);
@@ -128,14 +222,21 @@ export const nodeSlice = createSlice({
          setDatasetColumnNames:(state, action)=>{
             state.datasetColumnNames = action.payload;
          },
-         addPipelineTrain:(state, action)=>{
+         Train:(state, action)=>{
             state.selectedPipelineTrain = [];
             state.selectedPipelineTrain = [action.payload];
         },
-        addPipelinePreprocessing:(state, action)=>{
-           
+        addPipelinePreprocessing:(state, action)=>{    
             state.selectedPipelineDataPreprocessing = [];
             state.selectedPipelineDataPreprocessing = [action.payload];
+        },
+        addPipelineTrain:(state, action)=>{    
+            state.selectedPipelineTrain = [];
+            state.selectedPipelineTrain = [action.payload];
+        },
+        addPipelineStreaming:(state, action)=>{    
+            state.selectedPipelineStreaming = [];
+            state.selectedPipelineStreaming = [action.payload];
         },
         clearPipelineProcessing:(state, action)=>{
             state.selectedPipelineDataPreprocessing = [];
@@ -143,11 +244,15 @@ export const nodeSlice = createSlice({
         clearPipelineTrain:(state, action)=>{
             state.selectedPipelineTrain = [];
         },
-        setSelectedPipelineNameTrain:(state, action)=>{
-            
+        clearPipelineStreaming:(state, action)=>{
+            state.selectedPipelineStreaming = []
+        },
+        setSelectedPipelineNameTrain:(state, action)=>{ 
             state.selectedPipelineNameTrain = action.payload;
         },
-
+        setSelectedPipelineNameStreaming:(state,action)=>{
+            state.selectedPipelineNameStreaming = action.payload;
+        },
         setSelectedPipelineNamePreprocessing:(state, action)=>{
          
             state.selectedPipelineNameDataPreprocessing = action.payload;
@@ -177,6 +282,73 @@ export const nodeSlice = createSlice({
 });
 
 
-export const {setSelectModelVersionStore, setTypeForModel, setVersionForModel,  setPipelineNumberOfVariables, setSelectedTab, setNoPipelineFound ,setSelectedPipelineNamePrediction ,setSelectedPipelinePrediction,setSelectedTrainedModel, setIsPredictedSelected ,setSelectedView, clearPipelineProcessing, clearPipelineTrain, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelinePreprocessing, addPipelineTrain ,setDatasetColumnNames, setStoredNodes, setBlocksVariables, setIsDataFetching ,setDatasetColumns ,setDatasetInfo , setMappedNodes, setMappedEdges, resetSelectedModelType, addNode,setNodes,removeNode , addPipeline, addAlgorithm, setSelectedModelType, setSelectedDataFeaturingColumns, setEdgeToDelete, clearPipeline, setMageAIOauthToken, setOrderedNodes, setSelectedPipelineName, setMapData} = nodeSlice.actions
+export const { 
+    setRunningPipelines,
+    clearPipelineStreaming,
+    setSelectModelVersionStore,
+    setTypeForModel,
+    setVersionForModel,
+    setPipelineNumberOfVariables,
+    setSelectedTab,
+    setNoPipelineFound,
+    setSelectedPipelineNamePrediction,
+    setSelectedPipelinePrediction,
+    setSelectedTrainedModel,
+    setIsPredictedSelected,
+    setSelectedView,
+    clearPipelineProcessing,
+    clearPipelineTrain,
+    setSelectedPipelineNameTrain,
+    setSelectedPipelineNamePreprocessing,
+    addPipelinePreprocessing,
+    addPipelineTrain,
+    setDatasetColumnNames,
+    setStoredNodes,
+    setBlocksVariables,
+    setIsDataFetching,
+    setDatasetColumns,
+    setDatasetInfo,
+    setMappedNodes,
+    setMappedEdges,
+    resetSelectedModelType,
+    addNode,
+    setNodes,
+    removeNode,
+    addPipeline,
+    addAlgorithm, 
+    setSelectedModelType,
+    setSelectedDataFeaturingColumns,
+    setEdgeToDelete,
+    clearPipeline,
+    setMageAIOauthToken,
+    setOrderedNodes,
+    setSelectedPipelineName,
+    setMapData,
+    addPipelineStreaming,
+    setSelectedPipelineNameStreaming,
+    setPipelineStudioNodes,
+    setPipelineStudioEdges,
+    setPipelineStudioEdgeToDelete,
+    setPipelineStudioPipelineType,
+    setPipelineStudioFirstTime,
+    setBlockCatalogSelectedOptions,
+    setStoredPipelineName,
+    setGeneratedBlockCode,
+    setResultsGenerated,
+    setStoredBlockIsGenerating,
+    setEditorValueBlockGenerating,
+    setStoredGeneratedBlockName,
+    setStoredGeneratedBlockType,
+    setGeneratedBlockPayload,
+    setPipelinesBlocks,
+    // ** Those values are for socket **//
+    setSocketBlockIsGenerating,
+    setBlockWasGenerated,
+    setGeneratedBlockResult,
+    setNotifyBlockGenerated,
+    setErrorWhileGenerating,
+    setGeneratedBlockData
+    
+} = nodeSlice.actions
 
 export default nodeSlice.reducer;

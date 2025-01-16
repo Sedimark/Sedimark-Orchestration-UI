@@ -7,7 +7,8 @@ const persistedStore = loadState();
 const reducers = combineReducers({
   node:nodeReducer
 })
-export const store = configureStore({reducer: nodeReducer, preloadedState:persistedStore});
+export const store = configureStore({reducer: nodeReducer,
+   preloadedState:persistedStore});
 
 store.subscribe(()=>{
   const currentState = store.getState();

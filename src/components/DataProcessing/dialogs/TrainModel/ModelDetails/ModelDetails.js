@@ -111,18 +111,18 @@ export const ModelDetails = (props) =>{
 
   
     const handleChangePage = (event, newPage, menuType) =>{
-      if(menuType == "parameters"){
+      if(menuType === "parameters"){
         setPageParameters(newPage);  
-      } else if (menuType == "metrics"){
+      } else if (menuType === "metrics"){
         setPageMetrics(newPage);
       }
     }
 
     const handleChangeRowsPerPage = (event, menuType) => {
-      if(menuType == "parameters"){
+      if(menuType === "parameters"){
         setRowsPerPageParameters(parseInt(event.target.value, 10));
         setPageParameters(0);
-      } else if(menuType == "metrics"){
+      } else if(menuType === "metrics"){
         setRowsPerPageMetrics(parseInt(event.target.value, 10));
         setPageMetrics(0);
       }
@@ -322,7 +322,7 @@ export const ModelDetails = (props) =>{
 
                   }
                   {
-                    hasParametersLoaded && rowsParameters.length == 0 && 
+                    hasParametersLoaded && rowsParameters.length === 0 && 
                     <div className="no-parameters-container">
                         <FontAwesomeIcon icon={faBoxOpen} className="empty-page-icon" />
                         <p>There are no parameters!</p>
@@ -345,7 +345,7 @@ export const ModelDetails = (props) =>{
                     <p className="param-name"> Metrics:</p>
 
                     {
-                      hasMetricsLoaded && rowsMetrics.length == 0 && 
+                      hasMetricsLoaded && rowsMetrics.length === 0 && 
                       <div className="no-parameters-container">
                           <FontAwesomeIcon icon={faChartColumn} className="empty-page-icon" />
                           <p>There are no metrics!</p>
@@ -415,7 +415,7 @@ export const ModelDetails = (props) =>{
                 <div>
                     <p className="param-name">Model Images</p>
                   {
-                    hasTrainingMetricsImagesLoaded &&  metricsImages.length == 0 && 
+                    hasTrainingMetricsImagesLoaded &&  metricsImages.length === 0 && 
                       <div className="no-parameters-container">
                         <FontAwesomeIcon icon={faImage} className="empty-page-icon" />
                         <p>There are no images for metrics!</p>

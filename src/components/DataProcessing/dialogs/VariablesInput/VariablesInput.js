@@ -8,7 +8,7 @@ import Box from '@mui/material/Box';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { styled } from '@mui/system';
 import styles from "./VariablesInput.css";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import {useDispatch} from 'react-redux';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -18,9 +18,11 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
-import Select, { SelectChangeEvent } from '@mui/material/Select';
+import Select from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
+import {  IconButton, InputAdornment } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import { FETCH_MINIO_FILE } from '../../../../utils/apiEndpoints';
 import { format } from 'date-fns';
@@ -28,13 +30,14 @@ import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateField } from '@mui/x-date-pickers/DateField';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import {
   Unstable_NumberInput as BaseNumberInput,
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
-
+import formatName from '../../../../utils/formatName';
 import { setBlocksVariables } from '../../../../reducers/nodeSlice';
-import { isValid, isBefore, parseISO } from 'date-fns'
+
 import axios from "axios";
 
 const ITEM_HEIGHT = 48;
@@ -57,9 +60,13 @@ export default function VariablesInput(props){
     const dateFieldRef = useRef(null);
     const [defaultDate, setDefaultDate] = useState("");
     const [isDateOk, setIsDateOk] = useState(false);
+    //** Data related to pipeline names */
     const pipelineProcessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
     const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
+    const pipelinePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
+    const pipelineStreaming = useSelector((state)=> state.selectedPipelineStreaming);
     const activeTab = useSelector((state)=> state.selectedView);
+    const storedPipelinesBlockInfo = useSelector((state)=> state.pipelinesBlocks);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
     const [isDataLoading, setIsDataLoading] = useState(true);
@@ -78,6 +85,8 @@ export default function VariablesInput(props){
     const [hasInputError, setHasInputError] = useState({});
     const [formHasError, setFormHasError] = useState(false);
     const [hasDate, setHasDate] = useState(false);
+    const [showPassword, setShowPassword] = useState({});
+    const [allEmptyFields, setAllEmptyFields] = useState(false);
     
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
@@ -194,33 +203,36 @@ export default function VariablesInput(props){
     }
 
     const handleChange = (event, type, variableName) => {
-      
-      
+
       const { target: { value } } = event;
-
-      if(type == "text"){
-        const rule = removeSlashesFromRegexString(rulesForVariables[variableName]);
+      
+      if(type === "text"){
         
-        const newRegExpRule = new RegExp(rule);
-        const errMonitor = {...hasInputError};
+        if(rulesForVariables[variableName]){
+          const rule = removeSlashesFromRegexString(rulesForVariables[variableName]);
+        
+          const newRegExpRule = new RegExp(rule);
+          const errMonitor = {...hasInputError};
 
-        if(value.length != 0){
-          if(!newRegExpRule.test(value)){
-            errMonitor[variableName] = true;
+          if(value.length != 0){
+            if(!newRegExpRule.test(value)){
+              errMonitor[variableName] = true;
+              setHasInputError(errMonitor);
+              
+            } else {
+              errMonitor[variableName] = false;
+            }
             setHasInputError(errMonitor);
-            return;
+    
           } else {
             errMonitor[variableName] = false;
+            setHasInputError(errMonitor);
           }
-          setHasInputError(errMonitor);
-  
-        } else {
-          errMonitor[variableName] = false;
-          setHasInputError(errMonitor);
         }
-       
-      
+
       } 
+
+     
 
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
@@ -229,14 +241,13 @@ export default function VariablesInput(props){
         value:value,
       }
 
-      
-  
+        
       const newValue = {...variablesInput};
       newValue[variableName] = value;
       setVariablesInput(newValue);
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
-      
+    
     };
 
     const darkTheme = createTheme({
@@ -272,22 +283,37 @@ export default function VariablesInput(props){
       })
     }; 
     
+
     const createObjToStore = ()=>{
       
       let inputedValuesVariables = [...variableValues];
       let objToStore;
+
+      let pipelineName = "";
+  
       
+      for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+        if(key == formatName(props.fullNodeName)){
+          pipelineName = value;
+        }
+      }
+      
+
       for(const key in variablesInput){
          objToStore = {
           block_name:props.fullNodeName,
           variable_name:key,
           value:variablesInput[key],
           nodeId:nodeNameId,
-          pipelineName:selectedPipeline
+          pipelineName:pipelineName
         }
+    
+        
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
       }
+
+      
      
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       
@@ -306,7 +332,7 @@ export default function VariablesInput(props){
     }
 
    useEffect(()=>{
-    if(isDataFetching == false){
+    if(isDataFetching === false){
       setIsDataLoading(false);
     } else {
       setIsDataLoading(true);
@@ -319,13 +345,26 @@ export default function VariablesInput(props){
 
 
    useEffect(()=>{
-
-   },[variableValues])
+    
+    if(variablesInput){
+      for(const key of Object.keys(variablesInput)){
+          if(typeof variablesInput[key] === "string" && variablesInput[key].length!==0 ){
+            setAllEmptyFields(false);
+            return;
+          } else if(Array.isArray(variablesInput[key]) && variablesInput[key].length!==0){
+            setAllEmptyFields(false);
+            return;
+          }
+      }
+      setAllEmptyFields(true);
+    }
+   },[variablesInput])
 
    const createVariableInputObjects = (data, storedVars)=>{
     
       const obj = {...variablesInput};
       const errorMonitorObj = {};
+      
 
       for(const value of data){
 
@@ -338,7 +377,7 @@ export default function VariablesInput(props){
             updatedDropdownValues[value.varName]  = value["values"];
             setDropDownValues(updatedDropdownValues);
             errorMonitorObj[value.varName] = false;
-        } else if(value.type === "number"){
+        } else if(value.type === "number" || value.type === "int"){
                 obj[value.varName] = "";
             if(value.range){
               const newRules = rulesForVariables;
@@ -346,7 +385,7 @@ export default function VariablesInput(props){
               setRulesForVariables(newRules);
             }
             errorMonitorObj[value.varName] = false;
-        } else if(value.type === "string"){
+        } else if(value.type === "string" || value.type === "str" || value.type === "secret" ){
                 obj[value.varName] = "";
                 if(value.regex){
                   const newRules = rulesForVariables;
@@ -363,7 +402,7 @@ export default function VariablesInput(props){
 
     let foundBlocks = [];
     for(const block of storedVars){
-       if(block.block_name == props.fullNodeName){
+       if(block.block_name === props.fullNodeName){
          foundBlocks.push(block);
        }
      }
@@ -377,33 +416,27 @@ export default function VariablesInput(props){
       setHasInputError(errorMonitorObj);
    }
 
-   const retrievePipelineBasedOnTab = (the_active_tab)=>{
-  
-      if(the_active_tab == 1){
-        setSelectedPipeline(pipelineProcessing);
-      } else {
-        setSelectedPipeline(pipelineTrain);
-      }
-   }
 
    const parsePhantomVariables = ()=>{
       let phantomVariable = false;
       const allBlockVariables = [];
+     
 
      for(const varInstance of props.variablesData){
-        if(varInstance.type && (varInstance.type == "string" || varInstance.type == "number" || varInstance.type == "multiple_selection" || varInstance.type == "drop_down" || varInstance.type == "date"))
+        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date"))
         {
           allBlockVariables.push(varInstance);
         } 
 
-        if(varInstance.type == "multiple_selection"){
+        if(varInstance.type === "multiple_selection"){
           setAreMultipleVariables(true);
         }
 
      }
-     
+
+
      setPurifiedVariables(allBlockVariables);
-     if(allBlockVariables.length == 0){
+     if(allBlockVariables.length === 0){
       setVariablesPresent(false);
      }
      
@@ -434,6 +467,7 @@ export default function VariablesInput(props){
 
       setWasSomethingChanged(true);
 
+     
       
       if(!isNewDateBeforeOrEqualsCurrentDate){
         errMonitor[variableName] = true;
@@ -479,9 +513,6 @@ export default function VariablesInput(props){
     
    },[]) 
 
-   useEffect(()=>{
-    retrievePipelineBasedOnTab(activeTab);
-   },[activeTab])
 
    useEffect(()=>{ 
 
@@ -499,7 +530,7 @@ export default function VariablesInput(props){
     
   for (const key in hasInputError) {
     if (hasInputError.hasOwnProperty(key)) {
-       if (hasInputError[key] == true){
+       if (hasInputError[key] === true){
           setFormHasError(true);
           return;
        }
@@ -509,12 +540,13 @@ export default function VariablesInput(props){
 
   },[hasInputError])
 
+ 
 
   const checkDateOk = (varName)=>{
     
     let wasFound = false;
     for(const blockVar of blocksVariablesStored){
-      if(blockVar["variable_name"] == varName){
+      if(blockVar["variable_name"] === varName){
         wasFound = true;
       }
     }
@@ -524,7 +556,7 @@ export default function VariablesInput(props){
  useEffect(()=>{
 
   for(const variable_pur of purifiedVariables){
-    if(variable_pur.type == "date"){
+    if(variable_pur.type === "date"){
       setHasDate(true);
     }
     if(!checkDateOk(variable_pur.varName)){
@@ -535,10 +567,31 @@ export default function VariablesInput(props){
    setIsDateOk(true);
  },[purifiedVariables])
 
+
+ const selectPipelineBasedOnStoredData = ()=>{
+    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+      if(key == formatName(props.fullNodeName)){
+        setSelectedPipeline(value);
+      }
+    }
+ }
+
+ const handleClickShowPassword = (index) => {
+  setShowPassword(prevState => ({
+    ...prevState,
+    [index]: !prevState[index], // Schimbă vizibilitatea doar pentru câmpul curent
+  }));
+};
+
+ useEffect(()=>{
+  selectPipelineBasedOnStoredData();
+ },[storedPipelinesBlockInfo])
+
+
     return (
     <div>
       <ThemeProvider theme={darkTheme}>
-      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg" fullWidth="true" >
+      <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg" fullWidth={true} >
     
             <DialogTitle> {props.fullNodeName} </DialogTitle>
             <DialogContent sx={{textAlign:'center'}} >   
@@ -550,7 +603,7 @@ export default function VariablesInput(props){
                 </div>  
                 {purifiedVariables.map((value, index)=>{
                     
-                  if(value.type == "string"){
+                  if(value.type === "string" || value.type === "str"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
                       <TextField error = {hasInputError[value.varName]} value={variablesInput[value.varName] || ''}  onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"text",value.varName)}} id={`outlined-basic-${index}`} label={`${value.varName}`} variant="outlined" />
@@ -559,8 +612,45 @@ export default function VariablesInput(props){
                     </FormControl>
                     
                     );
-                    
-                  } else if(value.type == "number"){
+                  } else if(value.type === "secret"){
+                    return(
+                    <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
+                      <TextField
+                        error={hasInputError[value.varName]}
+                        value={variablesInput[value.varName] || ''}
+                        onChange={(event) => {
+                          setWasSomethingChanged(true);
+                          handleChange(event, "text", value.varName);
+                        }}
+                        id={`outlined-basic-${index}`}
+                        label={`${value.varName}`}
+                        variant="outlined"
+                        type={showPassword[index] ? 'text' : 'password'}  
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                aria-label="toggle password visibility"
+                                onClick={() => handleClickShowPassword(index)}
+                                edge="end"
+                              >
+                                {showPassword[index] ? <VisibilityOff /> : <Visibility />}
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                        }}
+                      />
+                      {hasInputError[value.varName] && value["example"] && (
+                        <div className='input-err-msg'>A correct name should look like this: {value["example"]}</div>
+                      )}
+                      {value["description"] && (
+                        <div className='variable-description'>
+                          <FontAwesomeIcon icon={faCircleInfo} /> {value["description"]}
+                        </div>
+                      )}
+                    </FormControl>
+                    );
+                  } else if(value.type === "number" || value.type === "int"){
                     
                     return(
                     <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
@@ -577,7 +667,7 @@ export default function VariablesInput(props){
                   </FormControl>
                     );
 
-                  } else if(value.type == "multiple_selection"){
+                  } else if(value.type === "multiple_selection"){
                   
                     return(
                       <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -602,7 +692,7 @@ export default function VariablesInput(props){
                           {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                       </FormControl>
                     );
-                  } else if(value.type == "drop_down"){
+                  } else if(value.type === "drop_down"){
                     return(
                       <div>
                         <FormControl sx={{ m: 1, width: "60%" }}>
@@ -631,23 +721,30 @@ export default function VariablesInput(props){
                       </div>
                     )
                   }
-                   else if(value.type == "date"){
+                   else if(value.type === "date"){
                     
                     return(
-                      <div className="date-container">
-                         <LocalizationProvider dateAdapter={AdapterDayjs} >  
-                            <DateField
-                              ref={dateFieldRef}
-                              label={`${value.varName}`}
-                              defaultValue={variablesInput[value.varName].length!=0? dayjs(variablesInput[value.varName][0]) : dayjs(variablesInput[value.varName][0])}
-                              format={`${value.format}`}
-                              sx={{width:"66%", mt:2}}
-                              
-                              onChange={(evt)=>{handleDateChange(evt,value.format,"date",value.varName)}}
-                            />
-                         </LocalizationProvider>       
-                         {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> }        
-                      </div>
+                      <>
+                        <div>
+                       
+                        </div>
+
+                          <div className="date-container">
+                            <LocalizationProvider dateAdapter={AdapterDayjs} >  
+                                
+                              <DatePicker
+                                  ref={dateFieldRef}
+                                  label={`${value.varName}`}
+                                  defaultValue={variablesInput[value.varName].length!=0? dayjs(variablesInput[value.varName][0]) : dayjs(variablesInput[value.varName][0])}
+                                  format={`${value.format}`}
+                                  sx={{width:"66%", mt:2}}
+                                  
+                                  onChange={(evt)=>{handleDateChange(evt,value.format,"date",value.varName)}}
+                                />
+                            </LocalizationProvider>       
+                            {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> }        
+                          </div>
+                      </>
                     )
                   }
                 })}
@@ -662,10 +759,10 @@ export default function VariablesInput(props){
                   </div>
                 </div>
               }
-              {
+              { 
                   !variablesPresent &&
                   <div className='no-variables-info-container'>
-                    <FontAwesomeIcon icon={faBoxOpen} className='empty-node-container' /> 
+                    <FontAwesomeIcon icon={faBoxOpen} className='no-variables-icon empty-node-container' /> 
                      <p> There are no variables present</p>
                   </div>
               }
@@ -673,7 +770,7 @@ export default function VariablesInput(props){
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>
-              <Button  disabled={!wasSomethingChanged || formHasError || (hasDate && !isDateOk)} onClick={()=>{handleDone()}}>Done</Button>
+              <Button  disabled={!wasSomethingChanged || formHasError || (hasDate && !isDateOk) || allEmptyFields } onClick={()=>{handleDone()}}>Done</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

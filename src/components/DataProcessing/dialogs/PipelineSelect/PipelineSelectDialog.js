@@ -16,34 +16,32 @@ import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCodeBranch, faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons';
+import { faCodeBranch, faScrewdriverWrench, faSquarePollHorizontal, faFile } from '@fortawesome/free-solid-svg-icons';
 import Paper from '@mui/material/Paper'; 
 import { Typography } from '@mui/material';
 import RadioGroup from '@mui/material/RadioGroup';
-import style from "./PipelineSelectDialog.css";
 import Radio from '@mui/material/Radio';
 import { formatString } from '../../../../utils/formatString';
-import {FETCH_MINIO_FILE, FETCH_PIPELINES} from "../../../../utils/apiEndpoints";
+import { FETCH_PIPELINES, FETCH_PIPELINE_DATA } from "../../../../utils/apiEndpoints";
 import axios from "axios";
-import {setSelectedTab, addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineName, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing} from "../../../../reducers/nodeSlice";
+import {setSelectedTab, addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelineStreaming, setSelectedPipelineNameStreaming, setPipelinesBlocks} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
+import {checkAndFormat} from "../../../../utils/checkAndFormat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import { setDatasetColumns, setBlocksVariables, setDatasetInfo, setDatasetColumnNames, setSelectedView } from '../../../../reducers/nodeSlice';
+import {  setBlocksVariables} from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import { useEdges } from 'reactflow';
-
+import style from "./PipelineSelectDialog.css";
 
 
 export default function PipelineSelectDialog(props) {
-
   
   const dispatch = useDispatch();
   const storedVariables = useSelector((state)=>state.blocksVariables);
-  const nodes = useSelector((state)=>state.nodes);
   const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
+  const pipelineStreaming = useSelector((state)=>state.selectedPipelineStreaming);
   const pipelinePreprocessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
+  const storedPipelineBlocks = useSelector((state)=> state.pipelinesBlocks);
   const [checked, setChecked] = React.useState([]);
-  const [dataSetSearch,setDatasetSearch] = React.useState(true);
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
   const [searchedString, setSearchedString] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(true);
@@ -56,27 +54,7 @@ export default function PipelineSelectDialog(props) {
   const [hasError, setHasError] = React.useState(false);
   const [foundPipeline, setFoundPipeline] = React.useState(false);
 
-  const parseAndSetColumns = (data_to_parse)=>{
-    
-    const allColumns = [];
-    for(const obj of data_to_parse){
-        allColumns.push(obj.column_name);
-    }
-    
-    dispatch(setDatasetColumns(allColumns));
-}
 
-const parseBucketName = (inputString)=>{
-  if (inputString.includes('_')) {
-    inputString = inputString.split("_").join("-");
-  } 
-
-  if (inputString.includes(' ')) {
-    inputString =  inputString.split(' ').join("-");
-  } 
-
-  return inputString;
-}
 
 
   const darkTheme = createTheme({
@@ -90,10 +68,10 @@ const parseBucketName = (inputString)=>{
       return;
     }
     const filteredPipelines = data.filter((dt)=> {
-      return  dt.name === pipeline[0] ;
+      return  dt === pipeline[0] ;
     });
 
-    const filteredPipelinesNames = filteredPipelines.length !== 0? filteredPipelines[0].name : [];
+    const filteredPipelinesNames = filteredPipelines.length !== 0? filteredPipelines[0] : [];
     if(filteredPipelinesNames.length !== 0){
 
       setChecked([filteredPipelinesNames]);
@@ -102,27 +80,56 @@ const parseBucketName = (inputString)=>{
   }
   
   const fetchAllPipelines = async()=>{
-     try{
-      const resp = await axios.get(FETCH_PIPELINES);
-      if(resp.data.length !== 0){
-        const filteredData = resp.data.filter((item) => item.type === props.pipelineType);
-        setAllPipelines(filteredData);
-        setfilteredPipelines(filteredData);
+
+
+    if(props.pipelineType === "data_preprocessing"){
+      try{
+        const resp = await axios.get(FETCH_PIPELINES("data_preprocessing"));
+        
+        setAllPipelines(resp.data);
+        setfilteredPipelines(resp.data);
         restoreChecksBasedOnStoredData(resp.data);
         setIsLoading(false);
+        setHasError(false);
+      } catch(err){
+        setIsLoading(false);
+        setHasError(true);
       }
-     } catch(err){
-      setIsLoading(false);
-      setHasError(true);
-     }
+     
+
+    } else if(props.pipelineType === "train"){
+      try{
+        const resp = await axios.get(FETCH_PIPELINES("train"));
+        setAllPipelines(resp.data);
+        setfilteredPipelines(resp.data);
+        restoreChecksBasedOnStoredData(resp.data);
+        setIsLoading(false);
+        setHasError(false);
+      } catch(err){
+        setIsLoading(false);
+        setHasError(true);
+      }
+
+    } else if(props.pipelineType === "streaming"){
+      try{
+        const resp = await axios.get(FETCH_PIPELINES("streaming"));
+        setAllPipelines(resp.data);
+        setfilteredPipelines(resp.data);
+        restoreChecksBasedOnStoredData(resp.data);
+        setIsLoading(false);
+        setHasError(false);
+      } catch(err){
+        setIsLoading(false);
+        setHasError(true);
+      }
+    }
   }
   
-
 
   const searchListByDatasetName = (list, str)=> {
     const filteredList = list.filter(item => {
       const searchStr = str.toLowerCase();
-      const datasetName = item.name.toLowerCase();
+      const datasetName = item.toLowerCase();
   
       return datasetName.includes(searchStr);
     });
@@ -137,14 +144,42 @@ const parseBucketName = (inputString)=>{
   }
 
 
-  const addCorespondingPipeline = ()=>{
-   
-  
+   const fetchAndSaveBlockNames = async(pipeline_name)=>{
+      // cand cineva selecteaza un pipeline noi salvam in redux fiecare block cu numele lui si practic
+      // o sa salvezi cheie valoare adica numele block-ului la cheie si la valoare o sa salvezi numele pipeline-ului
+      let pipeline_blocks;
+      try{
+        const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+        pipeline_blocks = resp.data.pipeline.blocks;
 
+      } catch(err){
+        console.log(err);
+      }
+ 
+
+      let blocksInfoObj ;
+      if(storedPipelineBlocks){
+        blocksInfoObj = {...storedPipelineBlocks };
+      } else {
+        blocksInfoObj = {};
+      }
+
+      
+
+      for(const block of pipeline_blocks){
+        blocksInfoObj[checkAndFormat(block.name)] = pipeline_name;
+      }
+
+      dispatch(setPipelinesBlocks(blocksInfoObj));
+   }
+
+  const addCorespondingPipeline = async()=>{
+   
+    
     if(isLoading){
         return;
     }
-
+    
     if(selectedPipeline){
       let pipeline;
       if(Array.isArray(selectedPipeline)) {
@@ -153,9 +188,11 @@ const parseBucketName = (inputString)=>{
         pipeline = selectedPipeline
       }
       const filteredVariables = [];
+      await fetchAndSaveBlockNames(pipeline);
+       
 
       for(const variable of storedVariables){
-        if(variable["pipelineName"][0] !== pipeline){
+        if( variable["pipelineName"] && variable["pipelineName"][0] !== pipeline){
             filteredVariables.push(variable);
         }
       }
@@ -163,7 +200,7 @@ const parseBucketName = (inputString)=>{
     }
 
     if(props.pipelineType === "train"){
-
+     
       if(selectedPipeline.length === 0){
         dispatch(addPipelineTrain([]));
       }
@@ -197,6 +234,31 @@ const parseBucketName = (inputString)=>{
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
           dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
         }
+      } if(props.pipelineType === "streaming"){
+      
+          if(selectedPipeline.length === 0){
+            dispatch(addPipelineStreaming([]));
+          }
+
+
+        if(!pipelineStreaming){
+          dispatch(addPipelineStreaming(selectedPipeline));
+          dispatch(setSelectedPipelineNameStreaming(selectedPipeline));
+          dispatch(setSelectedTab({"changed":true, tabSelected:"4"}));
+          return;
+        }
+          
+        if(pipelineStreaming.length !== 0 && pipelineStreaming[0] !== selectedPipeline)
+        {  
+          dispatch(addPipelineStreaming(selectedPipeline));
+          dispatch(setSelectedPipelineNameStreaming(selectedPipeline));
+          dispatch(setSelectedTab({"changed":true, tabSelected:"4"}));
+        } else if(pipelineStreaming.length === 0 ){
+          dispatch(addPipelineStreaming(selectedPipeline));
+          dispatch(setSelectedPipelineNameStreaming(selectedPipeline));
+          dispatch(setSelectedTab({"changed":true, tabSelected:"4"}));
+        } 
+  
       }
   }
 
@@ -207,8 +269,6 @@ const parseBucketName = (inputString)=>{
         setOnlyOneOptionSelected(false);
         setFoundPipeline(false);
     }
-    
-    
  }
 
   const handleDialogTitle = ()=>{
@@ -218,7 +278,10 @@ const parseBucketName = (inputString)=>{
     } else if (props.pipelineType === "train"){
       setDialogName("Pipelines - train");
       setPipeline(pipelineTrain);
-    }
+    } else if (props.pipelineType === "streaming"){
+      setDialogName("Pipelines - streaming");
+      setPipeline(pipelineStreaming);
+    } 
   }
 
   const checkIfPipelineIsSelected = (all_pipelines, the_pipeline) => {
@@ -227,11 +290,11 @@ const parseBucketName = (inputString)=>{
     
     for(const pipeline of all_pipelines){
       if(Array.isArray(the_pipeline)){
-        if(pipeline.name === the_pipeline[0]){
+        if(pipeline === the_pipeline[0]){
           pipelineSelected = true;
         }
       } else {
-        if(pipeline.name === the_pipeline){
+        if(pipeline === the_pipeline){
           pipelineSelected = true;
         }
       }
@@ -256,12 +319,10 @@ const parseBucketName = (inputString)=>{
 
 
   React.useEffect(()=>{
-    let thePipeline = pipeline;
-    
+  
     setOnlyOneOptionSelected(!checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
     setFoundPipeline(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
 
-    
   },[filteredPipelines])
 
 
@@ -269,7 +330,7 @@ const parseBucketName = (inputString)=>{
     
     <div>
       <ThemeProvider theme={darkTheme}>
-        <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="600" fullWidth={true} >
+        <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="1600" fullWidth="lg"  >
   
              <DialogTitle> {dialogName} </DialogTitle>
               <DialogContent>   
@@ -317,27 +378,27 @@ const parseBucketName = (inputString)=>{
                           </ListItemButton>
                         </ListItem>
                      {
-                      isLoading &&
+                      isLoading && !hasError &&
                       <div className="loading-circle-container">
                         <div className="loading-circle"></div>
                         <p className="loading-text">Loading...</p>
                       </div>
                      }
-                     { !isLoading && 
+                     { !isLoading && !hasError  && allPipelines.length!=0 && 
                         
                      <RadioGroup value={selectedPipeline} onClick={(val)=>{handleRadioClick(val.target.value)}}>
   
                       {
                            filteredPipelines.map((value) => {
-                            const labelId = `checkbox-list-secondary-label-${value.name}`;
+                            const labelId = `checkbox-list-secondary-label-${value}`;
                            
                              return (
                                <ListItem
-                                 key={value.name}
+                                 key={value}
                                  secondaryAction={
                                    <div className='dataset-select-toolbox'>
-                                     {value.name !== pipeline[0] ?
-                                      <FormControlLabel value={value.name} control={<Radio />}  /> :
+                                     {value !== pipeline[0] ?
+                                      <FormControlLabel value={value} control={<Radio />}  /> :
                                       <p className='pipeline-selected-text'>Selected</p>
                                      }
                                      
@@ -345,12 +406,12 @@ const parseBucketName = (inputString)=>{
                                  }
                                  disablePadding
                                > 
-                                 <ListItemButton onClick={()=>{ if(value.name !== pipeline[0]) { handleRadioClick(value.name)}}}>
+                                 <ListItemButton onClick={()=>{ if(value !== pipeline[0]) { handleRadioClick(value)}}}>
                                    <ListItemAvatar>
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>
                                    <ListItemText  id={labelId}  disableTypography
-                                   primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value.name)}</Typography>} />
+                                   primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value)}</Typography>} />
                                  </ListItemButton>
                                </ListItem>
                              );
@@ -366,6 +427,21 @@ const parseBucketName = (inputString)=>{
                             <FontAwesomeIcon icon={faScrewdriverWrench} className='empty-node-container' /> 
                             <p> We have encountered an error! Please try again later</p>
                         </div>
+                     }
+                    {
+                        !isLoading && !hasError &&allPipelines.length!=0 && filteredPipelines == 0 &&
+                        <div className="no-results-pipeline-manager">
+                          <FontAwesomeIcon icon={faFile} className='no-results-pipeline-manager-icon'/> 
+                          <p> No results </p>
+                      </div>
+                    }
+
+                     {
+                      !isLoading && !hasError && allPipelines.length === 0 &&
+                      <div className="no-result-container">
+                        <FontAwesomeIcon icon={faSquarePollHorizontal} className='empty-node-container'/> 
+                        <p> There are no pipelines </p>
+                      </div>
                      }
                      
                    </List>

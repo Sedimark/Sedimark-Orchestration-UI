@@ -16,6 +16,7 @@ import Button from '@mui/material/Button';
 import LibraryAddCheckIcon from '@mui/icons-material/LibraryAddCheck';
 import CheckIcon from '@mui/icons-material/Check';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
+import {faScrewdriverWrench} from '@fortawesome/free-solid-svg-icons';
 import {setSelectModelVersionStore} from "../../../../../reducers/nodeSlice"
 import toast, { Toaster } from 'react-hot-toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -92,10 +93,10 @@ export const AllModelsTable = (props)=>{
       };
 
       const checkModelSelected = (model_name) =>{
-          if( Object.keys(modelNameForVersion).length == 0 ||  !modelNameForVersion.hasOwnProperty(model_name)){
+          if( Object.keys(modelNameForVersion).length === 0 ||  !modelNameForVersion.hasOwnProperty(model_name)){
             blockAlert(`There is no version selected for the model: ${model_name}`)
             return false
-          } else if(modelNameForVersion[model_name].length == 0) {
+          } else if(modelNameForVersion[model_name].length === 0) {
             blockAlert(`There is no version selected for the model: ${model_name}`)
             return false
           }
@@ -113,7 +114,7 @@ export const AllModelsTable = (props)=>{
           if(row_name!= selectedTrainedModel )
           { 
             setSelectedTrainedModel(row_name);
-          } else if (row_name == selectedTrainedModel){
+          } else if (row_name === selectedTrainedModel){
             setSelectedTrainedModel("");
           }
       }
@@ -147,7 +148,7 @@ export const AllModelsTable = (props)=>{
         <div>
             
               {
-               !props.isLoading && props.allModelsData.length === 0 && 
+               !props.isLoading && !props.hasError && props.allModelsData.length === 0 && 
                 <div className="no-models-container">
                   
                   <p className="no-models-text"> 
@@ -156,6 +157,16 @@ export const AllModelsTable = (props)=>{
                         There are no trained models!
                     </p>
                   </p>
+                </div>
+              }
+              { props.hasError &&
+                  <div className="no-models-container"> 
+                    <p className="no-models-text"> 
+                    <FontAwesomeIcon icon={faScrewdriverWrench} />
+                      <p>
+                          We have encountered an error! Please try again later!
+                      </p>
+                    </p>
                 </div>
               }
              
@@ -194,7 +205,7 @@ export const AllModelsTable = (props)=>{
                               }
                               
                          
-                                { row.name == selectedTrainedModel && 
+                                { row.name === selectedTrainedModel && 
 
                                 <Button variant="contained"   sx={{ width: 150,
                                                 color: 'white',
