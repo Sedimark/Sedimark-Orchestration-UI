@@ -26,7 +26,7 @@ import Typography from '@mui/material/Typography';
 import AreYouSure from "../DataProcessing/dialogs/AreYouSure/AreYouSure";
 import Metrics from "../DataProcessing/dialogs/Metrics/Metrics";
 import axios from "axios";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import {createTheme, styled} from '@mui/material/styles';
 import {
     faCirclePlay,
@@ -511,6 +511,8 @@ export const PipelineView = (props)=>{
         dispatch(setRunningPipelines(allRunningPipelines));
     }
 
+    
+
 
     const handleStreamingPipeline = async (status) => {
         try {
@@ -725,7 +727,7 @@ export const PipelineView = (props)=>{
                                                  <FontAwesomeIcon icon={faMicrochip}  onClick={()=>{setMetricsOpen(true)}} className="info-icon-side"/>
                                              </Tooltip>
                                               
-                                          </div>
+                                             </div>
 
                                        }
                                       
@@ -736,9 +738,7 @@ export const PipelineView = (props)=>{
                             </div>
                           </>
                          }                            
-                            
-                            <Toaster />
-                                
+ 
                             <Flow pipelineType={props.pipelineType}/>
                                 
                             { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps={handleDeleteTheRestData} thePipelineName={pipelineName} pipelineStudio={false} ></AreYouSure>}

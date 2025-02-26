@@ -24,7 +24,7 @@ import { GENERATE_BLOCK_WS, CHECK_BLOCK_WS } from '../../../../utils/apiEndpoint
 import {setPipelineStudioNodes, setNotifyBlockGenerated, setGeneratedBlockData, setErrorWhileGenerating, setGeneratedBlockResult,setBlockWasGenerated, setGeneratedBlockCode, setSocketBlockIsGenerating,setResultsGenerated,setStoredBlockIsGenerating, setEditorValueBlockGenerating, setStoredGeneratedBlockName, setStoredGeneratedBlockType} from "../../../../reducers/nodeSlice";
 import { useDispatch, useSelector } from 'react-redux';
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
-import toast, { Toaster } from 'react-hot-toast';
+import toast  from 'react-hot-toast';
 import {setGeneratedBlockPayload} from "../../../../reducers/nodeSlice";
  
 
@@ -49,7 +49,7 @@ export default function GenerateBlocks(props) {
     const ITEM_PADDING_TOP = 8;
     const [firstRender, setFirstRender] = useState(true);
     const pipelineStudioNodes = useSelector((state)=> state.pipelineStudioNodes);
-    const [blockIsGenerating, setBlockIsGenerating] = useState(false);
+    const [blockIsGenerating, setBlockIsGenerating] = useState(true);
     const [blockResultsGenerated, setBlockResultsGenerated] = useState(false);
     const [editorToggle, setEditorToggle] = useState(false);
     const [generatedBlockName, setGeneratedBlockName] = useState("");
@@ -227,7 +227,7 @@ export default function GenerateBlocks(props) {
       };
   
       ws.onclose = (event) => {
-        setBlockIsGenerating(false);
+       setBlockIsGenerating(false);
         setThereWasAnError(true);
         console.log('Disconnected from WebSocket');
       };
@@ -361,23 +361,22 @@ export default function GenerateBlocks(props) {
                     {
                         blockIsGenerating && !thereWasAnError && 
                             <div className='block-generating-container'>
-                                <div class="loader center-loader loader-generating-block">
+                                <div class="loader loader-centered">
                                     <div class="dot"></div>
                                     <div class="dot"></div>
                                     <div class="dot"></div>
-                                </div>
+                                </div> 
                                 <div className='generating-block-text'> 
                                   <p> The block is being generated.  </p>
                                   <p>It may take 1-2 mins </p>
                                   <p>Please do not close this window </p>
-                                  </div>
-                                <div>  </div>
-                                <div>  </div>
+                                </div>
+                                
                             </div>
                     }
 
                 
-                 { !blockIsGenerating && !thereWasAnError && !blockResultsGenerated && <Button className="generate-block-btn" disabled={message.length == 0 || !generatedBlockType ||generatedBlockType.length == 0} onClick={()=>{sendMessage(); setBlockIsGenerating(true); dispatch(setStoredBlockIsGenerating(true))}} variant='contained'> Generate </Button>}   
+                 { !blockIsGenerating && !thereWasAnError && !blockResultsGenerated && <Button className="generate-block-btn" disabled={message.length == 0 || !generatedBlockType ||generatedBlockType.length == 0} onClick={()=>{sendMessage(); setBlockIsGenerating(true);  dispatch(setStoredBlockIsGenerating(true))}} variant='contained'> Generate </Button>}   
                  {blockResultsGenerated && !thereWasAnError && 
                   <div className='generated-block-results-container'>
                     {

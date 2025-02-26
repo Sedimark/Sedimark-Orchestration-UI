@@ -1,0 +1,16 @@
+.insert-pipeline-name-container{
+    text-align: center;
+}
+
+.info-circle{
+    padding-left: 10px;
+    padding-right: 10px;
+    text-align: center;
+}
+
+.centered-save-pipeline-circle-info{
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: 10px;
+    font-size: 1.3rem;
+}

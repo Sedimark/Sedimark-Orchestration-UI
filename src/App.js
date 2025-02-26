@@ -8,6 +8,7 @@ import { useSelector } from 'react-redux';
 import { setGeneratedBlockCode, setErrorWhileGenerating, setNotifyBlockGenerated, setGeneratedBlockPayload, setStoredGeneratedBlockName, setSocketBlockIsGenerating, setGeneratedBlockResult, setBlockWasGenerated} from "./reducers/nodeSlice.js";
 import { useDispatch } from 'react-redux';
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
+import { Shamrock } from './components/Shamrock/Shamrock.js';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import useAuth from "./hooks/useAuth";
@@ -33,6 +34,8 @@ function App() {
     const reconnectIntervalRef = useRef(null); // Reconnect timer reference
     const wsRef = useRef(null);
     const [isConnected, setIsConnected] = useState(false);
+
+
     // ** WEBSOCKET THAT GENERATES A BLOCK ** //
 
 
@@ -58,8 +61,7 @@ function App() {
       checkWS.current = new WebSocket(CHECK_BLOCK_WS);
 
       checkWS.current.onopen = () => {      
-
-      console.log('Connected to checkWS');    
+  
       setCheckWsIsOpen(true);
 
       };
@@ -140,6 +142,7 @@ function App() {
             <Routes>
                  <Route element = {<DataProcessing />} path="/"></Route>
                  <Route element = {<PipelineCreatorCanvas/>} path="/pipeline-studio"></Route>
+                 <Route element={<Shamrock/>} path="/shamrock"></Route>
             </Routes>
         </Router>
         <Toaster/>

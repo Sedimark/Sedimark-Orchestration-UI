@@ -1,0 +1,44 @@
+.shamrock-controls{
+    z-index: 1000;
+    position:absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    top:90px;
+    right:20px;
+    background-color: rgb(215, 237, 255);
+    border-radius: 10px;
+    padding-bottom:5px;
+    padding-right: 5px;
+    padding-left: 5px;
+    -webkit-box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
+}
+
+.red-dot{
+    width: 12px;
+    height: 12px;
+    background-color: red;
+    border-radius: 10px;
+    z-index: 2000;
+    position:absolute;
+    right:14px;
+    top:268px;
+}
+
+.red-dot-model{
+    width: 12px;
+    height: 12px;
+    background-color: red;
+    border-radius: 10px;
+    z-index: 2000;
+    position:absolute;
+    right:14px;
+    top:164px;
+}
+
+.shamrock-pipeline-run{
+    margin-left: 35%;
+    margin-top: 30px;
+}

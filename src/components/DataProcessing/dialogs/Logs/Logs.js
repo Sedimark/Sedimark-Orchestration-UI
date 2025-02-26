@@ -72,8 +72,7 @@ export default function Logs(props) {
                                 {fetchedLogs.map((elem)=>{
                                         const logLevelClass = elem["Log Level"].toLowerCase(); 
                                         const textLevelClass = `${elem["Log Level"].toLowerCase()}-text-color`;
-                                    console.log("textLevelClass:");
-                                    console.log(textLevelClass);
+                                    
                                     return(
                                      <div className={`log-box ${logLevelClass}`}>
                                         <p className={`${textLevelClass}`}>{elem["Log Level"]}</p>

@@ -330,7 +330,7 @@ export default function PipelineSelectDialog(props) {
     
     <div>
       <ThemeProvider theme={darkTheme}>
-        <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="1600" fullWidth="lg"  >
+        <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg"  fullWidth={true} >
   
              <DialogTitle> {dialogName} </DialogTitle>
               <DialogContent>   

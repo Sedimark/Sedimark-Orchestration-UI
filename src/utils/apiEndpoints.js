@@ -17,6 +17,7 @@ export const RUN_STREAMING_PIPELINE = `https://${process.env.REACT_APP_MAGE_API_
 export const STREAMING_PIPELINE_STATUS = (pipeline_name) => `https://${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/status/streaming?pipeline_name=${pipeline_name}`
 export const FETCH_ALL_BLOCKS = (pipeline_type) => `https://${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/templates?pipeline_type=${pipeline_type}`;
 export const SAVE_PIPELINE = (pipeline_name) => `https://${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create?name=${pipeline_name}&ptype=python`;
+export const SAVE_PIPELINE_STREAMING = (pipeline_name) => `https://${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create?name=${pipeline_name}&ptype=streaming`;
 export const TAG_PIPELINE = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/tag`;
 export const GET_BLOCK_CODE = (block_name)=>`https://${process.env.REACT_APP_MAGE_API_URL}/mage/block/model?block_name=${block_name}`;
 export const SAVE_BLOCK = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/block/create`;
@@ -30,8 +31,14 @@ export const RENAME_PIPELINE = `https://${process.env.REACT_APP_MAGE_API_URL}/ma
 export const MAGE_SETTINGS = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/server/set`;
 export const CHECK_BLOCK_WS = `wss://${process.env.REACT_APP_MAGE_API_URL}/mage/validate`;
 export const ADD_TO_RAG = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/rag/add`;
+export const CREATE_PIPELINE = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create`;
+export const CREATE_FOLDER = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/files/create`;
 export const FETCH_ALL_PIPELINES = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/pipelines`; 
 export const PIPELINE_METRICS = (pipeline_name)=>`https://${process.env.REACT_APP_MAGE_API_URL}/mage/file/telemetry?pipeline_name=${pipeline_name}`;
 export const LOGS_FOR_PIPELINE = (pipeline_name, block_name)=> `https://${process.env.REACT_APP_MAGE_API_URL}/mage/log/pipeline/${pipeline_name}/${block_name}`;
+export const CREATE_MAGE_FILE = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/files/create`;
+export const DELETE_FILES_MAGE = `https://${process.env.REACT_APP_MAGE_API_URL}/mage/files/delete`;
+export const GET_MODELS = `http://localhost:8001/models`;
+export const DELETE_TRIGGER = (trigger_id)=>`httpss://${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/trigger/delete/${trigger_id}`;
 
 

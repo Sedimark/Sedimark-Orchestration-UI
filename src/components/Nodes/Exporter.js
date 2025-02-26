@@ -19,12 +19,12 @@ import { faArrowUpRightFromSquare, faPencil, faListUl, faScroll } from '@fortawe
 import ViewMap from '../DataProcessing/dialogs/PredictResults/ViewMap';
 import { setMapData } from '../../reducers/nodeSlice';
 import { truncateString } from '../../utils/truncateString';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import SeeVariables from '../DataProcessing/dialogs/SeeVariables/SeeVariables';
 import axios from 'axios';
 import {useDispatch} from 'react-redux';
 import {parseJSONVar} from "../../utils/parseJSONVar";
-import {setPipelineStudioEdgeToDelete, setPipelineStudioNodes, setBlockCatalogSelectedOptions} from "../../reducers/nodeSlice";
+import {setPipelineStudioEdgeToDelete, setShamrockNodes, setPipelineStudioNodes, setBlockCatalogSelectedOptions} from "../../reducers/nodeSlice";
 import Logs from '../DataProcessing/dialogs/Logs/Logs';
 
  
@@ -35,6 +35,7 @@ export default memo(({ data, isConnectable }) => {
   const [pipelineIsRunning, setPipelineIsRunning] = useState(false);
   const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
   const variablesValues = useSelector((state)=> state.blocksVariables);
+  const shamrockWasSaved = useSelector((state)=> state.shamrockWasSaved);
   const [seeVariablesMenuOpen, setSeeVariablesMenuOpen] = useState(false);
   const [viewMapOpen, setViewMapOpen] = useState(false);
   const [storedVariables, setStoredVariables] = useState([]);
@@ -49,8 +50,10 @@ export default memo(({ data, isConnectable }) => {
   const [pipelineStudioDescription, setPipelineStudioDescription] = useState("");
   const [changeBlockNameOpen, setChangeBlockNameOpen] = useState(false);
   const [seeLogs, setSeeLogs] = useState(false);
+  const [isFromShamrock, setIsFromShamrock] = useState(false);
   const storedPipelineNodes = useSelector((state)=>state.pipelineStudioNodes);
   const blockCatalogSelectedOptions = useSelector((state)=> state.blockCatalogSelectedOptions);
+    const shamrockNodes = useSelector((state)=> state.shamrockNodes);
   const allEdges = useSelector((state)=> state.pipelineStudioEdges);
 
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -226,6 +229,33 @@ export default memo(({ data, isConnectable }) => {
     setChangeBlockNameOpen(false);
  } 
 
+
+ const changeBlockNameShamrock = (name)=>{
+   
+     const oldNodes = [...shamrockNodes];
+     const newNodes = [];
+    
+     for (const node of oldNodes) {
+       if (node.id === data.nodeId) {
+           // Create a new copy of node.data and update the name property
+           const updatedNode = {
+               ...node,
+               data: {
+                   ...node.data,  // Clone the existing data object
+                   name: name     // Update the name property
+               }
+           };
+           newNodes.push(updatedNode);
+       } else {
+           newNodes.push(node);
+       }
+     }
+   
+     dispatch(setShamrockNodes(newNodes));
+     setChangeBlockNameOpen(false);
+   }
+
+
   const deleteNode = ()=>{
      const currentNodeName = data.fromPipelineStudio.name;
      const newNodes = storedPipelineNodes.filter( obj => obj.data.fromPipelineStudio.name !== currentNodeName );
@@ -316,6 +346,11 @@ export default memo(({ data, isConnectable }) => {
       setPipelineStudioDescription("");
       setIsFromPipelineStudio(false);
     }
+
+    if("fromShamrock" in data){
+      setIsFromShamrock(true);
+    }
+
   },[data])
 
 
@@ -396,11 +431,17 @@ export default memo(({ data, isConnectable }) => {
           </div>
          }
         {
-          (!variablesPresent && !specialBlockViewButton) && !isFromPipelineStudio && 
+          (!variablesPresent && !specialBlockViewButton) && !isFromPipelineStudio && !isFromShamrock &&
             <div className='empty-node-box'>
                 <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container' />
                 <button className='custom-node-toolbox-btn no-variables-btn-exporter' disabled={pipelineIsRunning} onClick={()=>{setSeeLogs(true)}}> See Logs <FontAwesomeIcon icon={faScroll}/></button>
           </div>  
+        }
+        {
+                          isFromShamrock &&
+                          <div className="empty-node-box">
+                            <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container empty-node-container-loader' /> 
+                          </div> 
         }
         {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
         
@@ -427,7 +468,19 @@ export default memo(({ data, isConnectable }) => {
          {viewMapOpen && 
           <ViewMap open={viewMapOpen} handleClose={()=>{setViewMapOpen(false)}} ></ViewMap>
          }
-        { changeBlockNameOpen && <ChangeBlockName name={pipelineStudioName} handleAction={(name)=>{changeBlockName(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}} />}
+
+          {
+              isFromShamrock && !shamrockWasSaved && 
+             
+              <div className='from-pipeline-studio-buttons-container'>
+                <button className='edit-variables-btn-loader pipeline-studio-node-btn exporter-edit-btn' style={{position:"relative",top:"14px"}} onClick={() => {setChangeBlockNameOpen(true) }}> Edit  <FontAwesomeIcon className='pipeline-studio-edit-node-icon' icon={faPencil} /></button>
+              </div> 
+                            
+          }    
+
+
+        { changeBlockNameOpen && !isFromShamrock && <ChangeBlockName name={pipelineStudioName} handleAction={(name)=>{changeBlockName(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}} />}
+        { changeBlockNameOpen && isFromShamrock &&  <ChangeBlockName name={data.name} handleAction={(name)=>{changeBlockNameShamrock(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}}></ChangeBlockName>}
         { seeVariablesMenuOpen && <SeeVariables blockName={data.fromPipelineStudio.initialName} handleClose={()=>{setSeeVariablesMenuOpen(false)}} open={seeVariablesMenuOpen} />}
         { seeLogs && <Logs open={seeLogs} blockData={data} handleClose={()=>{setSeeLogs(false)}} />}
       </div>

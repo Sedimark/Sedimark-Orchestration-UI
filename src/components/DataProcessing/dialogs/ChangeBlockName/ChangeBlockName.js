@@ -41,7 +41,7 @@ export default function ChangeBlockName(props) {
     setNewBlockName(props.name);
    },[props]);
 
-
+ 
   return (
     <ThemeProvider theme={darkTheme}>
           <Dialog

@@ -36,8 +36,6 @@ export default function ExporterDialog(props) {
     
       try{
         const data = await axios.get(EXPORT_PIPELINE_MAGE(createdPipelineName),{responseType:"arraybuffer"});
-        console.log("data:");
-        console.log(data);
         const url = window.URL.createObjectURL(new Blob([data], { type: "application/zip" }));
         const link = document.createElement("a");
         link.href = url;

@@ -56,14 +56,74 @@ const initialState = {
     blockWasGenerated: false,
     notifyBlockGenerated:false,
     errorWhileGenerating: false,
+    shamrockFileName:"",
+    shamrockValues:{},
+    shamrockPipelineName:"",
+    shamrockIsPipelineNameValid:"",
+    shamrockNodes:[],
+    shamrockEdges:[],
+    shamrockNodeChanged:{},
     pipelinesBlocks:{},
-    blockPrompt:""
+    blockPrompt:"",
+    fullYAMLDocument:{},
+    shamrockValueIsModified:false,
+    shamrockWasSaved:false,
+    shamrockLastSavedPipeline:"",
+    shamrockIsBeingSaved: false,
+    shamrockRunData:null,
+    shamrockModelUploadedFileName:"",
+    shamrockModelName:""
 }    
 
 export const nodeSlice = createSlice({
     name:'nodes',
     initialState,
     reducers:{
+        setShamrockModelName:(state, action)=>{
+            state.shamrockModelName = action.payload;
+        },
+        setShamrockModelUploadedFileName:(state, action)=>{
+            state.shamrockModelUploadedFileName = action.payload;
+        },
+        setShamrockRunData:(state, action)=>{
+            state.shamrockRunData = action.payload;
+        },
+        setShamrockIsBeingSaved:(state, action)=>{
+            state.shamrockIsBeingSaved = action.payload;
+        },
+        setShamrockWasSaved:(state, action)=>{
+            state.shamrockWasSaved = action.payload;
+        },
+        setShamrockLastSavedPipeline:(state, action)=>{
+            state.shamrockLastSavedPipeline = action.payload;
+        },
+        setShamrockEdges:(state, action)=>{
+            state.shamrockEdges = action.payload;
+        },
+        setShamrockNodeChanged:(state , action)=>{
+            state.shamrockNodeChanged = action.payload;
+        },
+        setShamrockNodes:(state, action)=>{
+            state.shamrockNodes = action.payload;
+        },
+        setShamrockValueIsModified:(state, action)=>{
+            state.shamrockValueIsModified = action.payload;
+        },
+        setFullYAMLDocument:(state, action)=>{
+            state.fullYAMLDocument = action.payload;
+        },
+        setShamrockIsPipelineNameValid:(state, action)=>{
+            state.shamrockIsPipelineNameValid = action.payload;
+        },
+        setSharmockPipelineName:(state,action)=>{
+            state.shamrockPipelineName = action.payload;
+        },
+        setShamrockFileName:(state, action)=>{
+            state.shamrockFileName = action.payload;
+        },
+        setShamrockValues:(state, action)=>{
+            state.shamrockValues = action.payload;
+        },
         setBlockPrompt:(state, action)=>{
             state.blockPrompt = action.payload;
         },
@@ -347,7 +407,23 @@ export const {
     setGeneratedBlockResult,
     setNotifyBlockGenerated,
     setErrorWhileGenerating,
-    setGeneratedBlockData
+    setGeneratedBlockData,
+    // ** Those values are for shamrock **//
+    setShamrockValues,
+    setShamrockFileName,
+    setSharmockPipelineName,
+    setShamrockIsPipelineNameValid,
+    setFullYAMLDocument,
+    setShamrockValueIsModified,
+    setShamrockEdges,
+    setShamrockNodes,
+    setShamrockNodeChanged,
+    setShamrockWasSaved,
+    setShamrockLastSavedPipeline,
+    setShamrockIsBeingSaved,
+    setShamrockRunData,
+    setShamrockModelUploadedFileName,
+    setShamrockModelName
     
 } = nodeSlice.actions
 
