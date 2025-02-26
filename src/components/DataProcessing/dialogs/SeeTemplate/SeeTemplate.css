@@ -1,0 +1,5 @@
+.code-editor-dialog-controls{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}

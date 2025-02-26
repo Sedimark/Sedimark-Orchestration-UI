@@ -186,6 +186,18 @@ box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
   cursor: pointer;
 }
 
+.delete-icon-side{
+  color:rgb(197, 28, 28);
+  padding:15px;
+  font-size: 1.3rem;
+  width: 30px;
+  height: 30px;
+}
+
+.delete-icon-side:hover{
+  cursor: pointer;
+}
+
 .tooltip-container{
   padding:20px;
 }

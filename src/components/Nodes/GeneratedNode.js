@@ -17,7 +17,7 @@ import { useSelector } from "react-redux/es/hooks/useSelector";
 import { faArrowUpRightFromSquare, faPencil, faScrewdriverWrench, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import ViewMap from '../DataProcessing/dialogs/PredictResults/ViewMap';
 import { setMapData } from '../../reducers/nodeSlice';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import ChangeBlockName from '../DataProcessing/dialogs/ChangeBlockName/ChangeBlockName';
 import BlockInfo from '../DataProcessing/dialogs/BlockInfo/BlockInfo';
 import axios from 'axios';

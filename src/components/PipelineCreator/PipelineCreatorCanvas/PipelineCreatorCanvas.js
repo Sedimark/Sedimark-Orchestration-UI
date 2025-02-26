@@ -21,7 +21,7 @@ import CustomEdge from "../../CustomEdge/CustomEdge.js";
 import PhotoFilterIcon from '@mui/icons-material/PhotoFilter';
 import { styled} from '@mui/material/styles';
 import AreYouSure from "../../DataProcessing/dialogs/AreYouSure/AreYouSure.js";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import GenerateBlocks from "../../DataProcessing/dialogs/GenerateBlocks/GenerateBlocks.js";
 import style from "./PipelineCreatorCanvas.css";
 import BlockDescription from "../../DataProcessing/dialogs/BlockDescription/BlockDescription.js";
@@ -610,7 +610,7 @@ export const PipelineCreatorCanvas = ()=>{
        { displayPipelineTypeMenu && <SelectPipelineType setPipelineType={(value)=>{setPipelineType(value)}} open={displayPipelineTypeMenu} handleClose={()=>{setDisplayPipelineTypeMenu(false)}} /> }
        { isBlockCatalogOpen && <BlockCatalog setNodes={setTheNodes} open={isBlockCatalogOpen} handleClose={()=>{setIsBlockCatalogOpen(false)}} pipelineType={pipelineType} /> }
        {isAreYouSureOpen && <AreYouSure pipelineStudio = {true} open={isAreYouSureOpen}  handleClose={()=>{setIsAreYouSureOpen(false)}} handler={()=>{deleteViewPipeline()}} />}
-       <Toaster />
+       
        {blockDescriptionOpen && <BlockDescription blockTemplateMetadata={blockTemplateMetadata} closeBlockDescription={closeBlockDescription} open={blockDescriptionOpen} handleAction={()=>{}} handleClose={()=>{setBlockDescriptionOpen(false); setGenerateBlockOpen(true)}}/>}
        {isSavePipelineOpen && <SavePipeline edges={edges} allBlocks={nodes} pipelineType={pipelineType} storePipelineName = {(name)=>{setPipelineToSaveName(name)}}  open={isSavePipelineOpen} handleClose={()=>{setIsSavePipelineOpen(false)}}  handleAction={()=>{savePipelineData()}} />} 
        {generateBlockOpen && <GenerateBlocks setBlockTemplateMetadata={setBlockTemplateMetadata} openBlockDescription={openBlockDescription} open={generateBlockOpen} handleClose={()=>{setGenerateBlockOpen(false); dispatch(setErrorWhileGenerating(false))}} postLoadAction={()=>{ setTimeout(()=>{blockSuccess("Block was loaded successfully!")},500)}} handleAction={()=>{}} /> }

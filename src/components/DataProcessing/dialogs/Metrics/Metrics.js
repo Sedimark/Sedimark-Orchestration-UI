@@ -78,8 +78,10 @@ export default function Plots(props) {
 
     if(allData.length == 0){
       setNoData(true);
+      setIsLoading(false);
       return;
     } else {
+      setIsLoading(false);
       setNoData(false);
     }
 
@@ -88,6 +90,7 @@ export default function Plots(props) {
   }
 
   const fetchAndPopulateMetrics = async(pipelineName)=>{
+    setIsLoading(true);
     let pipeName = "";
     if(Array.isArray(pipelineName)){
       pipeName = pipelineName[0];
@@ -144,8 +147,7 @@ export default function Plots(props) {
                 {!noData && !isLoading && 
                   <div className='metrics-section'>
                       {allElements.map((element)=>{
-                        console.log("element:");
-                        console.log(element);
+                       
                         return(
                         <div className='block-data-container'>
                           <div className='block-name-container'>{element[0]}</div>

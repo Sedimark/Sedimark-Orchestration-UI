@@ -14,9 +14,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 import Divider from '@mui/material/Divider';
 import {  faCircleInfo, faDownload, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import axios from 'axios';
-import {setStoredPipelineName} from "../../../../reducers/nodeSlice";
+import { setStoredPipelineName} from "../../../../reducers/nodeSlice";
 import style from "./SavePipeline.css";
 import { useDispatch } from 'react-redux';
 
@@ -51,19 +51,19 @@ export default function SavePipeline(props) {
         })
     };
 
-    const handleTextChange = (event)=>{
-        const { target: { value } } = event;
-        setPipelineName(value.toLowerCase());
-        props.storePipelineName(value.toLowerCase());
+        const handleTextChange = (event)=>{
+            const { target: { value } } = event;
+            setPipelineName(value.toLowerCase());
+            props.storePipelineName(value.toLowerCase());
 
-        const newRegExpRule = new RegExp("^[a-zA-Z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$");
-        if(newRegExpRule.test(value.toLowerCase())){
-            setIsPipelineNameValid(true);
-        } else {
-            setIsPipelineNameValid(false);
+            const newRegExpRule = new RegExp("^[a-zA-Z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$");
+            if(newRegExpRule.test(value.toLowerCase())){
+                setIsPipelineNameValid(true);
+            } else {
+                setIsPipelineNameValid(false);
+            }
+
         }
-
-    }
 
 
   const getBlockNicknameAfterId = (blockId, nicknames)=>{
@@ -111,6 +111,7 @@ export default function SavePipeline(props) {
         
         dispatch(setStoredPipelineName(pipelineName));
         setPipelineBeingCreated(true);
+        
 
         try {
             const resp = await axios.post(SAVE_PIPELINE(pipelineName));
@@ -163,6 +164,8 @@ export default function SavePipeline(props) {
         const allBlocksData = [];
         const blockNicknames = [];
     
+        /// Aici ii da un nume daca block-ul este generat
+        // si daca nu atunci face request sa ia codul block-ului
         for(const block of props.allBlocks){
 
             let shortName = uniqueNamesGenerator({
@@ -300,6 +303,7 @@ export default function SavePipeline(props) {
       
 
         //acuma ce facem este ca punem toate bloacele in MageAI si dupa afisam ca este DONE
+
         for(const block of allBlocksData){
            
 

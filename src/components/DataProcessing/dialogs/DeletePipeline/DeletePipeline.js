@@ -13,14 +13,14 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Checkbox from '@mui/material/Checkbox';
 import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
 import { faCodeBranch, faScrewdriverWrench, faSquarePollHorizontal, faFile } from '@fortawesome/free-solid-svg-icons';
 import { Typography } from '@mui/material';
 import { formatString } from '../../../../utils/formatString';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {FETCH_PIPELINES, DELETE_PIPELINE} from "../../../../utils/apiEndpoints";
+import {FETCH_PIPELINES, DELETE_PIPELINE, DELETE_FILES_MAGE} from "../../../../utils/apiEndpoints";
 import AreYouSure from '../AreYouSure/AreYouSure';
 import axios from "axios";
 import style from "./DeletePipeline.css";
@@ -38,7 +38,9 @@ export default function DeletePipeline(props) {
   const [searchedString, setSearchedString] = React.useState("");
   const [areYouSureOpen, setAreYouSureOpen] = React.useState(false);
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
+  const [streamingPipelines, setStreamingPipelines] = React.useState([]);
   const [allPipelines, setAllPipelines] = React.useState([]);
+  const [isDeleting, setIsDeleting] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const [checked, setChecked] = useState([]);
   const [hasError, setHasError] = React.useState(false);
@@ -79,9 +81,19 @@ export default function DeletePipeline(props) {
         setHasError(true);
       }
       
+      try{
+        const resp = await axios.get(FETCH_PIPELINES("streaming"));
+        setStreamingPipelines(resp.data);
+      } catch(err){
+        setIsLoading(false);
+        setHasError(true);
+        setIsDeleting(false);
+      }
+
       setIsLoading(false);
       setAllPipelines(finalPipelineArray);
       setfilteredPipelines(finalPipelineArray);
+      setIsDeleting(false);
   }
 
 
@@ -125,14 +137,28 @@ export default function DeletePipeline(props) {
   }
 
   const deletePipeline = async()=>{
-
+    
+    setIsLoading(true);
+    setIsDeleting(true);
     for(const pipeline of checked){
+
       try{
         const resp = await axios.delete(DELETE_PIPELINE(pipeline));
+        if(streamingPipelines.includes(pipeline)){
+          const resp = await axios.delete(DELETE_FILES_MAGE, {
+            data: {
+              type: "folders",
+              name: pipeline
+            }
+          });
+          
+        }
         deletePipelineFromView(pipeline);
       } catch(err){
         blockAlert("There was a problem while deleting the pipeline!");
         console.log("err");
+        setIsLoading(false);
+        setIsDeleting(false);
         return; 
       }
      
@@ -140,6 +166,7 @@ export default function DeletePipeline(props) {
     
     setChecked([]);
     fetchAllThePipelines();
+    setIsDeleting(false);
 
   }
  
@@ -267,7 +294,7 @@ export default function DeletePipeline(props) {
                         }
                         
                     </List>
-                    <Button variant='contained' onClick={()=>{setAreYouSureOpen(true)}} disabled={checked.length === 0} sx={{backgroundColor:"red", color:"#fff", mt:"10px", fontWeight:"bold", ml:"40%", '&:hover': {
+                    <Button variant='contained' onClick={()=>{setAreYouSureOpen(true)}} disabled={checked.length === 0 || isDeleting} sx={{backgroundColor:"red", color:"#fff", mt:"10px", fontWeight:"bold", ml:"40%", '&:hover': {
                         backgroundColor: '#fc5549', // Background color on hover
                         transform: 'scale(1.01)', // Slightly scale up on hover
                         },}}>{(checked.length === 1 || checked.length === 0) ? "Delete pipeline" : "Delete pipelines"} <DeleteForeverIcon sx={{marginLeft:"10px"}}/> </Button>

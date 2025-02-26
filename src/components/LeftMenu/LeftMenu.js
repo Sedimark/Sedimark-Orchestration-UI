@@ -21,6 +21,8 @@ import PaletteIcon from '@mui/icons-material/Palette';
 import EngineeringIcon from '@mui/icons-material/Engineering';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faClover } from '@fortawesome/free-solid-svg-icons';
 import PipelineManager from '../DataProcessing/dialogs/PipelineManager/PipelineManager';
 import Settings from '../DataProcessing/dialogs/Settings/Settings';
 
@@ -290,6 +292,31 @@ export default function MiniDrawer() {
             </ListItem>
         
        </List>
+
+       <ListItem key={"Shamrock"} disablePadding sx={{ display: 'block' }} onClick={()=>{ navigate("/shamrock") }}>
+                <ListItemButton
+                    sx={{
+                        minHeight: 48,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                        color:"white"
+                    }}
+                    key={2}
+                >
+                    <ListItemIcon
+                        sx={{
+                            minWidth: 0,
+                            mr: open ? 3 : 'auto',
+                            justifyContent: 'center',
+                            color:"white",
+                            fontSize: "1.5rem"
+                        }}
+                    >
+                      <FontAwesomeIcon icon={faClover} sx={{ fontSize: "2rem"}} />
+                    </ListItemIcon>
+                    <ListItemText primary={"Shamrock"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+          </ListItem>
 
       <List style={{position:"absolute",bottom:"10px"}}>
        <h2 style={{color:"#fff"}}>Account</h2>

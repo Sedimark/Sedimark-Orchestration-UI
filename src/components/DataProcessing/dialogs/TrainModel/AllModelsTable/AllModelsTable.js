@@ -18,7 +18,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import {faScrewdriverWrench} from '@fortawesome/free-solid-svg-icons';
 import {setSelectModelVersionStore} from "../../../../../reducers/nodeSlice"
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFile } from '@fortawesome/free-solid-svg-icons';
 import { styled } from '@mui/system';

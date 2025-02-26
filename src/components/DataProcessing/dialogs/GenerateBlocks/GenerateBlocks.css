@@ -20,13 +20,10 @@
 .block-generating-container{
     width: 35%;
     margin: auto;
-    margin-top:20px;
-    margin-bottom: 20px;
     padding:10px;
 }
 
 .generating-block-text{
-    padding-top:20px;
     width: 100%;
     text-align: center;
 }
@@ -100,3 +97,10 @@
     left: 60px;
 }
 
+.loader-centered{
+    left:40%;
+    position: relative;
+    top:30%;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
