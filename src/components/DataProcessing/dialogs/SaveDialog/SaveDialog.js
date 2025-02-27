@@ -115,8 +115,8 @@ const createFiles = async()=>{
           max_iter: shamrockValues["inputtedValues"]["max_iter"],
           log_file: "metrics.txt"
         },
-        model: {
-          model_uri: `http://localhost:8000/model/package?name=${shamrockModelName}`,
+        model: { 
+          model_uri: `${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
           model:"simple_cnn",
           optimizer: shamrockValues["selectedDropdownValues"]["framework"],
           lr: shamrockValues["inputtedValues"]["lr"],
@@ -140,7 +140,7 @@ const createFiles = async()=>{
 
       fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
       fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
-      fullYAMLDocumentCopy["model"]["model_uri"]=`http://localhost:8000/model/package?name=${shamrockModelName}`;
+      fullYAMLDocumentCopy["model"]["model_uri"]=`${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`;
       fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
       fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
       finalYaml = fullYAMLDocumentCopy;

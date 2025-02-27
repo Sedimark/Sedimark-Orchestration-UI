@@ -371,7 +371,7 @@ export const Shamrock = ()=>{
                   log_file: "metrics.txt"
                 },
                 model: {
-                  model_uri: `http://localhost:8000/model/package?name=${shamrockModelName}`,
+                  model_uri: `${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
                   model:"simple_cnn",
                   optimizer: shamrockValues["selectedDropdownValues"]["framework"],
                   lr: shamrockValues["inputtedValues"]["lr"],
@@ -398,7 +398,7 @@ export const Shamrock = ()=>{
               fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
               fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
               fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
-              fullYAMLDocumentCopy["model"]["model_uri"] = `http://localhost:8000/model/package?name=${shamrockModelName}`
+              fullYAMLDocumentCopy["model"]["model_uri"] = `${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`
               fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
               finalYaml = fullYAMLDocumentCopy;
             }
