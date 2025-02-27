@@ -24,7 +24,7 @@ import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { setShamrockNodes, setShamrockRunData,  setShamrockEdges, setShamrockValueIsModified, setShamrockModelName } from "../../reducers/nodeSlice.js";
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
-import {CREATE_FOLDER,DELETE_FILES_MAGE, FETCH_PIPELINE_RUN_DATA, DELETE_PIPELINE, RUN_STREAMING_PIPELINE, STREAMING_PIPELINE_STATUS, DELETE_TRIGGER } from "../../utils/apiEndpoints.js";
+import {CREATE_FOLDER,DELETE_FILES_MAGE, FETCH_PIPELINE_RUN_DATA, DELETE_PIPELINE,CREATE_TRIGGER, RUN_STREAMING_PIPELINE, STREAMING_PIPELINE_STATUS, DELETE_TRIGGER } from "../../utils/apiEndpoints.js";
 import style from "./Shamrock.css";
 import { styled } from '@mui/material/styles';
 import yaml from "js-yaml";
@@ -233,6 +233,21 @@ export const Shamrock = ()=>{
             setLoading(true);
             let pipelineData;
 
+             try{
+             
+                  const resp = await axios.post(CREATE_TRIGGER,{
+                      name: pipelineName,
+                      trigger_type:"time",
+                      interval:"once"
+                  });
+            
+              } catch(err){
+                console.log(err);
+                setPipelineStartClicked(false);
+                setLoading(false);
+                return;
+              }
+
             try{
                 const resp = await axios.get(FETCH_PIPELINE_RUN_DATA(pipelineName));
                 setRunData(resp.data);
@@ -283,6 +298,8 @@ export const Shamrock = ()=>{
             setPipelineStartClicked(false);
            try{
               await deleteTrigger(runData.id);
+                    blockSuccess("Pipeline status updated successfully!");     
+                    setIsPipelineStarted(false);
             } catch(err){
               console.log(err);
               blockAlert("Pipeline status updated successfully!");  
@@ -291,34 +308,6 @@ export const Shamrock = ()=>{
               return;
             }
 
-            try {
-                const response = await axios({
-                    method:  "PUT",
-                    url: RUN_STREAMING_PIPELINE,
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    data: {
-                        "trigger_id": runData.id,
-                        "status": "stop",
-                        "pipeline_uuid": pipelineName
-                    }
-                })
-    
-                if (response.status === 200) {
-                    blockSuccess("Pipeline status updated successfully!");     
-                    setIsPipelineStarted(false);
-                }
-                setWsMessage([]);
-    
-            } catch (err) {
-                console.log(err);
-                blockAlert("Pipeline status updated successfully!");  
-                setLoading(false);
-                setWsMessage([]);
-                return;
-            }
-    
         }
     }
 
@@ -371,7 +360,7 @@ export const Shamrock = ()=>{
                   log_file: "metrics.txt"
                 },
                 model: {
-                  model_uri: `${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
+                  model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
                   model:"simple_cnn",
                   optimizer: shamrockValues["selectedDropdownValues"]["framework"],
                   lr: shamrockValues["inputtedValues"]["lr"],
@@ -398,7 +387,7 @@ export const Shamrock = ()=>{
               fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
               fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
               fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
-              fullYAMLDocumentCopy["model"]["model_uri"] = `${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`
+              fullYAMLDocumentCopy["model"]["model_uri"] = `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`
               fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
               finalYaml = fullYAMLDocumentCopy;
             }
@@ -670,9 +659,12 @@ export const Shamrock = ()=>{
   
       ws.onmessage = (event) => {
         const newMessage = JSON.parse(event.data);
-        //cand primesti mesaj in field-ul de done sa poti 
+       
         if(newMessage.done!=="active"){
           deleteTrigger(runData.id);
+          blockSuccess("The pipeline execution is complete!")
+          setLoading(false);
+          setPipelineStartClicked(false);
         }
         setPeers(newMessage.peers);
         setWsMessage(newMessage.data);
@@ -773,7 +765,7 @@ export const Shamrock = ()=>{
                     </CustomTooltip>
 
                     <CustomTooltip title= { (!((!pipelineName || (pipelineName && pipelineName.length==0) || shamrockValueWasChanged))) ? "Save new values": "Save pipeline" } >
-                        <FontAwesomeIcon icon={faFloppyDisk} onClick={() => { if(!shamrockModelName || shamrockModelName.length === 0){blockAlert("Please select a model before saving the pipeline!"); return;} if(shamrockIsBeingSaved){return;} if(!shamrockWasSaved){setSaveDialog(true)} else if(shamrockValueWasChanged) {promiseToast()}}} className="info-icon-side"/>
+                        <FontAwesomeIcon icon={faFloppyDisk} onClick={() => { if(!shamrockModelName || shamrockModelName.length === 0){blockAlert("Please select a model before saving the pipeline!"); return;}  if(!shamrockWasSaved){setSaveDialog(true)} else if(shamrockValueWasChanged) {promiseToast()}}} className="info-icon-side"/>
                     { (!pipelineName || (pipelineName && pipelineName.length==0) || shamrockValueWasChanged) && <span className="red-dot"></span> } 
                     </CustomTooltip>
 
