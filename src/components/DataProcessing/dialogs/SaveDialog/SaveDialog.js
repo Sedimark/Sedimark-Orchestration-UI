@@ -9,7 +9,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import {useDispatch, useSelector} from 'react-redux';
 import TextField from '@mui/material/TextField';
-import { SAVE_PIPELINE_STREAMING, TAG_PIPELINE, CREATE_FOLDER, CREATE_TRIGGER, SAVE_BLOCK, GET_BLOCK_CODE, FETCH_PIPELINES } from '../../../../utils/apiEndpoints';
+import { SAVE_PIPELINE_STREAMING, TAG_PIPELINE, CREATE_FOLDER, CREATE_TRIGGER, SAVE_BLOCK, GET_BLOCK_CODE, FETCH_PIPELINES , FETCH_ALL_PIPELINES } from '../../../../utils/apiEndpoints';
 import { setSharmockPipelineName, setShamrockIsPipelineNameValid, setShamrockIsBeingSaved,  setShamrockValueIsModified, setShamrockWasSaved, setShamrockLastSavedPipeline } from "../../../../reducers/nodeSlice";
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
@@ -116,7 +116,7 @@ const createFiles = async()=>{
           log_file: "metrics.txt"
         },
         model: { 
-          model_uri: `${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
+          model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
           model:"simple_cnn",
           optimizer: shamrockValues["selectedDropdownValues"]["framework"],
           lr: shamrockValues["inputtedValues"]["lr"],
@@ -140,7 +140,7 @@ const createFiles = async()=>{
 
       fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
       fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
-      fullYAMLDocumentCopy["model"]["model_uri"]=`${REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`;
+      fullYAMLDocumentCopy["model"]["model_uri"]=`${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`;
       fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
       fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
       finalYaml = fullYAMLDocumentCopy;
@@ -253,23 +253,7 @@ const createFiles = async()=>{
     //here we create a trigger only once
 
          //creeare de trigger
-    try{
-
-      const resp = await axios.post(CREATE_TRIGGER,{
-          name: pipelineName,
-          trigger_type:"time",
-          interval:"once"
-      });
-
-      } catch(err){
-          console.log(err);
-          setOpenError(true);
-          setErrorMessage("There was an error while creating the trigger");
-          dispatch(setShamrockIsBeingSaved(false));
-          setLoading(false);
-          return;
-      }
-
+  
     
     /// acuma aici am sa trag block-urile , adica codul pentru cele 3 block-uri
 
@@ -401,18 +385,22 @@ const createFiles = async()=>{
   const handleSavePipeline = async()=>{
 
     setSaveDisabled(true);
-    dispatch(setShamrockIsBeingSaved(true));
+    // dispatch(setShamrockIsBeingSaved(true));
 
     let allPipelines = [];
 
     try{
-      const resp = await axios.get(FETCH_PIPELINES("streaming"));
+
+      const resp = await axios.get(FETCH_ALL_PIPELINES);
       allPipelines = resp.data;
+
     } catch(err){
+
       console.log(err);
       blockAlertError("We have encountered a problem! Please try again later");
       dispatch(setShamrockIsBeingSaved(false));
       props.alertUser("error");
+
       return;
     }
 
@@ -423,12 +411,10 @@ const createFiles = async()=>{
       }
     }
    
-    
     props.handleClose();
     props.alertUser("loading");
     savePipelineAndCreateFiles();
-    setIsBeingSaved(true);    
-    
+
   }
 
   useEffect(()=>{
