@@ -40,5 +40,3 @@ export const CREATE_MAGE_FILE = `${process.env.REACT_APP_MAGE_API_URL}/mage/file
 export const DELETE_FILES_MAGE = `${process.env.REACT_APP_MAGE_API_URL}/mage/files/delete`;
 export const GET_MODELS = `${process.env.REACT_APP_MLFLOW_API_URL}/models`;
 export const DELETE_TRIGGER = (trigger_id)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/trigger/delete/${trigger_id}`;
-
-
