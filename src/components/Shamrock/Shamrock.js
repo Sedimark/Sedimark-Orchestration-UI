@@ -650,7 +650,7 @@ export const Shamrock = ()=>{
     let ws; // Declare WebSocket variable outside
     if (isPipelineStarted) {
       // Start WebSocket connection
-      ws = new WebSocket("wss://endpoints.sedimark.work/mage/ws");
+      ws = new WebSocket(`${process.env.REACT_APP_MAGE_WS_URL}/mage/ws`);
   
       ws.onopen = () => {
         console.log("WebSocket s-a conectat!");
