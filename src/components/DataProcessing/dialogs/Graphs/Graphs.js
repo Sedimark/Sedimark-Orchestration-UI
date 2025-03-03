@@ -28,8 +28,7 @@ export default function Graphs(props) {
       }
     },[props.graphData])
 
-    const values = [10,20,30,40,30,15,20];
-
+  
   return (
     
     <ThemeProvider theme={darkTheme}>
@@ -59,10 +58,10 @@ export default function Graphs(props) {
 
                 <div className='line-chart-container'>
                       <LineChart
-                        xAxis={[{ data:values.map((i,index)=> index), label:"Iteration"  }]}
+                        xAxis={[{ data:props.graphData.map((i,index)=> index), label:"Iteration"  }]}
                         series={[
                           {
-                            data: values,
+                            data: props.graphData,
                             label:"accuracy"
                           },
                         ]}

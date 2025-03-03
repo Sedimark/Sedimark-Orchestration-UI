@@ -648,6 +648,7 @@ export const Shamrock = ()=>{
   
   useEffect(() => {
     let ws; // Declare WebSocket variable outside
+    setWsMessage([]);
     if (isPipelineStarted) {
       // Start WebSocket connection
       ws = new WebSocket(`${process.env.REACT_APP_MAGE_WS_URL}/mage/ws`);
