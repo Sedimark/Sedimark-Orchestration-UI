@@ -21,10 +21,11 @@ import { setMapData } from '../../reducers/nodeSlice';
 import { truncateString } from '../../utils/truncateString';
 import toast from 'react-hot-toast';
 import SeeVariables from '../DataProcessing/dialogs/SeeVariables/SeeVariables';
+import formatName from '../../utils/formatName';
 import axios from 'axios';
 import {useDispatch} from 'react-redux';
 import {parseJSONVar} from "../../utils/parseJSONVar";
-import {setPipelineStudioEdgeToDelete, setShamrockNodes, setPipelineStudioNodes, setBlockCatalogSelectedOptions} from "../../reducers/nodeSlice";
+import {setPipelineStudioEdgeToDelete, setShamrockNodes, setBlocksVariables, setPipelineStudioNodes, setBlockCatalogSelectedOptions} from "../../reducers/nodeSlice";
 import Logs from '../DataProcessing/dialogs/Logs/Logs';
 
  
@@ -32,6 +33,7 @@ export default memo(({ data, isConnectable }) => {
  
   const dispatch = useDispatch();
   const allRunningPipelines = useSelector((state)=> state.runningPipelines);
+  const brokerEntityId = useSelector((state)=>state.brokerEntityId);
   const [pipelineIsRunning, setPipelineIsRunning] = useState(false);
   const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
   const variablesValues = useSelector((state)=> state.blocksVariables);
@@ -49,11 +51,14 @@ export default memo(({ data, isConnectable }) => {
   const [pipelineStudioName, setPipelineStudioName] = useState("");
   const [pipelineStudioDescription, setPipelineStudioDescription] = useState("");
   const [changeBlockNameOpen, setChangeBlockNameOpen] = useState(false);
+  const storedPipelinesBlockInfo = useSelector((state)=> state.pipelinesBlocks);
   const [seeLogs, setSeeLogs] = useState(false);
   const [isFromShamrock, setIsFromShamrock] = useState(false);
+  const [variableValues, setVariableValues] = useState([]);
   const storedPipelineNodes = useSelector((state)=>state.pipelineStudioNodes);
   const blockCatalogSelectedOptions = useSelector((state)=> state.blockCatalogSelectedOptions);
-    const shamrockNodes = useSelector((state)=> state.shamrockNodes);
+  let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
+  const shamrockNodes = useSelector((state)=> state.shamrockNodes);
   const allEdges = useSelector((state)=> state.pipelineStudioEdges);
 
   const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -65,6 +70,26 @@ export default memo(({ data, isConnectable }) => {
       fontSize: 14,
     },
   }));
+
+  const parseAndSet = (oldValues,newValues)=>{
+    let parsedArray = [];
+     for(const value of oldValues){
+      if(value.block_name !== fullNodeName){
+          parsedArray.push(value);
+      }
+    }
+
+    const parsedNewValues = [];
+    for(const val of newValues){
+      if(val["value"].length !== 0){
+        parsedNewValues.push(val);
+      }
+    }
+    
+
+     parsedArray = [...parsedArray, ...parsedNewValues];
+     return parsedArray;
+  }
 
    
   const StyledTableRow = styled(TableRow)(({ theme }) => ({
@@ -94,13 +119,23 @@ export default memo(({ data, isConnectable }) => {
       setSpecialBlockViewButton(false);
     }
   }
+
+
+  const convertToSnakeCase = (inputString)=>{
+    let lowercaseString = inputString.toLowerCase();
+    let snakeCaseString = lowercaseString.replace(/\s+/g, '_');
+     return snakeCaseString;
+  }
   
 
-  useEffect(()=>{
-    processName(data.name);
-    setFullNodeName(data.name);
-    
-  },[])
+  const updateObjectInArray = (arr, newObj)=>{
+    const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
+    if (indexToUpdate !== -1) {
+      return arr.map((obj, index) => (index === indexToUpdate ? newObj : obj));
+    } else {
+      return [...arr, newObj];
+    }
+  }
 
   const parseArray = (arr)=>{
     if (arr.length > 0) {
@@ -256,6 +291,38 @@ export default memo(({ data, isConnectable }) => {
    }
 
 
+    const createObjToStore = ()=>{
+           
+        //    let inputedValuesVariables = [...variableValues];
+        //    let objToStore;
+     
+        //    let pipelineName = "";
+        //    let nodeNameId = convertToSnakeCase(data.name);
+           
+        //    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+        //      if(key == formatName(fullNodeName)){
+        //        pipelineName = value;
+        //      }
+        //    }
+            
+        //    objToStore = {
+        //    block_name:data.name,
+        //    variable_name:"entity_id",
+        //    value:brokerEntityId,
+        //    nodeId:nodeNameId,
+        //    pipelineName:data.config.pipelineName
+        //  }
+           
+        //  inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+        //  setVariableValues(inputedValuesVariables);
+           
+        //  blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);  
+        //  dispatch(setBlocksVariables(blocksVariablesStored)); 
+   
+    }
+
+
+
   const deleteNode = ()=>{
      const currentNodeName = data.fromPipelineStudio.name;
      const newNodes = storedPipelineNodes.filter( obj => obj.data.fromPipelineStudio.name !== currentNodeName );
@@ -370,6 +437,19 @@ export default memo(({ data, isConnectable }) => {
     }
   },[allRunningPipelines, data])
 
+  useEffect(()=>{
+    processName(data.name);
+    setFullNodeName(data.name);
+    
+  },[])
+
+    useEffect(()=>{
+      if(brokerEntityId && brokerEntityId.length!==0){
+        createObjToStore();
+      }
+         
+    },[brokerEntityId])
+
 
   return (
     <div style={{ width:"500px", borderRadius:"6%",padding:"10px",border:"2px solid yellow", backgroundColor:"#f5ffcd", minHeight: "320px", height:"auto"  }}>
@@ -394,7 +474,7 @@ export default memo(({ data, isConnectable }) => {
         }
       
         {variablesPresent && !isFromPipelineStudio && 
-          <div className='base-node-info-section-container info-section-exporter'>
+          <div className='base-node-info-section-container-exporter info-section-exporter'>
                 <h3> Variables</h3>
                 <TableContainer component={Paper}>
                   <Table sx={{ minWidth: 200 }} aria-label="customized table">

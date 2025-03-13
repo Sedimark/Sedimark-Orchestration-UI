@@ -42,6 +42,16 @@
     padding:20px;
 }
 
+.base-node-info-section-container-exporter{
+    text-align: center;
+    height: 130px;
+    margin-top:20px;
+    margin-bottom: 60px;
+    padding-top:0px;
+    padding-left:15px;
+    padding:20px;
+}
+
 .info-section-exporter{
     margin-bottom: 120px;
 }

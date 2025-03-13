@@ -39,4 +39,8 @@ export const LOGS_FOR_PIPELINE = (pipeline_name, block_name)=> `${process.env.RE
 export const CREATE_MAGE_FILE = `${process.env.REACT_APP_MAGE_API_URL}/mage/files/create`;
 export const DELETE_FILES_MAGE = `${process.env.REACT_APP_MAGE_API_URL}/mage/files/delete`;
 export const GET_MODELS = `${process.env.REACT_APP_MLFLOW_API_URL}/models`;
+export const GET_OPTIMIZERS = (framework)=>`${process.env.REACT_APP_MLFLOW_API_URL}/optimizers/${framework}`;
+export const GET_LOSSES = (framework)=>`${process.env.REACT_APP_MLFLOW_API_URL}/losses/${framework}`;
 export const DELETE_TRIGGER = (trigger_id)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/trigger/delete/${trigger_id}`;
+export const BROKER_GET_ENTITY_TYPES =  `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/types`;
+export const BROKER_GET_ASSET_TYPES = (asset_type)=> `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/entities?type=${asset_type}`;

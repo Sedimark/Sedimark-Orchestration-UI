@@ -12,17 +12,15 @@ import { faArrowLeft, faPenToSquare, faCircleInfo, faFloppyDisk, faFileArrowUp, 
 import { useNavigate } from 'react-router-dom';
 import { setShamrockFileName, setShamrockValues,  setSharmockPipelineName, setFullYAMLDocument, setShamrockWasSaved, setShamrockLastSavedPipeline } from "../../reducers/nodeSlice.js";
 import { ShamrockDialog } from "../DataProcessing/dialogs/ShamrockDialog/ShamrockDialog.js";
-import ModelUpload from "../DataProcessing/dialogs/ModelUpload/ModelUpload.js";
 import SaveDialog from "../DataProcessing/dialogs/SaveDialog/SaveDialog.js";
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import toast from 'react-hot-toast';
 import {useSelector} from "react-redux/es/hooks/useSelector";
 import AreYouSureSimple from "../DataProcessing/dialogs/AreYouSureSimple/AreYouSureSimple.js";
-import CircularProgress from '@mui/material/CircularProgress';
 import Graphs from "../DataProcessing/dialogs/Graphs/Graphs.js";
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
-import { setShamrockNodes, setShamrockRunData,  setShamrockEdges, setShamrockValueIsModified, setShamrockModelName } from "../../reducers/nodeSlice.js";
+import { setShamrockNodes, setShamrockRunData,  setShamrockEdges, setShamrockValueIsModified } from "../../reducers/nodeSlice.js";
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 import {CREATE_FOLDER,DELETE_FILES_MAGE, FETCH_PIPELINE_RUN_DATA, DELETE_PIPELINE,CREATE_TRIGGER, RUN_STREAMING_PIPELINE, STREAMING_PIPELINE_STATUS, DELETE_TRIGGER } from "../../utils/apiEndpoints.js";
 import style from "./Shamrock.css";
@@ -62,7 +60,7 @@ export const Shamrock = ()=>{
     const shamrockWasSaved = useSelector((state)=> state.shamrockWasSaved);
     const shamrockRunData = useSelector((state)=> state.shamrockRunData);
     const shamrockNodeChanged = useSelector((state)=> state.shamrockNodeChanged);
-    const shamrockModelName = useSelector((state)=>state.shamrockModelName);
+    
     const [isPolling, setIsPolling] = useState(false);
     const [loading, setLoading] = useState(false);
     const [runData, setRunData] = useState(null);
@@ -74,7 +72,7 @@ export const Shamrock = ()=>{
     const [openSuccess, setOpenSuccess] = useState(false);
     const [openError, setOpenError] = useState(false);
     const [openLoading, setOpenLoading] = useState(false);
-    const [openUploadModel, setOpenUploadModel] = useState(false);
+    
 
    const handleClose = (event, reason) => {
       if (reason === 'clickaway') {
@@ -360,7 +358,7 @@ export const Shamrock = ()=>{
                   log_file: "metrics.txt"
                 },
                 model: {
-                  model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
+                  // model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
                   model:"simple_cnn",
                   optimizer: shamrockValues["selectedDropdownValues"]["framework"],
                   lr: shamrockValues["inputtedValues"]["lr"],
@@ -387,7 +385,7 @@ export const Shamrock = ()=>{
               fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
               fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
               fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
-              fullYAMLDocumentCopy["model"]["model_uri"] = `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`
+              // fullYAMLDocumentCopy["model"]["model_uri"] = `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`
               fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
               finalYaml = fullYAMLDocumentCopy;
             }
@@ -446,17 +444,7 @@ export const Shamrock = ()=>{
 
     }
 
-    const promiseToast = ()=>{
-        toast.promise(
-          createFiles(),
-           {
-             loading: 'Saving new values...',
-             success: <b>Values saved!</b>,
-             error: <b>Could not save values!</b>,
-           }
-         );
-    
-      }
+ 
 
     useEffect(()=>{
 
@@ -531,7 +519,6 @@ export const Shamrock = ()=>{
         dispatch(setShamrockWasSaved(false));
         dispatch(setShamrockLastSavedPipeline(""));
         dispatch(setShamrockRunData(null));
-        dispatch(setShamrockModelName(""));
         setLoading(false);
         setIsPipelineStarted(false);
 
@@ -756,18 +743,14 @@ export const Shamrock = ()=>{
                         <FontAwesomeIcon icon={faPenToSquare} onClick={() => {if(isPipelineStarted){ blockAlert("Stop the pipeline to edit parameters!"); return;} setOpenDialog(true); }} className="info-icon-side"/>
                     </CustomTooltip>
                     
-                    <CustomTooltip title="Model Upload">
-                        <FontAwesomeIcon icon={faFileArrowUp}  className="info-icon-side" onClick={()=>{ setOpenUploadModel(true)}} />
-                       {(!shamrockModelName || shamrockModelName.length === 0) && <span className="red-dot-model"></span> } 
-                    </CustomTooltip>
-
+        
                     <CustomTooltip title="Graphs">
                         <FontAwesomeIcon icon={faChartLine}  className="info-icon-side" onClick={()=>{handleOpenGraph()}} />
                     </CustomTooltip>
 
                     <CustomTooltip title= { (!((!pipelineName || (pipelineName && pipelineName.length==0) || shamrockValueWasChanged))) ? "Save new values": "Save pipeline" } >
-                        <FontAwesomeIcon icon={faFloppyDisk} onClick={() => { if(!shamrockModelName || shamrockModelName.length === 0){blockAlert("Please select a model before saving the pipeline!"); return;}  if(!shamrockWasSaved){setSaveDialog(true)} else if(shamrockValueWasChanged) {promiseToast()}}} className="info-icon-side"/>
-                    { (!pipelineName || (pipelineName && pipelineName.length==0) || shamrockValueWasChanged) && <span className="red-dot"></span> } 
+                        <FontAwesomeIcon icon={faFloppyDisk} onClick={() => { if(!shamrockWasSaved){setSaveDialog(true)} }} className="info-icon-side"/>
+                        { (!pipelineName || (pipelineName && pipelineName.length==0) || shamrockValueWasChanged) && <span className="red-dot"></span> } 
                     </CustomTooltip>
 
                 </div>
@@ -782,8 +765,7 @@ export const Shamrock = ()=>{
 
             {areYouSureOpen && <AreYouSureSimple handleAction={()=>{clearPipeline()}} open={areYouSureOpen} dialogText={"Are you sure you want to delete this pipeline ?"} handleClose={()=>{setAreYouSureOpen(false)}} />}
             {graphsOpen && <Graphs open={graphsOpen} handleClose={()=>{setGraphsOpen(false)}} graphData={wsMessage} peers={peers} />}
-            {openUploadModel && <ModelUpload pipelineName={pipelineName} open={openUploadModel}  handleClose={()=>{setOpenUploadModel(false)}}  /> }
-
+           
            <Snackbar open={openSuccess}  onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
               <Alert
                 onClose={handleClose}

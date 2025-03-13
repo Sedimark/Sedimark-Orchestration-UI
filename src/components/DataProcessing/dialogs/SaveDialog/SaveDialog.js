@@ -93,10 +93,12 @@ const createFiles = async()=>{
 
     let finalYaml = "";
     let fullYAMLDocumentCopy ;
+    const randomNumber = Math.floor(10000 + Math.random() * 90000);
 
 
     if((!shamrockValues || Object.keys(shamrockValues).length !== 0)){
 
+    
       finalYaml =  {
         node: {
           port: 8182,
@@ -110,21 +112,21 @@ const createFiles = async()=>{
           n_workers_torch: 0
         },
         topology: {
-          topology_name: "CentralTopology",
+          topology_name: shamrockValues["selectedDropdownValues"]["topology"],
           local_epochs: shamrockValues["inputtedValues"]["local_epochs"],
           max_iter: shamrockValues["inputtedValues"]["max_iter"],
           log_file: "metrics.txt"
         },
         model: { 
           model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
-          model:"simple_cnn",
-          optimizer: shamrockValues["selectedDropdownValues"]["framework"],
+          model:shamrockValues["selectedDropdownValues"]["model"],
+          optimizer: shamrockValues["selectedDropdownValues"]["optimizer"],
           lr: shamrockValues["inputtedValues"]["lr"],
           batch_size: shamrockValues["inputtedValues"]["batch_size"],
           loss: shamrockValues["selectedDropdownValues"]["loss"],
           metrics: ["accuracy_score"]
         },
-        seed: 12645,
+        seed: randomNumber, ///creeaza un numar random :) 
         framework: shamrockValues["selectedDropdownValues"]["framework"],
         log_file: `/home/src/default_repo/configs/${pipelineName}/results/server.txt`,
         stop_condition: {
@@ -138,10 +140,12 @@ const createFiles = async()=>{
 
     } else {
 
+
+      
       fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
-      fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
+      // fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
       fullYAMLDocumentCopy["model"]["model_uri"]=`${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`;
-      fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
+      // fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
       fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
       finalYaml = fullYAMLDocumentCopy;
 
@@ -252,9 +256,8 @@ const createFiles = async()=>{
 
     //here we create a trigger only once
 
-         //creeare de trigger
-  
-    
+    //creeare de trigger
+
     /// acuma aici am sa trag block-urile , adica codul pentru cele 3 block-uri
 
           const allBlocksData = [];

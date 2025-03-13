@@ -1,0 +1,11 @@
+.broker-dialog-type-selector{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.select-type-text{
+    text-align: center;
+}

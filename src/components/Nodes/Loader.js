@@ -21,7 +21,8 @@ import Logs from '../DataProcessing/dialogs/Logs/Logs';
 import { truncateString } from '../../utils/truncateString';
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux'; 
-import {setPipelineStudioNodes,setStoredPipelineName, setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
+import formatName from '../../utils/formatName';
+import {setPipelineStudioNodes,setStoredPipelineName, setBlocksVariables,  setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
  
 export default memo(({ data, isConnectable }) => {
 
@@ -64,11 +65,51 @@ export default memo(({ data, isConnectable }) => {
   const [pipelineIsRunning, setPipelineIsRunning] = useState(false);
   const [seeLogs, setSeeLogs] = useState(false);
   const [isFromShamrock, setIsFromShamrock] = useState(false);
+  const [variableValues, setVariableValues] = useState([]);
+  const [nodeNameId, setNodeNameId] = useState();
+  const storedPipelinesBlockInfo = useSelector((state)=> state.pipelinesBlocks);
+  let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
   const storedPipelineNodes = useSelector((state)=>state.pipelineStudioNodes);
   const shamrockNodes = useSelector((state)=> state.shamrockNodes);
   const blockCatalogSelectedOptions = useSelector((state)=> state.blockCatalogSelectedOptions);
   const allEdges = useSelector((state)=> state.pipelineStudioEdges);
+  const brokerEntityId = useSelector((state)=>state.brokerEntityId);
   const dispatch = useDispatch();
+
+  const convertToSnakeCase = (inputString)=>{
+    let lowercaseString = inputString.toLowerCase();
+    let snakeCaseString = lowercaseString.replace(/\s+/g, '_');
+     return snakeCaseString;
+  }
+
+  const updateObjectInArray = (arr, newObj)=>{
+    const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
+    if (indexToUpdate !== -1) {
+      return arr.map((obj, index) => (index === indexToUpdate ? newObj : obj));
+    } else {
+      return [...arr, newObj];
+    }
+  }
+
+  const parseAndSet = (oldValues,newValues)=>{
+    let parsedArray = [];
+     for(const value of oldValues){
+      if(value.block_name !== fullNodeName){
+          parsedArray.push(value);
+      }
+    }
+
+    const parsedNewValues = [];
+    for(const val of newValues){
+      if(val["value"].length !== 0){
+        parsedNewValues.push(val);
+      }
+    }
+    
+
+     parsedArray = [...parsedArray, ...parsedNewValues];
+     return parsedArray;
+  }
 
   const parseString = (str) => {
     if (str.length > 20) {
@@ -180,7 +221,6 @@ export default memo(({ data, isConnectable }) => {
     setParams(data.config);
     processName(data.name)
     setFullNodeName(data.name);
-
   }, [])
 
 
@@ -314,6 +354,38 @@ export default memo(({ data, isConnectable }) => {
   
   }
 
+
+    const createObjToStore = ()=>{
+        
+      //   let inputedValuesVariables = [...variableValues];
+      //   let objToStore;
+  
+      //   let pipelineName = "";
+      //   let nodeNameId = convertToSnakeCase(data.name);
+        
+      //   for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+      //     if(key == formatName(fullNodeName)){
+      //       pipelineName = value;
+      //     }
+      //   }
+         
+      //   objToStore = {
+      //   block_name:data.name,
+      //   variable_name:"entity_id",
+      //   value:brokerEntityId,
+      //   nodeId:nodeNameId,
+      //   pipelineName:data.config.pipelineName
+      // }
+        
+      // inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+      // setVariableValues(inputedValuesVariables);
+        
+      // blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);  
+      // dispatch(setBlocksVariables(blocksVariablesStored)); 
+
+    }
+
+
   
   useEffect(()=>{
 
@@ -330,6 +402,13 @@ export default memo(({ data, isConnectable }) => {
       }
     }
   },[allRunningPipelines, data])
+
+  useEffect(()=>{
+    if(brokerEntityId && brokerEntityId.length!==0){
+      createObjToStore();
+    }
+       
+  },[brokerEntityId])
  
   return (
     <div style={{ width:"500px", borderRadius: "6%", padding: "10px", border: "2px solid blue", backgroundColor: "#e0e9ff", minHeight: "200px", height:"auto" }}>

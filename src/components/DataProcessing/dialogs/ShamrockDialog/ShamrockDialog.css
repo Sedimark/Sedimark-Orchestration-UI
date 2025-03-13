@@ -97,6 +97,10 @@
     color: yellow
 }
 
+.error-text{
+    color:red;
+}
+
 .warning-text{
     color:yellow;
 }
@@ -153,4 +157,19 @@ input[type="file"] {
 .uploaded-file{
     font-weight: bold;
     color: white;
+}
+
+
+.exclamation-icon-error{
+    color:red;
+}
+
+.section-title{
+    margin-top: 20px;
+    font-size: 1.5rem;
+}
+
+.configuration-menu-model-select{
+    margin-bottom: 40px;
+
 }

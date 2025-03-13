@@ -19,12 +19,14 @@ import TrainModelDialog from '../DataProcessing/dialogs/TrainModel/TrainModelDia
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import PaletteIcon from '@mui/icons-material/Palette';
 import EngineeringIcon from '@mui/icons-material/Engineering';
+import CenterFocusWeakIcon from '@mui/icons-material/CenterFocusWeak';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClover } from '@fortawesome/free-solid-svg-icons';
+import { faClover, faHubS } from '@fortawesome/free-solid-svg-icons';
 import PipelineManager from '../DataProcessing/dialogs/PipelineManager/PipelineManager';
 import Settings from '../DataProcessing/dialogs/Settings/Settings';
+import Broker from '../DataProcessing/dialogs/Broker/Broker';
 
 
 const drawerWidth = 240;
@@ -102,6 +104,8 @@ export default function MiniDrawer() {
   const [pipelineType, setPipelineType] = useState("");
   const [trainModelsDialogOpen, setTrainModelsDialogOpen] = React.useState(false);
   const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
+  const [brokerDialogOpen, setBrokerDialogOpen] = React.useState(false);
+  const [openPipelineSelectDialog, setOpenPipelineSelectDialog] = React.useState(false);
   const navigate = useNavigate();
 
   const openPipelineSelectMenu = (dialogType) => {
@@ -317,6 +321,31 @@ export default function MiniDrawer() {
                     <ListItemText primary={"Shamrock"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
           </ListItem>
+          <ListItem key={"NGSILD Broker"} disablePadding sx={{ display: 'block' }} onClick={()=>{ setBrokerDialogOpen(true); }}>
+                <ListItemButton
+                    sx={{
+                        minHeight: 48,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                        color:"white"
+                    }}
+                    key={2}
+                >
+                    <ListItemIcon
+                        sx={{
+                            minWidth: 0,
+                            mr: open ? 3 : 'auto',
+                            justifyContent: 'center',
+                            color:"white",
+                            fontSize: "1.5rem"
+                        }}
+                    >
+
+                      <CenterFocusWeakIcon  />
+                    </ListItemIcon>
+                    <ListItemText primary={"NGSILD Broker"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+          </ListItem>
 
       <List style={{position:"absolute",bottom:"10px"}}>
        <h2 style={{color:"#fff"}}>Account</h2>
@@ -377,6 +406,8 @@ export default function MiniDrawer() {
      {trainModelsDialogOpen && <TrainModelDialog handleClose={handleTrainModelsMenuClose} open={trainModelsDialogOpen} close={handleTrainModelsMenuClose} /> }
      {pipelineManagerOpen && <PipelineManager open={pipelineManagerOpen} handleClose={()=>{setIsPipelineManagerOpen(false)}}/>}
      {settingsDialogOpen && <Settings open={settingsDialogOpen} handleClose={()=>{setSettingsDialogOpen(false)}}/>}
+     {brokerDialogOpen && <Broker  open={brokerDialogOpen} handleClose={()=>{setBrokerDialogOpen(false)}} openPipelineDialog={()=>{setOpenPipelineSelectDialog(true)}} />}
+     {openPipelineSelectDialog && <PipelineSelectDialog pipelineType={"data_preprocessing"} open={openPipelineSelectDialog} handleClose={()=>{setOpenPipelineSelectDialog(false)}} />}
     </Box>
   );
 }

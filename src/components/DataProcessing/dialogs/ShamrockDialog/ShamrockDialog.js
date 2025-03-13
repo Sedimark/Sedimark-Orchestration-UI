@@ -19,11 +19,13 @@ import Select from '@mui/material/Select';
 import toast   from 'react-hot-toast';
 import {useSelector} from "react-redux/es/hooks/useSelector";
 import { useDispatch } from 'react-redux';
-import {setShamrockValues, setShamrockFileName, setFullYAMLDocument, setShamrockValueIsModified, setSharmockPipelineName, setShamrockNodes,setShamrockEdges } from "../../../../reducers/nodeSlice";
+import {setShamrockValues, setShamrockFileName, setFullYAMLDocument, setShamrockModelName, setShamrockValueIsModified, setSharmockPipelineName, setShamrockNodes,setShamrockEdges } from "../../../../reducers/nodeSlice";
 import ArticleIcon from '@mui/icons-material/Article';
 import { SeeTemplate } from "../SeeTemplate/SeeTemplate";
 import yaml from "js-yaml";
+import Divider from '@mui/material/Divider';
 import { v4 as uuidv4 } from 'uuid';
+import { GET_MODELS, GET_OPTIMIZERS, GET_LOSSES } from '../../../../utils/apiEndpoints';
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 import { expectedSchema } from "../../../../utils/expectedSchema";
 import axios from 'axios';
@@ -84,7 +86,19 @@ export const ShamrockDialog = (props)=>{
     const [isFullFormValid, setIsFullFormValid] = useState(false);
     const [valueChanged, setValueChanged] = useState(false);
     const [fileName, setName] = useState("");
-    
+    const [modelList, setModelList] = useState([]);
+    const [completeModelList, setCompleteModelList] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [modelUploadError, setModelUploadError] = useState(false);
+    /* Handles loading optimizers */
+    const [optimizers, setOptimizers] = useState([]);
+    const [optimizersLoadedError, setOptimizersLoadedError] = useState(false);
+    /* Handles loading losses */
+    const [losses, setLosses] = useState([]);
+    const [lossesLoadedError, setLossesLoadedError] = useState(false);
+    const [modelWasSet, setModelWasSet] = useState(false);
+    const [configurationMenuModel, setConfigurationMenuModel] = useState("");
+
     const darkTheme = createTheme({
         palette: {
           mode: 'dark',
@@ -95,7 +109,9 @@ export const ShamrockDialog = (props)=>{
     const [seeTemplateDialog, setSeeTemplateDialog] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [fullYAMLDocumentStored, setFullYAMLDocumentStored] = useState();
-
+    const [selectedModelValue, setSelectedModelValue] = useState("");
+    
+    const [allModels, setAllModels] = useState([]);
     const dispatch = useDispatch();
 
 
@@ -108,6 +124,10 @@ export const ShamrockDialog = (props)=>{
 
         return shortName;
     }
+
+    useEffect(()=>{
+      dispatch(setShamrockModelName(configurationMenuModel));
+    },[configurationMenuModel])
 
 
      const spawnNodes = ()=>{
@@ -246,7 +266,9 @@ export const ShamrockDialog = (props)=>{
  
     const handleUpload = () => {
       if(!selectedFile){
-        blockAlert("Please select a file first!");
+        blockAlert("Please select a file!");
+      } else if(configurationMenuModel.length === 0){
+        blockAlert("Please select a model!");
       } else {
 
         dispatch(setShamrockValues({}));
@@ -270,15 +292,12 @@ export const ShamrockDialog = (props)=>{
         "n_splits":1,
         "split_index":1,
         "max_iter":1,
-        "local_epochs":1,  
-        "model":"",
+        "local_epochs":1,
         "lr":0.001,
         "batch_size":1,
         "max_aggr":0.001,
         "max_time":0.001,
         "metric_min":0.001,
-        "model":"",
-        
     });
 
     const blockAlert = (msg) => {
@@ -319,7 +338,7 @@ export const ShamrockDialog = (props)=>{
     const checkFormValidity = ()=>{
       const hasEmptyInputtedValues = Object.values(inputtedValues).some(value => value === "");
       const hasEmptyDropdownValues = Object.values(selectedDropdownValues).some(value => value === "");
-    
+        
       if (hasEmptyInputtedValues || hasEmptyDropdownValues) {
         setIsFullFormValid(false);
       } else {
@@ -550,8 +569,6 @@ export const ShamrockDialog = (props)=>{
 
       return;
     }
-
-  
   }
 
 
@@ -563,6 +580,8 @@ export const ShamrockDialog = (props)=>{
       "loss_torch": ['L1Loss', 'NLLLoss', 'NLLLoss2d', 'PoissonNLLLoss', 'GaussianNLLLoss', 'KLDivLoss', 'MSELoss', 'BCELoss', 'BCEWithLogitsLoss', 'HingeEmbeddingLoss', 'MultiLabelMarginLoss', 'SmoothL1Loss', 'HuberLoss', 'SoftMarginLoss', 'CrossEntropyLoss', 'MultiLabelSoftMarginLoss', 'CosineEmbeddingLoss', 'MarginRankingLoss', 'MultiMarginLoss', 'TripletMarginLoss', 'TripletMarginWithDistanceLoss', 'CTCLoss'],
       "framework":["torch","keras"]
     })
+
+
     const MenuProps = {
       PaperProps: {
         style: {
@@ -571,6 +590,61 @@ export const ShamrockDialog = (props)=>{
         },
       },
     };
+
+    const fetchAllTheModels = async()=>{
+      
+      setLoading(true);
+      setModelUploadError(false);
+      const fullModelsArray = [];
+      const fullFrameworksArray = [];
+
+      try{
+       
+        const resp = await axios.get(GET_MODELS);
+    
+        for(const model of resp.data){
+          fullModelsArray.push(model.name);
+          fullFrameworksArray.push(model);
+        }
+
+        setCompleteModelList(fullFrameworksArray);
+        setModelList(fullModelsArray);
+        setLoading(false);
+        
+      } catch(err){
+        
+        setLoading(false)
+        setModelUploadError(true);
+        console.log(err);
+      }
+  }
+
+  const fetch_optimizer_losses = async(framework)=>{
+
+    // Code to fetch optimizer and losses
+    try{
+      const resp = await axios.get(GET_OPTIMIZERS(framework));
+      setOptimizers(resp.data);
+    } catch(err){
+      console.log(err);
+      setOptimizersLoadedError(true);
+    }
+
+    try{
+      const resp = await axios.get(GET_LOSSES(framework));
+      setLosses(resp.data);
+    } catch(err){
+      console.log(err);
+      setLossesLoadedError(true);
+    }
+
+  }
+
+  const getFrameworkForModel = (model_name)=>{
+    const foundValue = completeModelList.find((value)=>value.name === model_name);
+    return foundValue.framework;
+  }
+
 
     useEffect(()=>{
       if(displayManuallySetValues){
@@ -585,68 +659,30 @@ export const ShamrockDialog = (props)=>{
     useEffect(()=>{
       setName(shmarockFileName);
       setSelectedFile(uploadedFile);
-      
+      fetchAllTheModels();
     },[])
 
 
     useEffect(()=>{
-      
-  
-      if(storedShamrockValues && Object.keys(storedShamrockValues).length !== 0){
 
-        setInputtedValues(storedShamrockValues["inputtedValues"]);
-        setSelectedDropdownValues(storedShamrockValues["selectedDropdownValues"]);
-
-      } else {
-        setSelectedDropdownValues({
-                        "framework":'',
-                        "optimizer":'',
-                        "loss":'',
-                        "topology":''
+              if(!storedShamrockValues || Object.keys(storedShamrockValues).length === 0){
+                setSelectedDropdownValues({
+                  "framework":'',
+                  "optimizer":'',
+                  "loss":'',
+                  "topology":''
         });
-        
-        setInputtedValues({
-          "n_splits":1,
-          "split_index":1,
-          "max_iter":1,
-          "local_epochs":1,  
-          "model":"",
-          "lr":0.001,
-          "batch_size":1,
-          "max_aggr":0.001,
-          "max_time":0.001,
-          "metric_min":0.001,
-          "model":"",
-          
-      });
-        
-      }
-      
-    },[])
-
-    useEffect(()=>{
-
-                  if(!storedShamrockValues || Object.keys(storedShamrockValues).length === 0){
-                    setSelectedDropdownValues({
-                      "framework":'',
-                      "optimizer":'',
-                      "loss":'',
-                      "topology":''
-            });
 
             setInputtedValues({
             "n_splits":1,
             "split_index":1,
             "max_iter":1,
             "local_epochs":1,  
-            "model":"",
             "lr":0.001,
             "batch_size":1,
             "max_aggr":0.001,
             "max_time":0.001,
             "metric_min":0.001,
-            "model":"",
-
             });
       }
 
@@ -654,26 +690,31 @@ export const ShamrockDialog = (props)=>{
 
 
     useEffect(()=>{
-      
-      setName(shmarockFileName);
-
-    },[])
-
-    useEffect(()=>{
       checkFormValidity();
     },[selectedDropdownValues,inputtedValues])
 
 
-    const setDropdownValue = (value, dropdown_menu_name)=>{
-      setValueChanged(true);
-      setSelectedDropdownValues({
-        ...selectedDropdownValues,
-        [dropdown_menu_name]:value
-      });
+    const setDropdownValue = async(value, dropdown_menu_name) => {
+      let updatedValues = { ...selectedDropdownValues };
+    
+      if (dropdown_menu_name === "model") {
+
+        const framework = getFrameworkForModel(value);
+        await fetch_optimizer_losses(framework);
+        updatedValues["framework"] = framework;
+        setModelWasSet(true);
+      }
+    
+      updatedValues[dropdown_menu_name] = value;
+  
+      setSelectedDropdownValues(updatedValues);
       
-    }
+      setValueChanged(true);
+    };
 
 
+
+  
  return(
       <ThemeProvider theme={darkTheme}>
                 <Dialog
@@ -708,7 +749,7 @@ export const ShamrockDialog = (props)=>{
               {
                  !displayMainMenu &&
                  <div className="shamrock-dialog-initial-options">
-                     <Button variant="contained" onClick={()=>{setDisplayMainMenu(true); setDisplayManuallySetValues(true)}} > Set values manually</Button>
+                     <Button variant="contained" onClick={()=>{setDisplayMainMenu(true); setModelWasSet(false); setLossesLoadedError(false); setOptimizersLoadedError(false); setDisplayManuallySetValues(true)}} > Set values manually</Button>
                      <Button variant="contained" onClick={()=>{setDisplayMainMenu(true); setDisplayUploadFile(true)}} > Upload a file</Button>
                  </div>
               }
@@ -716,8 +757,9 @@ export const ShamrockDialog = (props)=>{
               {
                 displayMainMenu && displayUploadFile &&
                 <div className="shamrock-dialog-upload-file">
+                    <div className="section-title">Upload configuration file</div>
                         <div className="shamrock-dialog-upload-file-btn-container">
-
+                            
                             <div>
                                 <input type="file" onChange={handleFileUpload} style={{paddingTop:"25px"}} ref={fileInputRef} accept=".yaml, .yml" id="file-upload" />
                                 <label for="file-upload" class="custom-file-upload" className="button-label">
@@ -736,6 +778,8 @@ export const ShamrockDialog = (props)=>{
 
                         </div>
 
+
+
                       <div className="uploaded-file-name-section">
 
                          { fileName.length!==0 && <div> <span className="uploaded-file">Uploaded file</span>: {fileName} </div>} 
@@ -743,9 +787,44 @@ export const ShamrockDialog = (props)=>{
                       </div>
                         
 
-                        <div className="variable-description">
-                          <FontAwesomeIcon icon={faCircleInfo} /> The file should have the YAML extension and should comply with the template.
-                        </div>
+                          <div className="variable-description configuration-menu-model-select">
+                            <FontAwesomeIcon icon={faCircleInfo} /> The file should have the YAML extension and should comply with the template.
+                          </div>
+
+                           <Divider/>
+                        <div>
+                          <div className="section-title">Select a model</div>
+                                        
+                                <FormControl sx={{  width: "60%", mb:"10px" }}>
+                                      
+                                          <InputLabel id="demo-multiple-name-label"></InputLabel>
+                                          <Select
+                                            labelId="demo-multiple-name-label"
+                                            id="demo-multiple-name"
+                                            value={configurationMenuModel}
+                                            onChange={(event)=>{setConfigurationMenuModel(event.target.value)}}
+                                            input={<OutlinedInput label="Name" />}
+                                            MenuProps={MenuProps}
+                                            className="shamrock-control-input"
+                                          >
+
+                                          {   
+                                                modelList.map((variableName) => (
+                                                  <MenuItem
+                                                    key={variableName}
+                                                    value={variableName}
+                                                    
+                                                  >
+                                                    {variableName}
+                                                  </MenuItem>
+                                                      )) 
+                                            }
+
+                                          </Select>                                          
+                                  </FormControl>
+                                           
+                          </div>
+                          { modelUploadError &&  <div className='variable-description error-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon exclamation-icon-error"/> Error while loading the models! </div>   }
                   
                         <Button variant="contained" onClick={handleUpload} style={{ marginTop: "40px" }}>
                           Save
@@ -763,224 +842,83 @@ export const ShamrockDialog = (props)=>{
               
               <div>
 
+                  {!loading? 
+                      <div className="shamrock-dialog-options-content">
 
-                  <div className="shamrock-dialog-options-content">
-
-                    <div className="shamrock-dialog-options-section">
-
-                      <div className="shamrock-dialog-options-section-title"> Framework </div>
-
-                        <div>
-                              <FormControl sx={{  width: "90%", mb:"20px" }}>
-                                  <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> framework </div>  
-                                      <InputLabel id="demo-multiple-name-label"></InputLabel>
-                                      <Select
-                                        labelId="demo-multiple-name-label"
-                                        id="demo-multiple-name"
-                                        value={selectedDropdownValues["framework"]}
-                                        onChange={(event)=>{setDropdownValue(event.target.value, "framework")}}
-                                        input={<OutlinedInput label="Name" />}
-                                        MenuProps={MenuProps}
-                                        className="shamrock-control-input"
-                                      >
-                                        { dropdownValues["framework"] && dropdownValues["framework"].map((variableName) => (
-                                          <MenuItem
-                                            key={variableName}
-                                            value={variableName}
-                                            
-                                          >
-                                            {variableName}
-                                          </MenuItem>
-                                        ))}
-                                      </Select>
-                                      
-                                  </FormControl>
-                            </div>   
-                      </div>
-
-                    <div className="shamrock-dialog-options-section">
-
-                              <div className="shamrock-dialog-options-section-title"> Dataset </div>
-
-                                <div>
-                                              {/* 
-                                                    This is an input for numbers
-
-                                                    - n_splits : 1
-
-                                              */}
-                                              <FormControl key={'1'} sx={{ marginBottom: "30px", width: "90%", marginLeft:"15px" }}>
-                                                <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                                <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> n_splits </div> 
-                                                  <TextField
-                                                    error = {false}
-                                                    aria-label={`My value`}
-                                                    placeholder="Type a number…"
-                                                    value={inputtedValues ? inputtedValues["n_splits"]: ""}
-                                                    onChange={(event)=>{ handleSetValues(event.target.value, "n_splits")}}
-                                                    className="shamrock-control-input"
-                                                  />
-                                                  <div className='variable-description centered-variable-description'>  Values should be positive integers </div> 
-                                              </FormControl>
-                                            </div>
-                                              
-
-                                            <div>
-                                              {/* 
-                                                    This is an input for numbers
-
-                                                    - split_index: 0
-
-                                              */}
-                                              <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%", marginLeft:"15px"  }}>
-                                                
-                                                <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                                <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> split_index  </div> 
-                                                  <TextField
-                                                    error = {false}
-                                                    aria-label={`My value`}
-                                                    placeholder="Type a number…"
-                                                    value={inputtedValues ? inputtedValues["split_index"]: ""}
-                                                    onChange={(event)=>{ handleSetValues(event.target.value, "split_index")}}
-                                                    className="shamrock-control-input"
-                                                  />
-                                                <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
-                                              </FormControl>
-                                            </div>
-                          </div>
-                          <div className="shamrock-dialog-options-section">  
-                            <div className="shamrock-dialog-options-section-title"> Topology </div>
+                      
+  
+                      <div className="shamrock-dialog-options-section">
+  
+                                <div className="shamrock-dialog-options-section-title"> Dataset </div>
+  
                                   <div>
-                                        {/* 
-                                              This is an input for multiple choice
-                                              - topology_name: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
-                                        */}
-
-
-                                              <FormControl sx={{  width: "90%", mb:"20px" }}>
-                                              <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> topology name </div>  
-                                                  <InputLabel id="demo-multiple-name-label"></InputLabel>
-                                                  <Select
-                                                    labelId="demo-multiple-name-label"
-                                                    id="demo-multiple-name"
-                                                    value={selectedDropdownValues ? selectedDropdownValues["topology"] : ""}
-                                                    onChange={(event)=>{setDropdownValue(event.target.value, "topology")}}
-                                                    input={<OutlinedInput label="Name" />}
-                                                    MenuProps={MenuProps}
-                                                    className="shamrock-control-input"
-                                                  >
-                                                    {dropdownValues && dropdownValues["topology_name"].map((variableName) => (
-                                                      <MenuItem
-                                                        key={variableName}
-                                                        value={variableName}
-                                                        
-                                                      >
-                                                        {variableName}
-                                                      </MenuItem>
-                                                    ))} 
-                                                  </Select>
-                                                  
-                                              </FormControl>
-
-                                          </div>
-                                          <div>
-                                            {/* 
-                                                  This is an input for numbers
-
-                                                  - max_iter: 5
-
-                                            */}
-                                            <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
-                                              <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                              <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  max_iter </div> 
-                                                <TextField
-                                                  error = {false}
-                                                  aria-label={`My value`}
-                                                  placeholder="Type a number…"
-                                                  value={inputtedValues ? inputtedValues["max_iter"] : ""}
-                                                  onChange={(event)=>{ handleSetValues(event.target.value, "max_iter")}}
-                                                  className="shamrock-control-input"
-                                                />
-                                              <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
-                                            </FormControl>
-                                          </div>
-                                          <div>
-                                            {/* 
-                                                  This is an input for numbers
-
-                                                  - local_epochs: 1
-
-                                            */}
-                                            <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
-                                              <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                              <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> local_epochs </div> 
-                                                <TextField
-                                                  error = {false}
-                                                  aria-label={`My value`}
-                                                  placeholder="Type a number…"
-                                                  value={inputtedValues ? inputtedValues["local_epochs"]: ""}
-                                                  onChange={(event)=>{ handleSetValues(event.target.value, "local_epochs")}}
-                                                  className="shamrock-control-input"
-                                                />
-                                              <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
-                                            </FormControl>
-                                          </div>
-
-                          </div>
-
-                          <div className="shamrock-dialog-options-section">
-                                              {/* Here */}
-                              <div className="shamrock-dialog-options-section-title"> Model </div>
-                                
-                                <div>
                                                 {/* 
-                                                    This is an input for text
-                                                    - model: 0.7
+                                                      This is an input for numbers
+  
+                                                      - n_splits : 1
+  
+                                                */}
+                                                <FormControl key={'1'} sx={{ marginBottom: "30px", width: "90%", marginLeft:"15px" }}>
+                                                  <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                                  <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> n_splits </div> 
+                                                    <TextField
+                                                      error = {false}
+                                                      aria-label={`My value`}
+                                                      placeholder="Type a number…"
+                                                      value={inputtedValues ? inputtedValues["n_splits"]: ""}
+                                                      onChange={(event)=>{ handleSetValues(event.target.value, "n_splits")}}
+                                                      className="shamrock-control-input"
+                                                    />
+                                                    <div className='variable-description centered-variable-description'>  Values should be positive integers </div> 
+                                                </FormControl>
+                                    </div>
+                                                
+  
+                                    <div>
+                                          {/* 
+                                                This is an input for numbers
 
-                                              */}
+                                                - split_index: 0
 
-                                              <FormControl key={1} sx={{ marginBottom: "40px", width: "90%" }}>
-                                                <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> model </div>
-                                                <TextField  value={inputtedValues ? inputtedValues["model"] : ""}  onChange={(evt)=>{handleSetValues(evt.target.value,"model")}} id={`outlined-basic`} label={``} variant="outlined" className="shamrock-control-input"/>
-                                              </FormControl>
-
-                                  </div>
-                                <div>
-                                      {/* 
-                                            This is an input for multiple choice
-                                            - optimizer: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
-                                      */}
-
-
-                                      <FormControl sx={{  width: "90%", mb:"20px" }}>
-                                            <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> optimizer </div>  
-                                                <InputLabel id="demo-multiple-name-label"></InputLabel>
-                                                <Select
-                                                  labelId="demo-multiple-name-label"
-                                                  id="demo-multiple-name"
-                                                  value={selectedDropdownValues ? selectedDropdownValues["optimizer"] : ""}
-                                                  onChange={(event)=>{setDropdownValue(event.target.value, "optimizer")}}
-                                                  input={<OutlinedInput label="Name" />}
-                                                  MenuProps={MenuProps}
-                                                  className="shamrock-control-input"
-                                                  disabled = { !selectedDropdownValues|| selectedDropdownValues["framework"].length==0 || (selectedDropdownValues["framework"].length!=0 && (selectedDropdownValues["framework"]!=="keras" && selectedDropdownValues["framework"]!=="torch"))}
-                                                >
-
-                                                  {
-                                                  selectedDropdownValues &&
-                                                  selectedDropdownValues["framework"] && (selectedDropdownValues["framework"] == "torch" ?
-                                                      dropdownValues["optimizer_torch"].map((variableName) => (
-                                                    <MenuItem
-                                                      key={variableName}
-                                                      value={variableName}
+                                          */}
+                                          <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%", marginLeft:"15px"  }}>
+                                            
+                                            <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                            <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> split_index  </div> 
+                                              <TextField
+                                                error = {false}
+                                                aria-label={`My value`}
+                                                placeholder="Type a number…"
+                                                value={inputtedValues ? inputtedValues["split_index"]: ""}
+                                                onChange={(event)=>{ handleSetValues(event.target.value, "split_index")}}
+                                                className="shamrock-control-input"
+                                              />
+                                            <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
+                                          </FormControl>
+                                        </div>
+                            </div>
+                            <div className="shamrock-dialog-options-section">  
+                              <div className="shamrock-dialog-options-section-title"> Topology </div>
+                                    <div>
+                                          {/* 
+                                                This is an input for multiple choice
+                                                - topology_name: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
+                                          */}
+  
+  
+                                                <FormControl sx={{  width: "90%", mb:"20px" }}>
+                                                <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> topology name </div>  
+                                                    <InputLabel id="demo-multiple-name-label"></InputLabel>
+                                                    <Select
+                                                      labelId="demo-multiple-name-label"
+                                                      id="demo-multiple-name"
+                                                      value={selectedDropdownValues ? selectedDropdownValues["topology"] : ""}
+                                                      onChange={(event)=>{setDropdownValue(event.target.value, "topology")}}
+                                                      input={<OutlinedInput label="Name" />}
+                                                      MenuProps={MenuProps}
+                                                      className="shamrock-control-input"
                                                     >
-                                                      {variableName}
-                                                    </MenuItem>
-                                                        ))
-                                                        
-                                                        :
-                                                    
-                                                      dropdownValues["optimizer_keras"].map((variableName) => (
+                                                      {dropdownValues && dropdownValues["topology_name"].map((variableName) => (
                                                         <MenuItem
                                                           key={variableName}
                                                           value={variableName}
@@ -988,199 +926,323 @@ export const ShamrockDialog = (props)=>{
                                                         >
                                                           {variableName}
                                                         </MenuItem>
-                                                            )) )
-                                                  }
-
-                                                  
-                                                </Select>
-                                                { selectedDropdownValues && (selectedDropdownValues["framework"].length==0 || (selectedDropdownValues["framework"].length!=0 && (selectedDropdownValues["framework"]!=="keras" && selectedDropdownValues["framework"]!=="torch")))
-                                                  &&
-                                                  <div className='variable-description warning-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon"/> Please first select a framework! </div>  
-                                                } 
-                                                
-                                            </FormControl>
-                                    </div>
-                                    <div>
-                                    {/* 
-                                          This is an input for numbers
-
-                                          - lr: 0.0001
-
-                                    */}
-                                    <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
-                                      <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                      <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  lr </div> 
-                                        <TextField
-                                          error = {false}
-                                          aria-label={`My value`}
-                                          placeholder="Type a number…"
-                                          value={inputtedValues ? inputtedValues["lr"] : ""}
-                                          onChange={(event)=>{ handleSetValues(event.target.value, "lr")}}
-                                          className="shamrock-control-input"
-                                        />
-                                      <div className='variable-description centered-variable-description'>  Values should be between [0 , 1] </div>
-                                    </FormControl>
-                                  </div>
-
+                                                      ))} 
+                                                    </Select>
+                                                    
+                                                </FormControl>
+  
+                                            </div>
+                                            <div>
+                                              {/* 
+                                                    This is an input for numbers
+  
+                                                    - max_iter: 5
+  
+                                              */}
+                                              <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
+                                                <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                                <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  max_iter </div> 
+                                                  <TextField
+                                                    error = {false}
+                                                    aria-label={`My value`}
+                                                    placeholder="Type a number…"
+                                                    value={inputtedValues ? inputtedValues["max_iter"] : ""}
+                                                    onChange={(event)=>{ handleSetValues(event.target.value, "max_iter")}}
+                                                    className="shamrock-control-input"
+                                                  />
+                                                <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
+                                              </FormControl>
+                                            </div>
+                                            <div>
+                                              {/* 
+                                                    This is an input for numbers
+  
+                                                    - local_epochs: 1
+  
+                                              */}
+                                              <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
+                                                <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                                <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> local_epochs </div> 
+                                                  <TextField
+                                                    error = {false}
+                                                    aria-label={`My value`}
+                                                    placeholder="Type a number…"
+                                                    value={inputtedValues ? inputtedValues["local_epochs"]: ""}
+                                                    onChange={(event)=>{ handleSetValues(event.target.value, "local_epochs")}}
+                                                    className="shamrock-control-input"
+                                                  />
+                                                <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
+                                              </FormControl>
+                                            </div>
+  
+                            </div>
+  
+                            <div className="shamrock-dialog-options-section">
+                                                {/* Here */}
+                                <div className="shamrock-dialog-options-section-title"> Model </div>
                                   
-                                  <div>
-
-                                    {/* 
-                                          This is an input for numbers
-
-                                          - batch_size: 512
-
-                                    */}
-
-                                    <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
-                                      <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                      <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  batch_size </div> 
-                                        <TextField
-                                          error = {false}
-                                          aria-label={`My value`}
-                                          placeholder="Type a number…"
-                                          value={ inputtedValues ? inputtedValues["batch_size"] : ""}
-                                          className="shamrock-control-input"
-                                          onChange={(event)=>{ handleSetValues(event.target.value, "batch_size")}}
-                                        />
-                                      <div className='variable-description centered-variable-description'>  Values should be between [0 , 1] </div>
-                                    </FormControl>
-                                  </div>
-                                  <div>
-                                      {/* 
-                                            This is an input for multiple choice
-                                            - loss: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
-                                      */}
-
-
-                                    <FormControl sx={{  width: "90%", mb:"20px" }}>
-                                            <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> loss </div>  
-                                                <InputLabel id="demo-multiple-name-label"></InputLabel>
-                                                <Select
-                                                  labelId="demo-multiple-name-label"
-                                                  id="demo-multiple-name"
-                                                  value={selectedDropdownValues ? selectedDropdownValues["loss"] : ""}
-                                                  onChange={(event)=>{setDropdownValue(event.target.value, "loss")}}
-                                                  input={<OutlinedInput label="Name" />}
-                                                  MenuProps={MenuProps}
-                                                  className="shamrock-control-input"
-                                                  disabled = {selectedDropdownValues && (selectedDropdownValues["framework"].length==0 || (selectedDropdownValues["framework"].length!=0 && (selectedDropdownValues["framework"]!=="keras" && selectedDropdownValues["framework"]!=="torch")))}
-                                                >
-                                              {
-                                                  selectedDropdownValues && (
-                                                    selectedDropdownValues["framework"] == "torch" ?
-                                                    dropdownValues["loss_torch"].map((variableName) => (
-                                                  <MenuItem
-                                                    key={variableName}
-                                                    value={variableName}
+                                <div>
+                                        {/* 
+                                              This is an input for multiple choice
+                                              - optimizer: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
+                                        */}
+  
+                                        <FormControl sx={{  width: "90%", mb:"10px" }}>
+                                              <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> model </div>  
+                                                  <InputLabel id="demo-multiple-name-label"></InputLabel>
+                                                  <Select
+                                                    labelId="demo-multiple-name-label"
+                                                    id="demo-multiple-name"
+                                                    value={selectedDropdownValues ? selectedDropdownValues["model"] : ""}
+                                                    onChange={(event)=>{  setDropdownValue(event.target.value, "model") }}
+                                                    input={<OutlinedInput label="Name" />}
+                                                    MenuProps={MenuProps}
+                                                    className="shamrock-control-input"
                                                   >
-                                                    {variableName}
-                                                  </MenuItem>
-                                                      ))
-                                                      
-                                                      :
-                                                  
-                                                    dropdownValues["loss_keras"].map((variableName) => (
-                                                      <MenuItem
-                                                        key={variableName}
-                                                        value={variableName}
-                                                        
-                                                      >
-                                                        {variableName}
-                                                      </MenuItem>
-                                                          )) 
-                                                  )                                                      
-                                                }
+  
+                                                  {   
+                                                        modelList.map((variableName) => (
+                                                          <MenuItem
+                                                            key={variableName}
+                                                            value={variableName}
+                                                            
+                                                          >
+                                                            {variableName}
+                                                          </MenuItem>
+                                                              )) 
+                                                    }
+  
+                                                  </Select>                                          
+                                          </FormControl>
+                                         
+                                      </div>
+                                      { modelUploadError &&  <div className='variable-description error-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon exclamation-icon-error"/> Error while loading the models! </div>   }
 
-                                                </Select>
-                                                { selectedDropdownValues && (selectedDropdownValues["framework"].length==0 || (selectedDropdownValues["framework"].length!=0 && (selectedDropdownValues["framework"]!=="keras" && selectedDropdownValues["framework"]!=="torch")))
-                                                  &&
-                                                  <div className='variable-description warning-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon"/> Please first select a framework! </div>  
-                                                } 
-                                        </FormControl>
-                                  </div>
-
-                          </div>
-                          
-
-                      <div className="shamrock-dialog-options-section">
-
-                          <div className="shamrock-dialog-options-section-title"> Stop  Condition </div>
-                        <div>
-
-                            {/* 
-                              This is an input for numbers
-                              - max_aggr: 1000
-
-                            */}
-
-                                <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
-                                  <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                  <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>   max_aggr </div> 
-                                    <TextField
-                                      error = {false}
-                                      aria-label={`My value`}
-                                      placeholder="Type a number…"
-                                      value={inputtedValues ? inputtedValues["max_aggr"] : ""}
-                                      onChange={(event)=>{ handleSetValues(event.target.value, "max_aggr")}}
-                                      className="shamrock-control-input"
-                                    />
-                                  <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
-                                </FormControl>
-                                </div>
 
                                   <div>
+                                        {/* 
+                                              This is an input for multiple choice
+                                              - optimizer: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
+                                        */}
+  
+  
+                                        <FormControl sx={{  width: "90%", mb:"20px" }}>
+                                              <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> optimizer </div>  
+                                                  <InputLabel id="demo-multiple-name-label"></InputLabel>
+                                                  <Select
+                                                    labelId="demo-multiple-name-label"
+                                                    id="demo-multiple-name"
+                                                    value={selectedDropdownValues ? selectedDropdownValues["optimizer"] : ""}
+                                                    onChange={(event)=>{setDropdownValue(event.target.value, "optimizer")}}
+                                                    input={<OutlinedInput label="Name" />}
+                                                    MenuProps={MenuProps}
+                                                    className="shamrock-control-input"
+                                                    disabled = { !modelWasSet || optimizersLoadedError }
+                                                  >
+                                                  
+                                                  {   
 
-                                    {/* 
-                                          This is an input for numbers
-                                          - max_time: 3000
+                                                        optimizers.map((variableName) => (
+                                                          <MenuItem
+                                                            key={variableName}
+                                                            value={variableName}
+                                                            
+                                                          >
+                                                            {variableName}
+                                                          </MenuItem>
+                                                              )) 
 
-                                    */}
-
-                                    <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
-                                      <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                      <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  max_time </div> 
-                                        <TextField
-                                          error = {false}
-                                          aria-label={`My value`}
-                                          placeholder="Type a number…"
-                                          value={inputtedValues ? inputtedValues["max_time"]: ""}
-                                          onChange={(event)=>{ handleSetValues(event.target.value, "max_time")}}
-                                          className="shamrock-control-input"
-                                        />
-                                      <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
-                                    </FormControl>
+                                                    }
+  
+                                                    
+                                                  </Select>
+                                                  { optimizersLoadedError &&  <div className='variable-description error-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon exclamation-icon-error"/> Error while loading the optimizers! </div>   }
+                                                  { !modelWasSet &&
+                                                    <div className='variable-description warning-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon"/> Please first select a model! </div>  
+                                                  } 
+                                                  
+                                              </FormControl>
+                                      </div>
+                                      <div>
+                                      {/* 
+                                            This is an input for numbers
+  
+                                            - lr: 0.0001
+  
+                                      */}
+                                      <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
+                                        <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                        <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  lr </div> 
+                                          <TextField
+                                            error = {false}
+                                            aria-label={`My value`}
+                                            placeholder="Type a number…"
+                                            value={inputtedValues ? inputtedValues["lr"] : ""}
+                                            onChange={(event)=>{ handleSetValues(event.target.value, "lr")}}
+                                            className="shamrock-control-input"
+                                          />
+                                        <div className='variable-description centered-variable-description'>  Values should be between [0 , 1] </div>
+                                      </FormControl> 
                                     </div>
-
+  
+                                    
                                     <div>
+  
+                                      {/* 
+                                            This is an input for numbers
+  
+                                            - batch_size: 512
+  
+                                      */}
+  
+                                      <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
+                                        <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                        <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  batch_size </div> 
+                                          <TextField
+                                            error = {false}
+                                            aria-label={`My value`}
+                                            placeholder="Type a number…"
+                                            value={ inputtedValues ? inputtedValues["batch_size"] : ""}
+                                            className="shamrock-control-input"
+                                            onChange={(event)=>{ handleSetValues(event.target.value, "batch_size")}}
+                                          />
+                                        <div className='variable-description centered-variable-description'>  Values should be between [0 , 1] </div>
+                                      </FormControl>
+                                    </div>
+                                    <div>
+                                        {/* 
+                                              This is an input for multiple choice
+                                              - loss: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
+                                        */}
+  
+  
+                                      <FormControl sx={{  width: "90%", mb:"20px" }}>
+                                              <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> loss </div>  
+                                                  <InputLabel id="demo-multiple-name-label"></InputLabel>
+                                                  <Select
+                                                    labelId="demo-multiple-name-label"
+                                                    id="demo-multiple-name"
+                                                    value={selectedDropdownValues ? selectedDropdownValues["loss"] : ""}
+                                                    onChange={(event)=>{setDropdownValue(event.target.value, "loss")}}
+                                                    input={<OutlinedInput label="Name" />}
+                                                    MenuProps={MenuProps}
+                                                    className="shamrock-control-input"
+                                                    disabled = { !modelWasSet || lossesLoadedError}
+                                                  >
+                                                
+                                                {   
+                                                      losses.map((variableName) => (
+                                                        <MenuItem
+                                                          key={variableName}
+                                                          value={variableName}
+                                                          
+                                                        >
+                                                          {variableName}
+                                                        </MenuItem>
+                                                            )) 
 
-                                  {/* 
-                                        This is an input for numbers
-                                        - metric_min: 0.7
-
-                                  */}
-
+                                                  }                      
+                                                  </Select>
+                                                  { lossesLoadedError &&  <div className='variable-description error-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon exclamation-icon-error"/> Error while loading losses! </div> }
+                                                  { !modelWasSet  &&
+                                                    <div className='variable-description warning-text' > <FontAwesomeIcon icon={faTriangleExclamation} className="exclamation-icon"/> Please first select a model! </div>  
+                                                  } 
+                                          </FormControl>
+                                    </div>
+  
+                            </div>
+                            
+  
+                        <div className="shamrock-dialog-options-section">
+  
+                            <div className="shamrock-dialog-options-section-title"> Stop  Condition </div>
+                          <div>
+  
+                              {/* 
+                                This is an input for numbers
+                                - max_aggr: 1000
+  
+                              */}
+  
                                   <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
                                     <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
-                                    <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  metric_min </div> 
+                                    <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>   max_aggr </div> 
                                       <TextField
                                         error = {false}
                                         aria-label={`My value`}
                                         placeholder="Type a number…"
-                                        value={inputtedValues && inputtedValues["metric_min"]}
-                                        onChange={(event)=>{ handleSetValues(event.target.value, "metric_min")}}
+                                        value={inputtedValues ? inputtedValues["max_aggr"] : ""}
+                                        onChange={(event)=>{ handleSetValues(event.target.value, "max_aggr")}}
                                         className="shamrock-control-input"
                                       />
                                     <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
                                   </FormControl>
-                                  </div>  
-                          </div>
-                            
-                          <div className="shamrock-options-dialog-save-btn">
-                                <Button variant="contained" sx={{marginTop:"5px", width:"90px" }} disabled={!valueChanged || !isFullFormValid} onClick={()=>{saveData()}}>Save</Button>
-                          </div>
+                                  </div>
+  
+                                    <div>
+  
+                                      {/* 
+                                            This is an input for numbers
+                                            - max_time: 3000
+  
+                                      */}
+  
+                                      <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
+                                        <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                        <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  max_time </div> 
+                                          <TextField
+                                            error = {false}
+                                            aria-label={`My value`}
+                                            placeholder="Type a number…"
+                                            value={inputtedValues ? inputtedValues["max_time"]: ""}
+                                            onChange={(event)=>{ handleSetValues(event.target.value, "max_time")}}
+                                            className="shamrock-control-input"
+                                          />
+                                        <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
+                                      </FormControl>
+                                      </div>
+  
+                                      <div>
+  
+                                    {/* 
+                                          This is an input for numbers
+                                          - metric_min: 0.7
+  
+                                    */}
+  
+                                    <FormControl key={'111'} sx={{ marginBottom: "30px", width: "90%" }}>
+                                      <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
+                                      <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/>  metric_min </div> 
+                                        <TextField
+                                          error = {false}
+                                          aria-label={`My value`}
+                                          placeholder="Type a number…"
+                                          value={inputtedValues && inputtedValues["metric_min"]}
+                                          onChange={(event)=>{ handleSetValues(event.target.value, "metric_min")}}
+                                          className="shamrock-control-input"
+                                        />
+                                      <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
+                                    </FormControl>
+                                    </div>  
+                            </div>
+                              
+                            <div className="shamrock-options-dialog-save-btn">
+                                  <Button variant="contained" sx={{marginTop:"5px", width:"90px" }} disabled={!valueChanged || !isFullFormValid} onClick={()=>{saveData()}}>Save</Button>
+                            </div>
+  
+                          </div>      
 
-                        </div>                      
+                            :
+
+
+                        <div style={{marginTop:"40px"}}>
+                          <div className="loading-circle-container" style={{paddingTop:"30px"}}>
+                              <div className="loading-circle"></div>
+                              <p className="loading-text-graphs">Loading models data...</p>
+                          </div>
+                      </div>
+                    
+                  }
 
                   </div>
               </>

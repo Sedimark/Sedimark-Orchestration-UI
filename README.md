@@ -2,21 +2,35 @@
 
 ## 🚀 Overview
 
-Orchestrator UI is a
+Orchestrator UI is a wrapper over MageAI that strives to simplify the development and execution of AI pipelines by providing a visual interface where users can view, run, and create pipelines effortlessly.
 
-Whether you're an ML engineer or a data scientist, this tool helps you streamline complex AI workflows while ensuring reproducibility and scalability.
+Whether you're an experienced ML engineer or just getting started with AI pipelines, Orchestrator UI makes it easy to build, view, and run workflows through an intuitive, no-code interface.
 
-## ✨ Features
+## ✨ Orchestrator UI Features
+- 🗂️ Organized pipeline view – Browse pipelines by category: Train, Preprocess, Stream, Predict.
+- 🔧 Effortless pipeline management – Rename, delete, and organize your workflows with ease.
+- 💾 Flexible export options – Save pipelines in MageAI format or CWL for portability.
+- 🏗️ No-code pipeline creation – Build new pipelines using predefined template blocks or generate custom ones with LLMs.
+- 🤝 Federated learning support – Seamlessly develop federated learning pipelines with Shamrock and Fleviden.
 
-- 📌 **Modular pipeline design** – Define and connect pipeline stages (e.g., data ingestion, preprocessing, model training, evaluation, deployment).
-- ⚡ **Parallel execution** – Run multiple tasks in parallel for faster training and inference.
-- 🔍 **Tracking & logging** – Integrated support for experiment tracking using MLflow.
-- 🔄 **Reproducibility** – Easily version and re-run pipelines with the same configurations.
-- 🛠️ **Extensible** – Supports custom components and integrations with major ML frameworks (TensorFlow, PyTorch, Scikit-learn).
+## 🚀 Installation & Setup  
 
-## 📦 Installation
+1. **Clone the repository** 📂  
+   ```bash
+   git clone <repo-url>
+   cd <repo-name>
+   ```  
+   
+2. **Install dependencies** 📦  
+   ```bash
+   npm install
+   ```  
 
-You can install AI Pipeline Manager via pip:
+3. **Start the application** 🚀  
+   ```bash
+   npm start
+   ```  
 
-```bash
-pip install ai-pipeline-manager
+---  
+
+Enjoy building your AI pipelines with Orchestrator UI! 🚀😊

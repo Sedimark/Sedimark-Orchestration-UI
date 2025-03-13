@@ -141,7 +141,7 @@ export default function SavePipeline(props) {
         try{
             const resp = await axios.post(TAG_PIPELINE,{
                 "name":pipelineName,
-                "tag": pipeline_tag
+                "tag": [pipeline_tag,"shamrock"]
             });
             setTimeout(()=>{
                 setAddTag(true);

@@ -72,13 +72,17 @@ const initialState = {
     shamrockIsBeingSaved: false,
     shamrockRunData:null,
     shamrockModelUploadedFileName:"",
-    shamrockModelName:""
+    shamrockModelName:"",
+    brokerEntityId:""
 }    
 
 export const nodeSlice = createSlice({
     name:'nodes',
     initialState,
     reducers:{
+        setBrokerEntityId:(state, action)=>{
+            state.brokerEntityId = action.payload;
+        },
         setShamrockModelName:(state, action)=>{
             state.shamrockModelName = action.payload;
         },
@@ -423,7 +427,8 @@ export const {
     setShamrockIsBeingSaved,
     setShamrockRunData,
     setShamrockModelUploadedFileName,
-    setShamrockModelName
+    setShamrockModelName,
+    setBrokerEntityId
     
 } = nodeSlice.actions
 
