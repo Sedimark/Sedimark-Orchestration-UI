@@ -15,10 +15,10 @@ export const PREDICT_RESULTS_LINK = (model_name) => `https://ingress.sedimark.wo
 export const MODEL_VERSION = (model_name) => `${process.env.REACT_APP_MAGE_API_URL}/sm/model/versions?name=${model_name}`;
 export const RUN_STREAMING_PIPELINE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/trigger/update`;
 export const STREAMING_PIPELINE_STATUS = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/status/streaming?pipeline_name=${pipeline_name}`
-export const FETCH_ALL_BLOCKS = (pipeline_type) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/templates?pipeline_type=${pipeline_type}`;
+export const FETCH_ALL_BLOCKS = (pipeline_type) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/block/templates?pipeline_type=${pipeline_type}`;
 export const SAVE_PIPELINE = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create?name=${pipeline_name}&ptype=python`;
 export const SAVE_PIPELINE_STREAMING = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create?name=${pipeline_name}&ptype=streaming`;
-export const TAG_PIPELINE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/tag`;
+export const TAG_PIPELINE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/tags`;
 export const GET_BLOCK_CODE = (block_name)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/block/model?block_name=${block_name}`;
 export const SAVE_BLOCK = `${process.env.REACT_APP_MAGE_API_URL}/mage/block/create`;
 export const SAVE_TEMPLATE = `${process.env.REACT_APP_MAGE_API_URL}/mage/block/template/create`;
@@ -39,4 +39,11 @@ export const LOGS_FOR_PIPELINE = (pipeline_name, block_name)=> `${process.env.RE
 export const CREATE_MAGE_FILE = `${process.env.REACT_APP_MAGE_API_URL}/mage/files/create`;
 export const DELETE_FILES_MAGE = `${process.env.REACT_APP_MAGE_API_URL}/mage/files/delete`;
 export const GET_MODELS = `${process.env.REACT_APP_MLFLOW_API_URL}/models`;
+export const GET_OPTIMIZERS = (framework)=>`${process.env.REACT_APP_MLFLOW_API_URL}/optimizers/${framework}`;
+export const GET_LOSSES = (framework)=>`${process.env.REACT_APP_MLFLOW_API_URL}/losses/${framework}`;
 export const DELETE_TRIGGER = (trigger_id)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/trigger/delete/${trigger_id}`;
+export const BROKER_GET_ENTITY_TYPES =  `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/types`;
+export const BROKER_GET_ASSET_TYPES = (asset_type)=> `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/entities?type=${asset_type}`;
+export const GET_PIPELINE_TEMPLATES =  `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/templates`;
+export const POST_TEMPLATE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/template`;
+

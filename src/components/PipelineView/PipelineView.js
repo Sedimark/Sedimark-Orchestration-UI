@@ -154,7 +154,6 @@ export const PipelineView = (props)=>{
     }
 
     const startPipeline = React.useCallback(async () => {
-
         let nrOfVars = 0;
         nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
         const blockVars = parseVarsForPipeline();

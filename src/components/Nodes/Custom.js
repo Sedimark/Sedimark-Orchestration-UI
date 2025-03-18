@@ -194,7 +194,7 @@ export default memo(({ data, isConnectable }) => {
   },[allRunningPipelines, data])
 
   return (
-    <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #000", backgroundColor:"#d6d6d4", minHeight:"200px" }}>
+    <div style={{ width:"500px", borderRadius:"5%",padding:"10px",border:"1px solid #000", backgroundColor:"#d6d6d4", minHeight:"300px" }}>
         <Handle
         type="target"
         position={Position.Left}

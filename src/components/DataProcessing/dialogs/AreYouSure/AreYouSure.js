@@ -8,7 +8,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import {useDispatch, useSelector} from 'react-redux';
-import { clearPipelineStreaming, setPipelinesBlocks, setSelectedPipelineNameStreaming, clearPipelineProcessing, clearPipelineTrain, setMapData, setBlocksVariables,  setSelectedPipelineNamePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelinePrediction, setSelectedPipelineNamePrediction} from "../../../../reducers/nodeSlice";
+import { clearPipelineStreaming, setBrokerEntityId , setPipelinesBlocks, setSelectedPipelineNameStreaming, clearPipelineProcessing, clearPipelineTrain, setMapData, setBlocksVariables,  setSelectedPipelineNamePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelinePrediction, setSelectedPipelineNamePrediction} from "../../../../reducers/nodeSlice";
 import { formatString } from '../../../../utils/formatString';
 
 export default function AreYouSure(props) {
@@ -96,7 +96,7 @@ export default function AreYouSure(props) {
     }
 
     dispatch(setPipelinesBlocks(oldPipelineBlocksInfo));
-
+    dispatch(setBrokerEntityId(""));
   }
 
   

@@ -93,10 +93,12 @@ const createFiles = async()=>{
 
     let finalYaml = "";
     let fullYAMLDocumentCopy ;
+    const randomNumber = Math.floor(10000 + Math.random() * 90000);
 
 
     if((!shamrockValues || Object.keys(shamrockValues).length !== 0)){
 
+    
       finalYaml =  {
         node: {
           port: 8182,
@@ -110,21 +112,21 @@ const createFiles = async()=>{
           n_workers_torch: 0
         },
         topology: {
-          topology_name: "CentralTopology",
+          topology_name: shamrockValues["selectedDropdownValues"]["topology"],
           local_epochs: shamrockValues["inputtedValues"]["local_epochs"],
           max_iter: shamrockValues["inputtedValues"]["max_iter"],
           log_file: "metrics.txt"
         },
         model: { 
           model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
-          model:"simple_cnn",
-          optimizer: shamrockValues["selectedDropdownValues"]["framework"],
+          model:shamrockValues["selectedDropdownValues"]["model"],
+          optimizer: shamrockValues["selectedDropdownValues"]["optimizer"],
           lr: shamrockValues["inputtedValues"]["lr"],
           batch_size: shamrockValues["inputtedValues"]["batch_size"],
           loss: shamrockValues["selectedDropdownValues"]["loss"],
           metrics: ["accuracy_score"]
         },
-        seed: 12645,
+        seed: randomNumber, ///creeaza un numar random :) 
         framework: shamrockValues["selectedDropdownValues"]["framework"],
         log_file: `/home/src/default_repo/configs/${pipelineName}/results/server.txt`,
         stop_condition: {
@@ -138,10 +140,12 @@ const createFiles = async()=>{
 
     } else {
 
+
+      
       fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
-      fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
+      // fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
       fullYAMLDocumentCopy["model"]["model_uri"]=`${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`;
-      fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
+      // fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
       fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
       finalYaml = fullYAMLDocumentCopy;
 
@@ -160,6 +164,7 @@ const createFiles = async()=>{
     } catch(err){
       setOpenError(true);
       setErrorMessage("There was an error while creating the folder!");
+      props.alertUser("error");
       return false;
     }
 
@@ -173,6 +178,7 @@ const createFiles = async()=>{
 
     } catch(err){
       setErrorMessage("There was an error while creating the folder!");
+      props.alertUser("error");
       setOpenError(true);
       return false;
     }
@@ -186,6 +192,7 @@ const createFiles = async()=>{
 
     } catch(err){
       setErrorMessage("There was an error while creating the folder!");
+      props.alertUser("error");
       setOpenError(true);
       return false;
     }
@@ -201,6 +208,7 @@ const createFiles = async()=>{
 
     } catch(err){
       setErrorMessage("There was an error while uploading the file!");
+      props.alertUser("error");
       setOpenError(true);
       return false;
     }
@@ -215,13 +223,14 @@ const createFiles = async()=>{
     // if it does we warn the user to create a new one 
 
     //check if
-
+    
     let wasFileCreationSuccesful = createFiles();
 
     if(!wasFileCreationSuccesful){
       setErrorMessage("There was an error while saving the files!");
       setOpenError(true);
       dispatch(setShamrockIsBeingSaved(false));
+      props.alertUser("error");
       return;
     } 
     
@@ -234,6 +243,7 @@ const createFiles = async()=>{
         setErrorMessage("There was an error while saving the pipeline!");
         setOpenError(true);
         dispatch(setShamrockIsBeingSaved(false));
+        props.alertUser("error");
         return;
     }
 
@@ -241,20 +251,20 @@ const createFiles = async()=>{
     try{
       const resp = await axios.post(TAG_PIPELINE,{
           "name":pipelineName,
-          "tag": "streaming"
+          "tags": ["streaming"]
       });  
     } catch(err){
         setOpenError(true);
         setErrorMessage("There was an error while tagging the pipeline!");
         dispatch(setShamrockIsBeingSaved(false));   
+        props.alertUser("error");
         return;
     }
 
     //here we create a trigger only once
 
-         //creeare de trigger
-  
-    
+    //creeare de trigger
+
     /// acuma aici am sa trag block-urile , adica codul pentru cele 3 block-uri
 
           const allBlocksData = [];
@@ -270,6 +280,7 @@ const createFiles = async()=>{
                 setErrorMessage("There was a problem while creating the blocks!");
                 dispatch(setShamrockIsBeingSaved(false));
                 setOpenError(true);
+                props.alertUser("error");
                 return;
             }
         
@@ -305,6 +316,7 @@ const createFiles = async()=>{
                 setErrorMessage("There was a problem while creating the blocks!");
                 dispatch(setShamrockIsBeingSaved(false));
                 setOpenError(true);
+                props.alertUser("error");
                 return;
   
             }
@@ -366,6 +378,7 @@ const createFiles = async()=>{
                    setErrorMessage("There was an error while creating the blocks!");
                    dispatch(setShamrockIsBeingSaved(false));
                    setOpenError(true);
+                   props.alertUser("error");
                    return;
                   }
               }
@@ -377,16 +390,14 @@ const createFiles = async()=>{
 
         dispatch(setShamrockIsBeingSaved(false));
         props.alertUser("success");
-  }
-
+  } 
 
 
 
   const handleSavePipeline = async()=>{
 
     setSaveDisabled(true);
-    // dispatch(setShamrockIsBeingSaved(true));
-
+    
     let allPipelines = [];
 
     try{

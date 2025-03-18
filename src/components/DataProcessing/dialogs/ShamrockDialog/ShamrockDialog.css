@@ -45,7 +45,7 @@
 .shamrock-dialog-initial-options{
     display: flex;
     flex-direction: row;
-    margin-top: 60px;
+    margin-top: 20px;
     margin-bottom: 60px;
     justify-content: space-around;
 }
@@ -95,6 +95,10 @@
 
 .exclamation-icon{
     color: yellow
+}
+
+.error-text{
+    color:red;
 }
 
 .warning-text{
@@ -153,4 +157,34 @@ input[type="file"] {
 .uploaded-file{
     font-weight: bold;
     color: white;
+}
+
+
+.exclamation-icon-error{
+    color:red;
+}
+
+.section-title{
+    margin-top: 20px;
+    font-size: 1.5rem;
+}
+
+.configuration-menu-model-select{
+    margin-bottom: 40px;
+
+}
+
+.back-arrow-shamrock{
+    font-size: 1.9rem;
+    background-color: black;
+    width: 50px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 11px;
+    padding-right: 6px;
+    border-radius: 10px;
+}
+
+.back-arrow-shamrock:hover{
+    cursor: pointer;
 }

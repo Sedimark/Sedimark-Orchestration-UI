@@ -222,6 +222,8 @@ export default function PipelineSelectDialog(props) {
         if(selectedPipeline.length === 0){
           dispatch(addPipelinePreprocessing([]));
         } 
+
+        /** This are the lines of code for pre-processing pipeline */
     
         if(pipelinePreprocessing.length !== 0 && pipelinePreprocessing[0] !== selectedPipeline)
         {
@@ -234,6 +236,9 @@ export default function PipelineSelectDialog(props) {
           dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
           dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
         }
+
+        /** -------------------------------------------------------- */
+
       } if(props.pipelineType === "streaming"){
       
           if(selectedPipeline.length === 0){

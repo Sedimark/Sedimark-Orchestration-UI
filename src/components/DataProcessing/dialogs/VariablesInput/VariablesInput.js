@@ -312,8 +312,6 @@ export default function VariablesInput(props){
         setVariableValues(inputedValuesVariables);
       }
 
-      
-     
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       
       dispatch(setBlocksVariables(blocksVariablesStored)); 
@@ -509,7 +507,6 @@ export default function VariablesInput(props){
 
    useEffect(()=>{
     setNodeNameId(convertToSnakeCase(props.fullNodeName));
-    
    },[]) 
 
 

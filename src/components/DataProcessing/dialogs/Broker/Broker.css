@@ -1,0 +1,18 @@
+.broker-dialog-type-selector{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.select-type-text{
+    text-align: center;
+}
+
+.next-action-broker-container{
+    margin-top: 30px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+}

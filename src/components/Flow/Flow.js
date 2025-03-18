@@ -17,7 +17,8 @@ import {
   setStoredNodes,
   setSelectedPipelineNamePrediction,
   setSelectedPipelinePrediction,
-  setPipelineNumberOfVariables
+  setPipelineNumberOfVariables,
+  setBlocksVariables
 } from "../../reducers/nodeSlice.js";
 import {useDispatch} from 'react-redux';
 import { FETCH_PIPELINE_DATA, FETCH_PIPELINE_PREDICT_DATA } from '../../utils/apiEndpoints.js';
@@ -34,6 +35,8 @@ function Flow(props) {
   const selectedPipelineDataPreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
   const selectedPipelineStreaming = useSelector((state)=> state.selectedPipelineStreaming);
+  const blocksVariables = useSelector((state)=> state.blocksVariables);
+  const brokerEntityId = useSelector((state)=> state.brokerEntityId);
   const nodeTypes = useMemo(() => ({ loader: Loader , transformer:Transformer, exporter:Exporter, custom:Custom}), []);
   const edgeTypes = useMemo(() => ({ }), []);
   const initialNodes = []; 
@@ -508,6 +511,35 @@ function Flow(props) {
   useEffect(()=>{ 
     selectPipelineBasedOnProps(props.pipelineType);
   },[props, selectedPipelineDataPreProcessing, selectedPipelineTrain, selectedPipelinePrediction])
+
+  useEffect(()=>{
+
+    if(nodes.length !==0){
+      const fullObjList = [];
+
+       let  objToStore = {
+        block_name:nodes[0].data.name,
+        variable_name:"entity_id",
+        value:brokerEntityId,
+        nodeId:nodes[0].id,
+        pipelineName:nodes[0].data.config.pipelineName
+      }
+
+      fullObjList.push(objToStore);
+
+      objToStore = {
+        block_name:nodes[nodes.length-1].data.name,
+        variable_name:"entity_id",
+        value:brokerEntityId,
+        nodeId:nodes[nodes.length-1].id,
+        pipelineName:nodes[nodes.length-1].data.config.pipelineName
+      }
+
+      fullObjList.push(objToStore); 
+      dispatch(setBlocksVariables(fullObjList)); 
+    }
+  },[nodes])
+
 
 
 
