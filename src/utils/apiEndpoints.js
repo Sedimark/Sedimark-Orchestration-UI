@@ -44,3 +44,6 @@ export const GET_LOSSES = (framework)=>`${process.env.REACT_APP_MLFLOW_API_URL}/
 export const DELETE_TRIGGER = (trigger_id)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/trigger/delete/${trigger_id}`;
 export const BROKER_GET_ENTITY_TYPES =  `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/types`;
 export const BROKER_GET_ASSET_TYPES = (asset_type)=> `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/entities?type=${asset_type}`;
+export const GET_PIPELINE_TEMPLATES =  `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/templates`;
+export const POST_TEMPLATE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/template`;
+

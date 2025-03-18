@@ -291,35 +291,6 @@ export default memo(({ data, isConnectable }) => {
    }
 
 
-    const createObjToStore = ()=>{
-           
-        //    let inputedValuesVariables = [...variableValues];
-        //    let objToStore;
-     
-        //    let pipelineName = "";
-        //    let nodeNameId = convertToSnakeCase(data.name);
-           
-        //    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
-        //      if(key == formatName(fullNodeName)){
-        //        pipelineName = value;
-        //      }
-        //    }
-            
-        //    objToStore = {
-        //    block_name:data.name,
-        //    variable_name:"entity_id",
-        //    value:brokerEntityId,
-        //    nodeId:nodeNameId,
-        //    pipelineName:data.config.pipelineName
-        //  }
-           
-        //  inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
-        //  setVariableValues(inputedValuesVariables);
-           
-        //  blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);  
-        //  dispatch(setBlocksVariables(blocksVariablesStored)); 
-   
-    }
 
 
 
@@ -440,15 +411,9 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name);
-    
   },[])
 
-    useEffect(()=>{
-      if(brokerEntityId && brokerEntityId.length!==0){
-        createObjToStore();
-      }
-         
-    },[brokerEntityId])
+    
 
 
   return (

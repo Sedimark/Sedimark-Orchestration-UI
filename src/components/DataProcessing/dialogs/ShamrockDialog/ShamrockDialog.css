@@ -45,7 +45,7 @@
 .shamrock-dialog-initial-options{
     display: flex;
     flex-direction: row;
-    margin-top: 60px;
+    margin-top: 20px;
     margin-bottom: 60px;
     justify-content: space-around;
 }
@@ -172,4 +172,19 @@ input[type="file"] {
 .configuration-menu-model-select{
     margin-bottom: 40px;
 
+}
+
+.back-arrow-shamrock{
+    font-size: 1.9rem;
+    background-color: black;
+    width: 50px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 11px;
+    padding-right: 6px;
+    border-radius: 10px;
+}
+
+.back-arrow-shamrock:hover{
+    cursor: pointer;
 }

@@ -87,6 +87,8 @@ export default function Broker(props) {
   const [assetList, setAssetList] = useState([]);
   const [selectedTypeError, setSelectedTypeError] = useState(false);
   const [fetchedAssetListError, setFetchedAssetListError] = useState(false);
+  const [optionSelected, setOptionSelected] = useState(false);
+      
 
   const dispatch = useDispatch();
 
@@ -146,6 +148,8 @@ export default function Broker(props) {
   props.openPipelineDialog();
   props.handleClose();
  }
+
+ 
 
   return (
     
@@ -245,7 +249,7 @@ export default function Broker(props) {
                                                       {row.id}
                                                     </StyledTableCell>
                                                     <StyledTableCell>{row.type}</StyledTableCell>
-                                                    <StyledTableCell align="right"><Button variant="contained" onClick={()=>{handleSpawnPipeline(); dispatch(setBrokerEntityId(row.id))}}>Select</Button></StyledTableCell>
+                                                    <StyledTableCell align="right"><Button variant="contained" disabled={optionSelected} onClick={()=>{ setOptionSelected(true); dispatch(setBrokerEntityId(row.id))}}>Select</Button></StyledTableCell>
                                                   </StyledTableRow>
                                                 ))}
                                               </TableBody>
@@ -253,6 +257,13 @@ export default function Broker(props) {
                                   </TableContainer>
                               </div>
                             }         
+                            {
+                              optionSelected &&
+                              <div className='next-action-broker-container'>
+                                  <Button variant="contained" onClick={()=>{props.newPipelineGeneration(); props.handleClose()}}> Generate new pipeline </Button>
+                                  <Button variant="contained" onClick={handleSpawnPipeline}> Select a pipeline </Button>
+                              </div>
+                            }
                    </div>
                   }
                    

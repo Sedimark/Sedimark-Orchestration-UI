@@ -219,7 +219,7 @@ const createFiles = async()=>{
     // if it does we warn the user to create a new one 
 
     //check if
-
+    
     let wasFileCreationSuccesful = createFiles();
 
     if(!wasFileCreationSuccesful){
@@ -388,8 +388,7 @@ const createFiles = async()=>{
   const handleSavePipeline = async()=>{
 
     setSaveDisabled(true);
-    // dispatch(setShamrockIsBeingSaved(true));
-
+    
     let allPipelines = [];
 
     try{

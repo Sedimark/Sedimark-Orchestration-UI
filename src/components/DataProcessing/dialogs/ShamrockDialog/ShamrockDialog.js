@@ -28,6 +28,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { GET_MODELS, GET_OPTIMIZERS, GET_LOSSES } from '../../../../utils/apiEndpoints';
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 import { expectedSchema } from "../../../../utils/expectedSchema";
+import { useNavigate } from 'react-router-dom';
+
 import axios from 'axios';
 import style from "./ShamrockDialog.css";
 
@@ -98,6 +100,7 @@ export const ShamrockDialog = (props)=>{
     const [lossesLoadedError, setLossesLoadedError] = useState(false);
     const [modelWasSet, setModelWasSet] = useState(false);
     const [configurationMenuModel, setConfigurationMenuModel] = useState("");
+    const navigate = useNavigate();
 
     const darkTheme = createTheme({
         palette: {
@@ -109,8 +112,6 @@ export const ShamrockDialog = (props)=>{
     const [seeTemplateDialog, setSeeTemplateDialog] = useState(false);
     const [selectedFile, setSelectedFile] = useState(null);
     const [fullYAMLDocumentStored, setFullYAMLDocumentStored] = useState();
-    const [selectedModelValue, setSelectedModelValue] = useState("");
-    
     const [allModels, setAllModels] = useState([]);
     const dispatch = useDispatch();
 
@@ -265,6 +266,7 @@ export const ShamrockDialog = (props)=>{
     
  
     const handleUpload = () => {
+
       if(!selectedFile){
         blockAlert("Please select a file!");
       } else if(configurationMenuModel.length === 0){
@@ -713,17 +715,15 @@ export const ShamrockDialog = (props)=>{
     };
 
 
-
-  
  return(
       <ThemeProvider theme={darkTheme}>
                 <Dialog
                 open={props.open}
                 onClose={(event, reason) => {
                   if (reason === "backdropClick" || reason === "escapeKeyDown") {
-                    return; // Ignore backdrop clicks
+                    return; 
                   }
-                  props.handleClose(event, reason); // Handle other close events
+                  props.handleClose(event, reason); 
                 }}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
@@ -733,7 +733,7 @@ export const ShamrockDialog = (props)=>{
             >
                 <DialogTitle id="alert-dialog-title">
                   {
-                    displayMainMenu &&
+                    displayMainMenu && 
                                 <div className="left-back-icon">
                                         <FontAwesomeIcon icon={faArrowLeft}  onClick={()=>{setDisplayMainMenu(false); setDisplayManuallySetValues(false); setDisplayUploadFile(false) }} className="back-icon-shamrock-menu"/>
                                 </div>   
@@ -748,10 +748,14 @@ export const ShamrockDialog = (props)=>{
             
               {
                  !displayMainMenu &&
-                 <div className="shamrock-dialog-initial-options">
-                     <Button variant="contained" onClick={()=>{setDisplayMainMenu(true); setModelWasSet(false); setLossesLoadedError(false); setOptimizersLoadedError(false); setDisplayManuallySetValues(true)}} > Set values manually</Button>
-                     <Button variant="contained" onClick={()=>{setDisplayMainMenu(true); setDisplayUploadFile(true)}} > Upload a file</Button>
+                 <div>
+                    <div className="back-arrow-shamrock" onClick={()=>{props.handleClose(); navigate("/")}}> <FontAwesomeIcon icon={faArrowLeft} /> </div>
+                      <div className="shamrock-dialog-initial-options">
+                          <Button variant="contained" onClick={()=>{setDisplayMainMenu(true); setModelWasSet(false); setLossesLoadedError(false); setOptimizersLoadedError(false); setDisplayManuallySetValues(true)}} > Set values manually</Button>
+                          <Button variant="contained" onClick={()=>{setDisplayMainMenu(true); setDisplayUploadFile(true)}} > Upload a file</Button>
+                      </div>
                  </div>
+                 
               }
 
               {
@@ -777,8 +781,6 @@ export const ShamrockDialog = (props)=>{
 
 
                         </div>
-
-
 
                       <div className="uploaded-file-name-section">
 

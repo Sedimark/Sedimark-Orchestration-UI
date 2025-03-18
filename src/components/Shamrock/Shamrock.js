@@ -72,6 +72,7 @@ export const Shamrock = ()=>{
     const [openSuccess, setOpenSuccess] = useState(false);
     const [openError, setOpenError] = useState(false);
     const [openLoading, setOpenLoading] = useState(false);
+    const [isPipelineEditorOpen, setIsPipelineEditorOpen] = useState(false);
     
 
    const handleClose = (event, reason) => {
@@ -409,8 +410,7 @@ export const Shamrock = ()=>{
               console.log("There was an error while uploading the file!");
               throw err;
             }
-        
-        
+
     }
 
     async function readStream(stream) {
@@ -453,16 +453,20 @@ export const Shamrock = ()=>{
         setStoredValues(true);
         setOpenDialog(false);
         setOpenActionsMenu(true);
+
         } else if (fullYAMLDocument && Object.keys(fullYAMLDocument).length !== 0) {
         
         setStoredValues(true);
         setOpenDialog(false);
         setOpenActionsMenu(true);
+
         } else {
+
         setStoredValues(false);
         setOpenDialog(true);
         setOpenActionsMenu(false);
-        } 
+
+       } 
 
     },[shamrockValues, fullYAMLDocument])
 
@@ -502,7 +506,6 @@ export const Shamrock = ()=>{
           }
       }
 
-     
 
         blockSuccess("Pipeline deleted successfully!");
         setNodes([]);
@@ -684,9 +687,11 @@ export const Shamrock = ()=>{
   return(
     <div style={{ width: '100vw', height: '100vh' }}>
 
+    {isPipelineEditorOpen && 
         <div className="left-back-icon">
-            <FontAwesomeIcon icon={faArrowLeft}  onClick={()=>{navigate("/")}} className="left-icon-studio"/>
+          <FontAwesomeIcon icon={faArrowLeft}  onClick={()=>{navigate("/")}} className="left-icon-studio"/>
         </div>  
+    }
 
         { openDialog && <ShamrockDialog open={openDialog} handleClose={()=>{setOpenDialog(false)}} />}
 
@@ -759,7 +764,7 @@ export const Shamrock = ()=>{
 
             <div>
                 {saveDialog && 
-                    <SaveDialog open={saveDialog} handleClose={()=>{setSaveDialog(false)}} alertUser={(alert_type)=>{ if(alert_type ==="success"){ setOpenLoading(false); setOpenSuccess(true)} else if(alert_type==="error") { setOpenLoading(false); setOpenError(true)} else {setOpenLoading(true)}}} />
+                    <SaveDialog open={saveDialog} handleClose={()=>{setSaveDialog(false)}} alertUser={(alert_type)=>{ if(alert_type ==="success"){ console.log("1"); setOpenLoading(false); setOpenSuccess(true)} else if(alert_type==="error") { console.log("2"); setOpenLoading(false); setOpenError(true)} else { console.log("3"); setOpenLoading(true)}}} />
                 }
             </div>
 

@@ -535,7 +535,7 @@ function Flow(props) {
         pipelineName:nodes[nodes.length-1].data.config.pipelineName
       }
 
-      fullObjList.push(objToStore);
+      fullObjList.push(objToStore); 
       dispatch(setBlocksVariables(fullObjList)); 
     }
   },[nodes])

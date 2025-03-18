@@ -23,8 +23,9 @@ import CenterFocusWeakIcon from '@mui/icons-material/CenterFocusWeak';
 import { useNavigate } from 'react-router-dom';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClover, faHubS } from '@fortawesome/free-solid-svg-icons';
+import { faClover } from '@fortawesome/free-solid-svg-icons';
 import PipelineManager from '../DataProcessing/dialogs/PipelineManager/PipelineManager';
+import PipelineNameSet from '../DataProcessing/dialogs/PipelineNameSet/PipelineNameSet';
 import Settings from '../DataProcessing/dialogs/Settings/Settings';
 import Broker from '../DataProcessing/dialogs/Broker/Broker';
 
@@ -106,6 +107,7 @@ export default function MiniDrawer() {
   const [settingsDialogOpen, setSettingsDialogOpen] = React.useState(false);
   const [brokerDialogOpen, setBrokerDialogOpen] = React.useState(false);
   const [openPipelineSelectDialog, setOpenPipelineSelectDialog] = React.useState(false);
+  const [pipelineNameSetOpen, setPipelineNameSetOpen] = React.useState(false);
   const navigate = useNavigate();
 
   const openPipelineSelectMenu = (dialogType) => {
@@ -406,8 +408,9 @@ export default function MiniDrawer() {
      {trainModelsDialogOpen && <TrainModelDialog handleClose={handleTrainModelsMenuClose} open={trainModelsDialogOpen} close={handleTrainModelsMenuClose} /> }
      {pipelineManagerOpen && <PipelineManager open={pipelineManagerOpen} handleClose={()=>{setIsPipelineManagerOpen(false)}}/>}
      {settingsDialogOpen && <Settings open={settingsDialogOpen} handleClose={()=>{setSettingsDialogOpen(false)}}/>}
-     {brokerDialogOpen && <Broker  open={brokerDialogOpen} handleClose={()=>{setBrokerDialogOpen(false)}} openPipelineDialog={()=>{setOpenPipelineSelectDialog(true)}} />}
+     {brokerDialogOpen && <Broker  open={brokerDialogOpen} newPipelineGeneration = {()=>{setPipelineNameSetOpen(true)}} handleClose={()=>{setBrokerDialogOpen(false)}} openPipelineDialog={()=>{setOpenPipelineSelectDialog(true)}} />}
      {openPipelineSelectDialog && <PipelineSelectDialog pipelineType={"data_preprocessing"} open={openPipelineSelectDialog} handleClose={()=>{setOpenPipelineSelectDialog(false)}} />}
+     {pipelineNameSetOpen && <PipelineNameSet open={pipelineNameSetOpen} handleClose={()=>{setPipelineNameSetOpen(false)}} />}
     </Box>
   );
 }
