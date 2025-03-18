@@ -164,6 +164,7 @@ const createFiles = async()=>{
     } catch(err){
       setOpenError(true);
       setErrorMessage("There was an error while creating the folder!");
+      props.alertUser("error");
       return false;
     }
 
@@ -177,6 +178,7 @@ const createFiles = async()=>{
 
     } catch(err){
       setErrorMessage("There was an error while creating the folder!");
+      props.alertUser("error");
       setOpenError(true);
       return false;
     }
@@ -190,6 +192,7 @@ const createFiles = async()=>{
 
     } catch(err){
       setErrorMessage("There was an error while creating the folder!");
+      props.alertUser("error");
       setOpenError(true);
       return false;
     }
@@ -205,6 +208,7 @@ const createFiles = async()=>{
 
     } catch(err){
       setErrorMessage("There was an error while uploading the file!");
+      props.alertUser("error");
       setOpenError(true);
       return false;
     }
@@ -226,6 +230,7 @@ const createFiles = async()=>{
       setErrorMessage("There was an error while saving the files!");
       setOpenError(true);
       dispatch(setShamrockIsBeingSaved(false));
+      props.alertUser("error");
       return;
     } 
     
@@ -238,6 +243,7 @@ const createFiles = async()=>{
         setErrorMessage("There was an error while saving the pipeline!");
         setOpenError(true);
         dispatch(setShamrockIsBeingSaved(false));
+        props.alertUser("error");
         return;
     }
 
@@ -245,12 +251,13 @@ const createFiles = async()=>{
     try{
       const resp = await axios.post(TAG_PIPELINE,{
           "name":pipelineName,
-          "tag": "streaming"
+          "tags": ["streaming"]
       });  
     } catch(err){
         setOpenError(true);
         setErrorMessage("There was an error while tagging the pipeline!");
         dispatch(setShamrockIsBeingSaved(false));   
+        props.alertUser("error");
         return;
     }
 
@@ -273,6 +280,7 @@ const createFiles = async()=>{
                 setErrorMessage("There was a problem while creating the blocks!");
                 dispatch(setShamrockIsBeingSaved(false));
                 setOpenError(true);
+                props.alertUser("error");
                 return;
             }
         
@@ -308,6 +316,7 @@ const createFiles = async()=>{
                 setErrorMessage("There was a problem while creating the blocks!");
                 dispatch(setShamrockIsBeingSaved(false));
                 setOpenError(true);
+                props.alertUser("error");
                 return;
   
             }
@@ -369,6 +378,7 @@ const createFiles = async()=>{
                    setErrorMessage("There was an error while creating the blocks!");
                    dispatch(setShamrockIsBeingSaved(false));
                    setOpenError(true);
+                   props.alertUser("error");
                    return;
                   }
               }
@@ -380,8 +390,7 @@ const createFiles = async()=>{
 
         dispatch(setShamrockIsBeingSaved(false));
         props.alertUser("success");
-  }
-
+  } 
 
 
 

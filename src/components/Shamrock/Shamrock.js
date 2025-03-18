@@ -194,8 +194,6 @@ export const Shamrock = ()=>{
     const [edges, setEdges] = useEdgesState([]);
     const [fetchingStatus, setFetchingStatus] = useState(false);
     const [wsMessage, setWsMessage] = useState([]);
-    const [refresh, setRefresh] = useState(0);
-    const [messages, setMessages] = useState([]);
     const [socket, setSocket] = useState(null);
     const [status, setStatus] = useState("🔄 Conectare...");
     const [pipelineStartClicked, setPipelineStartClicked] = useState(false);
@@ -475,12 +473,15 @@ export const Shamrock = ()=>{
     const clearPipeline = async()=>{
 
       if(shamrockWasSaved){
-        try{
-          await deleteTrigger(runData.id);
-        } catch(err){
-          blockAlert("There was an error!")
-          console.log(err);
+        if(runData){
+            try{
+            await deleteTrigger(runData.id);
+          } catch(err){
+            blockAlert("There was an error!")
+            console.log(err);
+          }
         }
+       
 
           try{
             const resp = await axios.delete(DELETE_PIPELINE(pipelineName));
@@ -693,7 +694,7 @@ export const Shamrock = ()=>{
         </div>  
     }
 
-        { openDialog && <ShamrockDialog open={openDialog} handleClose={()=>{setOpenDialog(false)}} />}
+        { openDialog && <ShamrockDialog open={openDialog} handleClose={()=>{setOpenDialog(false)}}  setIsPipelineEditorOpen={setIsPipelineEditorOpen}/>}
 
         {
             openActionsMenu &&
@@ -764,11 +765,11 @@ export const Shamrock = ()=>{
 
             <div>
                 {saveDialog && 
-                    <SaveDialog open={saveDialog} handleClose={()=>{setSaveDialog(false)}} alertUser={(alert_type)=>{ if(alert_type ==="success"){ console.log("1"); setOpenLoading(false); setOpenSuccess(true)} else if(alert_type==="error") { console.log("2"); setOpenLoading(false); setOpenError(true)} else { console.log("3"); setOpenLoading(true)}}} />
+                    <SaveDialog open={saveDialog} handleClose={()=>{setSaveDialog(false)}} alertUser={(alert_type)=>{ if(alert_type ==="success"){  setOpenLoading(false); setOpenSuccess(true)} else if(alert_type==="error") { setOpenLoading(false); setOpenError(true) } else { setOpenLoading(true)}}} />
                 }
             </div>
 
-            {areYouSureOpen && <AreYouSureSimple handleAction={()=>{clearPipeline()}} open={areYouSureOpen} dialogText={"Are you sure you want to delete this pipeline ?"} handleClose={()=>{setAreYouSureOpen(false)}} />}
+            {areYouSureOpen && <AreYouSureSimple handleAction={()=>{clearPipeline(); setIsPipelineEditorOpen(false)}} open={areYouSureOpen} dialogText={"Are you sure you want to delete this pipeline ?"} handleClose={()=>{setAreYouSureOpen(false)}} />}
             {graphsOpen && <Graphs open={graphsOpen} handleClose={()=>{setGraphsOpen(false)}} graphData={wsMessage} peers={peers} />}
            
            <Snackbar open={openSuccess}  onClose={handleClose} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>

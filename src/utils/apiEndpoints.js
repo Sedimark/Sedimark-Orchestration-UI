@@ -15,10 +15,10 @@ export const PREDICT_RESULTS_LINK = (model_name) => `https://ingress.sedimark.wo
 export const MODEL_VERSION = (model_name) => `${process.env.REACT_APP_MAGE_API_URL}/sm/model/versions?name=${model_name}`;
 export const RUN_STREAMING_PIPELINE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/trigger/update`;
 export const STREAMING_PIPELINE_STATUS = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/status/streaming?pipeline_name=${pipeline_name}`
-export const FETCH_ALL_BLOCKS = (pipeline_type) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/templates?pipeline_type=${pipeline_type}`;
+export const FETCH_ALL_BLOCKS = (pipeline_type) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/block/templates?pipeline_type=${pipeline_type}`;
 export const SAVE_PIPELINE = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create?name=${pipeline_name}&ptype=python`;
 export const SAVE_PIPELINE_STREAMING = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create?name=${pipeline_name}&ptype=streaming`;
-export const TAG_PIPELINE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/tag`;
+export const TAG_PIPELINE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/tags`;
 export const GET_BLOCK_CODE = (block_name)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/block/model?block_name=${block_name}`;
 export const SAVE_BLOCK = `${process.env.REACT_APP_MAGE_API_URL}/mage/block/create`;
 export const SAVE_TEMPLATE = `${process.env.REACT_APP_MAGE_API_URL}/mage/block/template/create`;

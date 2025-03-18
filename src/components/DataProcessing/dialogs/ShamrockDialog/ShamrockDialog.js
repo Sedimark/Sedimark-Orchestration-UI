@@ -279,6 +279,7 @@ export const ShamrockDialog = (props)=>{
         dispatch(setShamrockValueIsModified(true));
         blockSuccess("File saved successfully!");
         spawnNodes();
+        props.setIsPipelineEditorOpen(true);
         props.handleClose();
       }
     };
@@ -333,7 +334,7 @@ export const ShamrockDialog = (props)=>{
           spawnNodes();
           props.handleClose();
         }, 1500);
-      
+        props.setIsPipelineEditorOpen(true);
     };
 
 
