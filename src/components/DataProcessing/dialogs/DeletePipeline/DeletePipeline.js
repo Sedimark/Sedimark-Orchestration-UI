@@ -303,5 +303,5 @@ export default function DeletePipeline(props) {
                </div>
 
     );
-
+ 
 }

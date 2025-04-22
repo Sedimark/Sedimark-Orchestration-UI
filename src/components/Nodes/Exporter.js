@@ -182,7 +182,7 @@ export default memo(({ data, isConnectable }) => {
   const getStoredVariableValue = (varName)=>{
     
     for(const variable of variablesValues){
-      if(variable.variable_name === varName && variable.block_name === data.name ){
+      if(variable.variable_name === varName && variable.block_name === data.name && variable.tabName === data.tabName){
         if(Array.isArray(variable.value)){
           return parseArray(variable.value);
         } else {
@@ -354,6 +354,7 @@ export default memo(({ data, isConnectable }) => {
       if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
+          tabName:data.tabName,
           ...parsedJSONVar
         }
         allVarsData.push(varObj);
@@ -488,7 +489,7 @@ export default memo(({ data, isConnectable }) => {
                             <FontAwesomeIcon icon={faDiagramProject} className='empty-node-container empty-node-container-loader' /> 
                           </div> 
         }
-        {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
+        {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} tabName={data.tabName} />}
         
         {specialBlockViewButton &&  <div className='custom-node-bottom-toolbox'>
                   <button className='custom-node-toolbox-btn view-map-btn' onClick={()=>{renderMap()}}> View Map <FontAwesomeIcon icon={faMap}/></button>

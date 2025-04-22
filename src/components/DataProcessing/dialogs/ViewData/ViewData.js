@@ -36,10 +36,6 @@ const WEBSOCKET_URL = "wss://endpoints.sedimark.work/mage/ws";
 
 export default function ViewData(props) {
 
-    const selectedTab = useSelector((state) => state.selectedView);
-    const pipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
-    const pipelinePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
-    const selectedPipelinePrediction = useSelector((state)=> state.selectedPipelinePrediction);
     const [allColumnsData, setAllColumnsData] = useState();
     const [columnNames, setColumnNames] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -244,18 +240,7 @@ export default function ViewData(props) {
         },[ columnNames , allColumnsSamples])
 
     
-      useEffect(()=>{
-        
-        
-          if(selectedTab === 1){
-            setSelectedPipeline(pipelinePreprocessing[0]);
-          } else if(selectedTab === 2) {
-            setSelectedPipeline(pipelineTrain[0]);
-          } else {
-            
-            setSelectedPipeline(selectedPipelinePrediction[0]);
-          }
-      },[selectedTab])
+    
 
     return (
       

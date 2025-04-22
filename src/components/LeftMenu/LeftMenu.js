@@ -10,23 +10,19 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import WidgetsIcon from '@mui/icons-material/Widgets';
-import BarChartIcon from '@mui/icons-material/BarChart';
 import PipelineSelectDialog from '../DataProcessing/dialogs/PipelineSelect/PipelineSelectDialog';
-import HubIcon from '@mui/icons-material/Hub';
 import Divider from '@mui/material/Divider';
 import SettingsIcon from '@mui/icons-material/Settings';
 import TrainModelDialog from '../DataProcessing/dialogs/TrainModel/TrainModelDialog';
-import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
-import PaletteIcon from '@mui/icons-material/Palette';
-import EngineeringIcon from '@mui/icons-material/Engineering';
-import CenterFocusWeakIcon from '@mui/icons-material/CenterFocusWeak';
 import { useNavigate } from 'react-router-dom';
-import LogoutIcon from '@mui/icons-material/Logout';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClover } from '@fortawesome/free-solid-svg-icons';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import PipelineManager from '../DataProcessing/dialogs/PipelineManager/PipelineManager';
 import PipelineNameSet from '../DataProcessing/dialogs/PipelineNameSet/PipelineNameSet';
+import HandymanIcon from '@mui/icons-material/Handyman';
+import TimelineIcon from '@mui/icons-material/Timeline';
 import Settings from '../DataProcessing/dialogs/Settings/Settings';
+import TemplatesDialog from '../DataProcessing/dialogs/TemplatesDialog/TemplatesDialog';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import Broker from '../DataProcessing/dialogs/Broker/Broker';
 
 
@@ -108,6 +104,7 @@ export default function MiniDrawer() {
   const [brokerDialogOpen, setBrokerDialogOpen] = React.useState(false);
   const [openPipelineSelectDialog, setOpenPipelineSelectDialog] = React.useState(false);
   const [pipelineNameSetOpen, setPipelineNameSetOpen] = React.useState(false);
+  const [templatesDialog, setTemplatesDialog] = React.useState(false);
   const navigate = useNavigate();
 
   const openPipelineSelectMenu = (dialogType) => {
@@ -117,6 +114,8 @@ export default function MiniDrawer() {
       setPipelineType("data_preprocessing");
     } else if (dialogType === "streaming"){
       setPipelineType("streaming");
+    } else if(dialogType === "all"){
+      setPipelineType("all");
     }
 
     setSelectDataDialog(true);
@@ -134,10 +133,6 @@ export default function MiniDrawer() {
     setTrainModelsDialogOpen(false);
   }
 
-  const handleLogout = () => {
-      
-  };
-
   return (
     <Box sx={{ display: 'flex' , width:"20px !important"}}>
       <BigDrawer variant="permanent" open={open} PaperProps={{
@@ -153,7 +148,7 @@ export default function MiniDrawer() {
         
         <h2 style={{color:"#fff"}}>Operations</h2>
         <List>
-             <ListItem key={"Data pre-processing"} disablePadding sx={{ display: 'block' }}>
+             <ListItem key={"Templates"} disablePadding sx={{ display: 'block' }}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -162,7 +157,7 @@ export default function MiniDrawer() {
                     color:"white"
                   }}
                   key={0}
-                  onClick={()=>{ openPipelineSelectMenu("data_preprocessing");}}
+                  onClick={()=>{ setTemplatesDialog(true);}}
                 >
                   <ListItemIcon
                     sx={{
@@ -172,14 +167,39 @@ export default function MiniDrawer() {
                       color:"white"
                     }}
                   >
-                <BarChartIcon></BarChartIcon>
+                <AssignmentIcon></AssignmentIcon>
                   </ListItemIcon>
-                  <ListItemText primary={"Data pre-processing"} sx={{ opacity: open ? 1 : 0 }} />
+                  <ListItemText primary={"Templates"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
              
             </ListItem>
 
-            <ListItem key={"Training pipeline"} disablePadding sx={{ display: 'block' }} onClick={()=>{openPipelineSelectMenu("train")}}>
+            <ListItem key={"Pipeline Creator"} disablePadding sx={{ display: 'block' }} onClick={()=>{ navigate("/pipeline-studio") }}>
+                <ListItemButton
+                    sx={{
+                        minHeight: 48,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                        color:"white"
+                    }}
+                    key={2}
+                >
+                    <ListItemIcon
+                        sx={{
+                            minWidth: 0,
+                            mr: open ? 3 : 'auto',
+                            justifyContent: 'center',
+                            color:"white"
+                        }}
+                    >
+                        <HandymanIcon/>
+                    </ListItemIcon>
+                    <ListItemText primary={"Pipeline Creator"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem>
+
+
+            <ListItem key={"Pipelines"} disablePadding sx={{ display: 'block' }} onClick={()=>{openPipelineSelectMenu("all")}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -187,7 +207,7 @@ export default function MiniDrawer() {
                     px: 2.5,
                     color:"white"
                   }}
-                  key={1}
+                  key={2}
                 >
                   <ListItemIcon
                     sx={{
@@ -197,12 +217,12 @@ export default function MiniDrawer() {
                       color:"white"
                     }}
                   >
-                   <HubIcon/>
+                    <TimelineIcon/>
                   </ListItemIcon>
-                  <ListItemText primary={"Training pipeline"} sx={{ opacity: open ? 1 : 0 }} />
+                  <ListItemText primary={"Pipelines"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-            <ListItem key={"Predict"} disablePadding sx={{ display: 'block' }} onClick={()=>{openTrainModelsMenu()}}>
+            <ListItem key={"My Assets"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -222,159 +242,18 @@ export default function MiniDrawer() {
                   >
                     <WidgetsIcon/>
                   </ListItemIcon>
-                  <ListItemText primary={"Predict"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-            </ListItem>
-            <ListItem key={"Streaming"} disablePadding sx={{ display: 'block' }} onClick={()=>{openPipelineSelectMenu("streaming")}}>
-              <ListItemButton
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                    color:"white"
-                  }}
-                  key={2}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
-                      justifyContent: 'center',
-                      color:"white"
-                    }}
-                  >
-                    <SettingsInputAntennaIcon/>
-                  </ListItemIcon>
-                  <ListItemText primary={"Streaming"} sx={{ opacity: open ? 1 : 0 }} />
+                  <ListItemText primary={"My Assets"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
               <Divider component="li"/>
-            <ListItem key={"Pipeline Creator"} disablePadding sx={{ display: 'block' }} onClick={()=>{ navigate("/pipeline-studio") }}>
-                <ListItemButton
-                    sx={{
-                        minHeight: 48,
-                        justifyContent: open ? 'initial' : 'center',
-                        px: 2.5,
-                        color:"white"
-                    }}
-                    key={2}
-                >
-                    <ListItemIcon
-                        sx={{
-                            minWidth: 0,
-                            mr: open ? 3 : 'auto',
-                            justifyContent: 'center',
-                            color:"white"
-                        }}
-                    >
-                        <PaletteIcon/>
-                    </ListItemIcon>
-                    <ListItemText primary={"Pipeline Creator"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-            </ListItem>
 
-            <ListItem key={"Pipeline Manager"} disablePadding sx={{ display: 'block' }} onClick={()=>{setIsPipelineManagerOpen(true)}}>
-                <ListItemButton
-                    sx={{
-                        minHeight: 48,
-                        justifyContent: open ? 'initial' : 'center',
-                        px: 2.5,
-                        color:"white"
-                    }}
-                    key={2}
-                >
-                    <ListItemIcon
-                        sx={{
-                            minWidth: 0,
-                            mr: open ? 3 : 'auto',
-                            justifyContent: 'center',
-                            color:"white"
-                        }}
-                    >
-                        <EngineeringIcon/>
-                    </ListItemIcon>
-                    <ListItemText primary={"Pipeline Manager"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-            </ListItem>
         
        </List>
 
-       <ListItem key={"Shamrock"} disablePadding sx={{ display: 'block' }} onClick={()=>{ navigate("/shamrock") }}>
-                <ListItemButton
-                    sx={{
-                        minHeight: 48,
-                        justifyContent: open ? 'initial' : 'center',
-                        px: 2.5,
-                        color:"white"
-                    }}
-                    key={2}
-                >
-                    <ListItemIcon
-                        sx={{
-                            minWidth: 0,
-                            mr: open ? 3 : 'auto',
-                            justifyContent: 'center',
-                            color:"white",
-                            fontSize: "1.5rem"
-                        }}
-                    >
-                      <FontAwesomeIcon icon={faClover} sx={{ fontSize: "2rem"}} />
-                    </ListItemIcon>
-                    <ListItemText primary={"Shamrock"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-          </ListItem>
-          <ListItem key={"NGSILD Broker"} disablePadding sx={{ display: 'block' }} onClick={()=>{ setBrokerDialogOpen(true); }}>
-                <ListItemButton
-                    sx={{
-                        minHeight: 48,
-                        justifyContent: open ? 'initial' : 'center',
-                        px: 2.5,
-                        color:"white"
-                    }}
-                    key={2}
-                >
-                    <ListItemIcon
-                        sx={{
-                            minWidth: 0,
-                            mr: open ? 3 : 'auto',
-                            justifyContent: 'center',
-                            color:"white",
-                            fontSize: "1.5rem"
-                        }}
-                    >
-
-                      <CenterFocusWeakIcon  />
-                    </ListItemIcon>
-                    <ListItemText primary={"NGSILD Broker"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-          </ListItem>
-
+      
       <List style={{position:"absolute",bottom:"10px"}}>
        <h2 style={{color:"#fff"}}>Account</h2>
-        <ListItem key={"Notifications"} disablePadding sx={{ display: 'block' }} onClick={handleLogout}>
-              <ListItemButton
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                    color:"white"
-                  }}
-                  key={2}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
-                      justifyContent: 'center',
-                      color:"white"
-                    }}
-                  >
-                    <LogoutIcon/>
-                  </ListItemIcon>
-                  <ListItemText primary={"Logout"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-            </ListItem>
-
+      
             <ListItem key={"Settings"} disablePadding sx={{ display: 'block' }} onClick={()=>{setSettingsDialogOpen(true)}}>
               <ListItemButton
                   sx={{
@@ -411,6 +290,7 @@ export default function MiniDrawer() {
      {brokerDialogOpen && <Broker  open={brokerDialogOpen} newPipelineGeneration = {()=>{setPipelineNameSetOpen(true)}} handleClose={()=>{setBrokerDialogOpen(false)}} openPipelineDialog={()=>{setOpenPipelineSelectDialog(true)}} />}
      {openPipelineSelectDialog && <PipelineSelectDialog pipelineType={"data_preprocessing"} open={openPipelineSelectDialog} handleClose={()=>{setOpenPipelineSelectDialog(false)}} />}
      {pipelineNameSetOpen && <PipelineNameSet open={pipelineNameSetOpen} handleClose={()=>{setPipelineNameSetOpen(false)}} />}
+     {templatesDialog && <TemplatesDialog openTrainModelsMenu={openTrainModelsMenu} openPipelineSelectMenu={openPipelineSelectMenu} open={templatesDialog} handleClose={()=>{setTemplatesDialog(false)}} />}
     </Box>
   );
 }

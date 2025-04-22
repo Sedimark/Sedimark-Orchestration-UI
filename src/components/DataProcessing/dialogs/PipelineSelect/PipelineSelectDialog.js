@@ -24,11 +24,11 @@ import Radio from '@mui/material/Radio';
 import { formatString } from '../../../../utils/formatString';
 import { FETCH_PIPELINES, FETCH_PIPELINE_DATA } from "../../../../utils/apiEndpoints";
 import axios from "axios";
-import {setSelectedTab, addPipelineTrain, addPipelinePreprocessing, setSelectedPipelineNameTrain, setSelectedPipelineNamePreprocessing, addPipelineStreaming, setSelectedPipelineNameStreaming, setPipelinesBlocks} from "../../../../reducers/nodeSlice";
+import {setAllTabs,  setPipelinesBlocks, setTabIndex} from "../../../../reducers/nodeSlice";
 import {useDispatch} from 'react-redux';
 import {checkAndFormat} from "../../../../utils/checkAndFormat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
-import {  setBlocksVariables} from '../../../../reducers/nodeSlice';
+import {  setBlocksVariables, setSelectedTab} from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import style from "./PipelineSelectDialog.css";
 
@@ -37,10 +37,9 @@ export default function PipelineSelectDialog(props) {
   
   const dispatch = useDispatch();
   const storedVariables = useSelector((state)=>state.blocksVariables);
-  const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
-  const pipelineStreaming = useSelector((state)=>state.selectedPipelineStreaming);
-  const pipelinePreprocessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
   const storedPipelineBlocks = useSelector((state)=> state.pipelinesBlocks);
+  const allTabs = useSelector((state)=> state.allTabs);
+  const tabIndex = useSelector((state)=> state.tabIndex);
   const [checked, setChecked] = React.useState([]);
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
   const [searchedString, setSearchedString] = React.useState("");
@@ -53,9 +52,7 @@ export default function PipelineSelectDialog(props) {
   const [pipeline, setPipeline] = React.useState("");
   const [hasError, setHasError] = React.useState(false);
   const [foundPipeline, setFoundPipeline] = React.useState(false);
-
-
-
+  const [pipelineType , setPipelineType] = React.useState("") ;
 
   const darkTheme = createTheme({
     palette: {
@@ -81,11 +78,8 @@ export default function PipelineSelectDialog(props) {
   
   const fetchAllPipelines = async()=>{
 
-
-    if(props.pipelineType === "data_preprocessing"){
       try{
-        const resp = await axios.get(FETCH_PIPELINES("data_preprocessing"));
-        
+        const resp = await axios.get(FETCH_PIPELINES(""));
         setAllPipelines(resp.data);
         setfilteredPipelines(resp.data);
         restoreChecksBasedOnStoredData(resp.data);
@@ -95,34 +89,7 @@ export default function PipelineSelectDialog(props) {
         setIsLoading(false);
         setHasError(true);
       }
-     
-
-    } else if(props.pipelineType === "train"){
-      try{
-        const resp = await axios.get(FETCH_PIPELINES("train"));
-        setAllPipelines(resp.data);
-        setfilteredPipelines(resp.data);
-        restoreChecksBasedOnStoredData(resp.data);
-        setIsLoading(false);
-        setHasError(false);
-      } catch(err){
-        setIsLoading(false);
-        setHasError(true);
-      }
-
-    } else if(props.pipelineType === "streaming"){
-      try{
-        const resp = await axios.get(FETCH_PIPELINES("streaming"));
-        setAllPipelines(resp.data);
-        setfilteredPipelines(resp.data);
-        restoreChecksBasedOnStoredData(resp.data);
-        setIsLoading(false);
-        setHasError(false);
-      } catch(err){
-        setIsLoading(false);
-        setHasError(true);
-      }
-    }
+    
   }
   
 
@@ -144,12 +111,13 @@ export default function PipelineSelectDialog(props) {
   }
 
 
-   const fetchAndSaveBlockNames = async(pipeline_name)=>{
-      // cand cineva selecteaza un pipeline noi salvam in redux fiecare block cu numele lui si practic
-      // o sa salvezi cheie valoare adica numele block-ului la cheie si la valoare o sa salvezi numele pipeline-ului
+   const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
+    
       let pipeline_blocks;
+      
       try{
         const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+
         pipeline_blocks = resp.data.pipeline.blocks;
 
       } catch(err){
@@ -160,153 +128,96 @@ export default function PipelineSelectDialog(props) {
       let blocksInfoObj ;
       if(storedPipelineBlocks){
         blocksInfoObj = {...storedPipelineBlocks };
-      } else {
+      } else { 
         blocksInfoObj = {};
       }
 
-      
-
       for(const block of pipeline_blocks){
-        blocksInfoObj[checkAndFormat(block.name)] = pipeline_name;
+        blocksInfoObj[checkAndFormat(block.name)] = {
+          "pipeline_name": pipeline_name,
+          "tabName": newTabName
+        }
       }
 
+    
       dispatch(setPipelinesBlocks(blocksInfoObj));
    }
 
   const addCorespondingPipeline = async()=>{
-   
-    
+
     if(isLoading){
         return;
     }
+
+    let pipeline;
     
     if(selectedPipeline){
-      let pipeline;
+      
       if(Array.isArray(selectedPipeline)) {
         pipeline = selectedPipeline;
       } else {
         pipeline = selectedPipeline
       }
-      const filteredVariables = [];
-      await fetchAndSaveBlockNames(pipeline);
-       
+      const filteredVariables = [];  
 
       for(const variable of storedVariables){
         if( variable["pipelineName"] && variable["pipelineName"][0] !== pipeline){
             filteredVariables.push(variable);
         }
       }
+
+    let newTabs = [];
+    if(allTabs){
+      newTabs = [...allTabs];
+    }
+      let newTabName;
+      if(!tabIndex || tabIndex == 1){
+        newTabName = `Tab 1`;
+        dispatch(setTabIndex(2));
+        newTabs.push({
+          "name":newTabName,
+          "pipelineName": pipeline,
+          "pipelineType": pipelineType,
+          "tabOrder":1
+        });
+
+      } else {
+        newTabName = `Tab ${tabIndex}`;
+        newTabs.push({
+          "name":newTabName,
+          "pipelineName": pipeline,
+          "pipelineType": pipelineType,
+          "tabOrder":tabIndex
+        });
+        dispatch(setTabIndex(tabIndex+1));
+      } 
+      
+      await fetchAndSaveBlockNames(pipeline , newTabName);
+
+
+      dispatch(setAllTabs(newTabs));
+
+      setTimeout(()=>{
+        dispatch(setSelectedTab({"changed":true, tabSelected:newTabName}));
+      },100)
+ 
       dispatch(setBlocksVariables(filteredVariables));
     }
-
-    if(props.pipelineType === "train"){
-     
-      if(selectedPipeline.length === 0){
-        dispatch(addPipelineTrain([]));
-      }
-
-        
-      if(pipelineTrain.length !== 0 && pipelineTrain[0] !== selectedPipeline)
-      {  
-        dispatch(addPipelineTrain(selectedPipeline));
-        dispatch(setSelectedPipelineNameTrain(selectedPipeline));
-        dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
-      } else if(pipelineTrain.length === 0 ){
-        dispatch(addPipelineTrain(selectedPipeline));
-        dispatch(setSelectedPipelineNameTrain(selectedPipeline));
-        dispatch(setSelectedTab({"changed":true, tabSelected:"2"}));
-      } 
-
-    } else if (props.pipelineType === "data_preprocessing"){
-      
-        if(selectedPipeline.length === 0){
-          dispatch(addPipelinePreprocessing([]));
-        } 
-
-        /** This are the lines of code for pre-processing pipeline */
-    
-        if(pipelinePreprocessing.length !== 0 && pipelinePreprocessing[0] !== selectedPipeline)
-        {
-          dispatch(addPipelinePreprocessing(selectedPipeline));
-          dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
-          dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
-        } else if(pipelinePreprocessing.length === 0 ){
-          
-          dispatch(addPipelinePreprocessing(selectedPipeline));
-          dispatch(setSelectedPipelineNamePreprocessing(selectedPipeline));
-          dispatch(setSelectedTab({"changed":true, tabSelected:"1"}));
-        }
-
-        /** -------------------------------------------------------- */
-
-      } if(props.pipelineType === "streaming"){
-      
-          if(selectedPipeline.length === 0){
-            dispatch(addPipelineStreaming([]));
-          }
-
-
-        if(!pipelineStreaming){
-          dispatch(addPipelineStreaming(selectedPipeline));
-          dispatch(setSelectedPipelineNameStreaming(selectedPipeline));
-          dispatch(setSelectedTab({"changed":true, tabSelected:"4"}));
-          return;
-        }
-          
-        if(pipelineStreaming.length !== 0 && pipelineStreaming[0] !== selectedPipeline)
-        {  
-          dispatch(addPipelineStreaming(selectedPipeline));
-          dispatch(setSelectedPipelineNameStreaming(selectedPipeline));
-          dispatch(setSelectedTab({"changed":true, tabSelected:"4"}));
-        } else if(pipelineStreaming.length === 0 ){
-          dispatch(addPipelineStreaming(selectedPipeline));
-          dispatch(setSelectedPipelineNameStreaming(selectedPipeline));
-          dispatch(setSelectedTab({"changed":true, tabSelected:"4"}));
-        } 
-  
-      }
+ 
   }
 
 
   const handleRadioClick = (value)=>{
+
     if(value!=undefined){
-        setSelectedPipeline(value);
+        setSelectedPipeline(value.name);
+        setPipelineType(value.tag); 
         setOnlyOneOptionSelected(false);
         setFoundPipeline(false);
     }
  }
 
-  const handleDialogTitle = ()=>{
-    if(props.pipelineType === "data_preprocessing"){
-      setDialogName("Pipelines - preprocessing");
-      setPipeline(pipelinePreprocessing);
-    } else if (props.pipelineType === "train"){
-      setDialogName("Pipelines - train");
-      setPipeline(pipelineTrain);
-    } else if (props.pipelineType === "streaming"){
-      setDialogName("Pipelines - streaming");
-      setPipeline(pipelineStreaming);
-    } 
-  }
 
-  const checkIfPipelineIsSelected = (all_pipelines, the_pipeline) => {
-    let pipelineSelected = false;
-    
-    
-    for(const pipeline of all_pipelines){
-      if(Array.isArray(the_pipeline)){
-        if(pipeline === the_pipeline[0]){
-          pipelineSelected = true;
-        }
-      } else {
-        if(pipeline === the_pipeline){
-          pipelineSelected = true;
-        }
-      }
-      
-    }
-    return pipelineSelected;
-  }
 
   React.useEffect(()=>{
   
@@ -316,19 +227,8 @@ export default function PipelineSelectDialog(props) {
   },[wasRunned])
 
   React.useEffect(()=>{
-    if(!wasRunned){
-      handleDialogTitle();
-    }
     setWasRunned(true);
   },[])
-
-
-  React.useEffect(()=>{
-  
-    setOnlyOneOptionSelected(!checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
-    setFoundPipeline(checkIfPipelineIsSelected(filteredPipelines, pipeline[0]));
-
-  },[filteredPipelines])
 
 
   return (
@@ -361,7 +261,7 @@ export default function PipelineSelectDialog(props) {
                   </Paper>
                 
                
-                     <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px" }}>
+                     <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px", borderRadius:"3px" }}>
                        <ListItem
                           key={"my-key"}
                           secondaryAction={
@@ -395,15 +295,15 @@ export default function PipelineSelectDialog(props) {
   
                       {
                            filteredPipelines.map((value) => {
-                            const labelId = `checkbox-list-secondary-label-${value}`;
+                            const labelId = `checkbox-list-secondary-label-${value.name}`;
                            
                              return (
                                <ListItem
-                                 key={value}
+                                 key={value.name}
                                  secondaryAction={
                                    <div className='dataset-select-toolbox'>
-                                     {value !== pipeline[0] ?
-                                      <FormControlLabel value={value} control={<Radio />}  /> :
+                                     {value.name !== pipeline[0] ?
+                                      <FormControlLabel value={value.name} control={<Radio />}  /> :
                                       <p className='pipeline-selected-text'>Selected</p>
                                      }
                                      
@@ -411,16 +311,16 @@ export default function PipelineSelectDialog(props) {
                                  }
                                  disablePadding
                                > 
-                                 <ListItemButton onClick={()=>{ if(value !== pipeline[0]) { handleRadioClick(value)}}}>
+                                 <ListItemButton onClick={()=>{ if(value.name !== pipeline[0]) { handleRadioClick(value)}}}>
                                    <ListItemAvatar>
                                      <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                    </ListItemAvatar>
                                    <ListItemText  id={labelId}  disableTypography
-                                   primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value)}</Typography>} />
+                                   primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value.name)}</Typography>} />
                                  </ListItemButton>
                                </ListItem>
                              );
-                            
+                             
                           })
                           
                       }

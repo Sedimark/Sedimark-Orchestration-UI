@@ -30,7 +30,6 @@ function App() {
     const [blockType, setBlockType] = useState("");
     const [wsIsOpen, setWsIsOpen]= useState(false);
     const [checkWsIsOpen, setCheckWsIsOpen] = useState(false);
-    const checkWS = useRef(null); // WebSocket reference
     const reconnectIntervalRef = useRef(null); // Reconnect timer reference
     const wsRef = useRef(null);
     const [isConnected, setIsConnected] = useState(false);
@@ -57,57 +56,6 @@ function App() {
 
     //** WEBSOCKET THAT CHECKS THE BLOCK **/
 
-    const connectWebSocket = ()=>{
-      checkWS.current = new WebSocket(CHECK_BLOCK_WS);
-
-      checkWS.current.onopen = () => {      
-  
-      setCheckWsIsOpen(true);
-
-      };
-
-      checkWS.current.onclose = (event) => {
-        setCheckWsIsOpen(false);
-       console.log("The websocket checkWS was closed") 
-      }
-
-      checkWS.current.onerror = (error)=>{
-        setCheckWsIsOpen(false);  
-        console.log("There was an error during the connection for checkWS");
-      }
-
-
-      checkWS.current.onmessage = (event) => {
-        try{
-          const decoded_msg = JSON.parse(event.data);
-          
-          if(decoded_msg.detail){
-            return;
-          }  else if(decoded_msg.success == "succes"){
-            saveToRag();
-          }
-        } catch(err){
-            console.log(err);
-        }
-      
-      };
-
-    }
-
-    useEffect(() => {
-      connectWebSocket();
-  
-      return () => {
-        // Clear the reconnect timeout if it exists
-        if (reconnectIntervalRef.current) {
-          clearTimeout(reconnectIntervalRef.current);
-        }
-        // Clean up WebSocket connection
-        if (wsRef.current) {
-          wsRef.current.close();
-        }
-      };
-    }, []);
 
 
     const blockAlert = (msg) => {
@@ -116,24 +64,6 @@ function App() {
           position: 'top-right',
       })
     }; 
-
-
-    useEffect(()=>{
- 
-
-      if(checkWS.current && generatedBlockData){   
-        if(checkWS.current.readyState == WebSocket.OPEN ){
-          
-          if(generatedBlockData && generatedBlockData.block_type && generatedBlockData.block_type.length!=0){
-             checkWS.current.send(JSON.stringify({
-              "block_type": storedBlockType,
-              "content": generatedBlockData.content
-            }));
-          }
-           
-        }    
-      }
-    },[generatedBlockData, checkWS, checkWsIsOpen])
      
   return (
    

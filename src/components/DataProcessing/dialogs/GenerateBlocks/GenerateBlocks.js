@@ -49,7 +49,7 @@ export default function GenerateBlocks(props) {
     const ITEM_PADDING_TOP = 8;
     const [firstRender, setFirstRender] = useState(true);
     const pipelineStudioNodes = useSelector((state)=> state.pipelineStudioNodes);
-    const [blockIsGenerating, setBlockIsGenerating] = useState(true);
+    const [blockIsGenerating, setBlockIsGenerating] = useState(false);
     const [blockResultsGenerated, setBlockResultsGenerated] = useState(false);
     const [editorToggle, setEditorToggle] = useState(false);
     const [generatedBlockName, setGeneratedBlockName] = useState("");
@@ -62,7 +62,6 @@ export default function GenerateBlocks(props) {
     const [message, setMessage] = useState("");
     const [editorValue, setEditorValue] = useState("");
     const [blockWasPlaced, setBlockWasPlaced] = useState(false);
-    const [storedSecondBlockType, setStoredSecondBlockType] = useState("");
     const [url, setUrl] = useState(GENERATE_BLOCK_WS);
     const defaultEditorValue = "";
     const pingInterval = useRef(null);
@@ -191,7 +190,7 @@ export default function GenerateBlocks(props) {
 
   
     useEffect(()=>{
-      const ws = new WebSocket(GENERATE_BLOCK_WS);
+      const ws = new WebSocket(process.env.REACT_APP_MAGE_WS_URL);
 
       ws.onopen = () => {
         console.log('Connected to WebSocket');
@@ -202,6 +201,9 @@ export default function GenerateBlocks(props) {
         //here we have the message receive
         const message = event.data;
       
+        console.log("The message received is:");
+        console.log(message);
+
         dispatch(setGeneratedBlockData({
           "block_type": storedBlockType,
           "content":message

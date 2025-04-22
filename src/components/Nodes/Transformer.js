@@ -114,7 +114,8 @@ export default memo(({ data, isConnectable }) => {
   useEffect(()=>{
     processName(data.name);
     setFullNodeName(data.name);
- 
+
+    
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
        
       const allVarsData = [];
@@ -143,6 +144,7 @@ export default memo(({ data, isConnectable }) => {
       if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
+          tabName:data.tabName,
           ...parsedJSONVar
         }
         allVarsData.push(varObj);
@@ -210,7 +212,7 @@ export default memo(({ data, isConnectable }) => {
   const getStoredVariableValue = (varName)=>{
   
     for(const variable of variablesValues){
-      if(variable.variable_name === varName){
+      if(variable.variable_name === varName && variable.block_name === data.name && variable.tabName === data.tabName){
         if(Array.isArray(variable.value)){
           return parseArray(variable.value);
         } else {
@@ -409,7 +411,7 @@ export default memo(({ data, isConnectable }) => {
               </div> 
                    
           }    
-        { variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} />}
+        { variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={()=>{setVariablesInputOpen(false);}} tabName={data.tabName}  />}
         { changeBlockNameOpen && !isFromShamrock && <ChangeBlockName name={pipelineStudioName} handleAction={(name)=>{changeBlockName(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}}></ChangeBlockName>}
         { changeBlockNameOpen && isFromShamrock &&  <ChangeBlockName name={data.name} handleAction={(name)=>{changeBlockNameShamrock(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}}></ChangeBlockName>}
       </div>

@@ -60,11 +60,7 @@ export default function VariablesInput(props){
     const [defaultDate, setDefaultDate] = useState("");
     const [isDateOk, setIsDateOk] = useState(false);
     //** Data related to pipeline names */
-    const pipelineProcessing = useSelector((state)=>state.selectedPipelineDataPreprocessing);
-    const pipelineTrain = useSelector((state)=>state.selectedPipelineTrain);
-    const pipelinePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
-    const pipelineStreaming = useSelector((state)=> state.selectedPipelineStreaming);
-    const activeTab = useSelector((state)=> state.selectedView);
+
     const storedPipelinesBlockInfo = useSelector((state)=> state.pipelinesBlocks);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
@@ -90,6 +86,7 @@ export default function VariablesInput(props){
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
+  
       const indexToUpdate = arr.findIndex(obj => obj.variable_name === newObj.variable_name);
       if (indexToUpdate !== -1) {
         return arr.map((obj, index) => (index === indexToUpdate ? newObj : obj));
@@ -204,7 +201,7 @@ export default function VariablesInput(props){
     const handleChange = (event, type, variableName) => {
 
       const { target: { value } } = event;
-      
+  
       if(type === "text"){
         
         if(rulesForVariables[variableName]){
@@ -256,9 +253,12 @@ export default function VariablesInput(props){
     });
 
     const parseAndSet = (oldValues,newValues)=>{
+
+      
+
       let parsedArray = [];
        for(const value of oldValues){
-        if(value.block_name !== props.fullNodeName){
+        if(value.block_name !== props.fullNodeName || value.tabName !== props.tabName){
             parsedArray.push(value);
         }
       }
@@ -287,15 +287,15 @@ export default function VariablesInput(props){
       
       let inputedValuesVariables = [...variableValues];
       let objToStore;
-
+    
       let pipelineName = "";
-  
-      
+    
       for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
         if(key == formatName(props.fullNodeName)){
-          pipelineName = value;
+          pipelineName = value.pipeline_name;
         }
       }
+
       
 
       for(const key in variablesInput){
@@ -304,23 +304,25 @@ export default function VariablesInput(props){
           variable_name:key,
           value:variablesInput[key],
           nodeId:nodeNameId,
-          pipelineName:pipelineName
+          pipelineName:pipelineName,
+          tabName:props.tabName
         }
     
-        
+        // here the object in the final objects array needs to be updated
+        // to do that we have to find it and update it with the new value
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
       }
 
-      blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       
+      blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
     const handleDone = ()=>{
         props.handleClose();
         createObjToStore();
-    }
+    } 
 
     const convertToSnakeCase = (inputString)=>{
       let lowercaseString = inputString.toLowerCase();
@@ -362,6 +364,7 @@ export default function VariablesInput(props){
       const obj = {...variablesInput};
       const errorMonitorObj = {};
       
+      
 
       for(const value of data){
 
@@ -399,7 +402,7 @@ export default function VariablesInput(props){
 
     let foundBlocks = [];
     for(const block of storedVars){
-       if(block.block_name === props.fullNodeName){
+       if(block.block_name === props.fullNodeName && block.tabName === props.tabName){
          foundBlocks.push(block);
        }
      }
@@ -417,9 +420,12 @@ export default function VariablesInput(props){
    const parsePhantomVariables = ()=>{
       let phantomVariable = false;
       const allBlockVariables = [];
-     
-
+    
      for(const varInstance of props.variablesData){
+        // we check if the variable coresponds to the pipeline in the current tab and for this we check for
+        // the tabName if the one specified as for the props is the same that the variable has
+        // if not we continue skipping this iteration
+        
         if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date"))
         {
           allBlockVariables.push(varInstance);
@@ -501,6 +507,7 @@ export default function VariablesInput(props){
   };
    
    useEffect(()=>{
+     
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
    },[blocksVariablesStored])
   
@@ -565,6 +572,7 @@ export default function VariablesInput(props){
 
 
  const selectPipelineBasedOnStoredData = ()=>{
+ 
     for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
       if(key == formatName(props.fullNodeName)){
         setSelectedPipeline(value);
@@ -582,6 +590,10 @@ export default function VariablesInput(props){
  useEffect(()=>{
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
+
+ 
+ 
+
 
 
     return (
