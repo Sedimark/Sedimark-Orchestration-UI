@@ -368,7 +368,7 @@ function Flow(props) {
 
   const parseAndCountVariables = (pipeline_data, pipeline_name)=>{
 
-
+  
     let nrOfVars = 0;
     
     for(const pipe_data of pipeline_data){

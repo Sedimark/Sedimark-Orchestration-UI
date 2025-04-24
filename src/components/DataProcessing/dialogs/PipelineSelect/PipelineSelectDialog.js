@@ -39,7 +39,7 @@ export default function PipelineSelectDialog(props) {
   const storedVariables = useSelector((state)=>state.blocksVariables);
   const storedPipelineBlocks = useSelector((state)=> state.pipelinesBlocks);
   const allTabs = useSelector((state)=> state.allTabs);
-  const tabIndex = useSelector((state)=> state.tabIndex);
+  const tabIndexStored = useSelector((state)=> state.tabIndex);
   const [checked, setChecked] = React.useState([]);
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
   const [searchedString, setSearchedString] = React.useState("");
@@ -47,7 +47,7 @@ export default function PipelineSelectDialog(props) {
   const [allPipelines, setAllPipelines] = React.useState([]);
   const [dialogName, setDialogName] = React.useState("");
   const [wasRunned, setWasRunned] = React.useState(false);
-  const [selectedPipeline,setSelectedPipeline] = React.useState("");
+  const [selectedPipeline,setSelectedPipeline] = React.useState({});
   const [onlyOneOptionSelected, setOnlyOneOptionSelected] = React.useState(false);
   const [pipeline, setPipeline] = React.useState("");
   const [hasError, setHasError] = React.useState(false);
@@ -81,6 +81,7 @@ export default function PipelineSelectDialog(props) {
       try{
         const resp = await axios.get(FETCH_PIPELINES(""));
         setAllPipelines(resp.data);
+
         setfilteredPipelines(resp.data);
         restoreChecksBasedOnStoredData(resp.data);
         setIsLoading(false);
@@ -167,13 +168,14 @@ export default function PipelineSelectDialog(props) {
       }
 
     let newTabs = [];
+
     if(allTabs){
       newTabs = [...allTabs];
     }
       let newTabName;
-      if(!tabIndex || tabIndex == 1){
+      if(!tabIndexStored || tabIndexStored.length == 0){
         newTabName = `Tab 1`;
-        dispatch(setTabIndex(2));
+        dispatch(setTabIndex([1]));
         newTabs.push({
           "name":newTabName,
           "pipelineName": pipeline,
@@ -182,14 +184,16 @@ export default function PipelineSelectDialog(props) {
         });
 
       } else {
-        newTabName = `Tab ${tabIndex}`;
+        newTabName = `Tab ${tabIndexStored[tabIndexStored.length-1]+1}`;
         newTabs.push({
           "name":newTabName,
           "pipelineName": pipeline,
           "pipelineType": pipelineType,
-          "tabOrder":tabIndex
+          "tabOrder":tabIndexStored[tabIndexStored.length-1]+1
         });
-        dispatch(setTabIndex(tabIndex+1));
+        const newTabArr = [...tabIndexStored];
+        newTabArr.push(tabIndexStored[tabIndexStored.length-1]+1);
+        dispatch(setTabIndex(newTabArr));
       } 
       
       await fetchAndSaveBlockNames(pipeline , newTabName);
@@ -208,7 +212,7 @@ export default function PipelineSelectDialog(props) {
 
 
   const handleRadioClick = (value)=>{
-
+    
     if(value!=undefined){
         setSelectedPipeline(value.name);
         setPipelineType(value.tag); 
@@ -216,8 +220,10 @@ export default function PipelineSelectDialog(props) {
         setFoundPipeline(false);
     }
  }
-
-
+ 
+ const getFullPipelineObj = (pipeline_name)=>{
+  return filteredPipelines.find(pipe=>pipe.name === pipeline_name);
+ }
 
   React.useEffect(()=>{
   
@@ -291,12 +297,12 @@ export default function PipelineSelectDialog(props) {
                      }
                      { !isLoading && !hasError  && allPipelines.length!=0 && 
                         
-                     <RadioGroup value={selectedPipeline} onClick={(val)=>{handleRadioClick(val.target.value)}}>
+                     <RadioGroup value={selectedPipeline} onClick={(val)=>{if(val.target.value!== undefined){handleRadioClick(getFullPipelineObj(val.target.value));}}}>
   
                       {
                            filteredPipelines.map((value) => {
                             const labelId = `checkbox-list-secondary-label-${value.name}`;
-                           
+                            
                              return (
                                <ListItem
                                  key={value.name}

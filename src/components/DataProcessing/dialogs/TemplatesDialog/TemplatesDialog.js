@@ -38,10 +38,8 @@ export default function TemplatesDialog(props) {
                 <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                   <div className='menu-pipelines'>
-                      <div className='menu-pipelines-item'> Data pre-processing <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{props.handleClose(); }}> View </Button> </div>
-                      <div className='menu-pipelines-item'> Training  <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{props.handleClose();  }}> View </Button> </div>
-                      <div className='menu-pipelines-item'> Predict   <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{props.handleClose(); }}> View </Button> </div>
-                      <div className='menu-pipelines-item'> Streaming   <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{props.handleClose(); }}> View </Button> </div>
+                      <div className='menu-pipelines-item'> Data models <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{props.handleClose(); }}> View </Button> </div>
+                      <div className='menu-pipelines-item'> Federated Learning  <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{props.handleClose();  }}> View </Button> </div>
                   </div>
                
                 </DialogContentText>

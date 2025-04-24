@@ -22,7 +22,8 @@ import HandymanIcon from '@mui/icons-material/Handyman';
 import TimelineIcon from '@mui/icons-material/Timeline';
 import Settings from '../DataProcessing/dialogs/Settings/Settings';
 import TemplatesDialog from '../DataProcessing/dialogs/TemplatesDialog/TemplatesDialog';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
+import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import Broker from '../DataProcessing/dialogs/Broker/Broker';
 
 
@@ -245,7 +246,56 @@ export default function MiniDrawer() {
                   <ListItemText primary={"My Assets"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-              <Divider component="li"/>
+            
+            <ListItem key={"Create Asset"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+              <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                    color:"white"
+                  }}
+                  key={2}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : 'auto',
+                      justifyContent: 'center',
+                      color:"white"
+                    }}
+                  >
+                    <AddCircleIcon/>
+                  </ListItemIcon>
+                  <ListItemText primary={"Create Asset"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem>
+
+            <ListItem key={"Federated Learning"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+              <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                    color:"white"
+                  }}
+                  key={2}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : 'auto',
+                      justifyContent: 'center',
+                      color:"white"
+                    }}
+                  >
+                    <SettingsInputAntennaIcon/>
+                  </ListItemIcon>
+                  <ListItemText primary={"Federated Learning"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem>
+            
+              {/* <Divider component="li"/> */}
 
         
        </List>

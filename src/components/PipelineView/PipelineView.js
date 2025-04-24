@@ -143,9 +143,14 @@ export const PipelineView = (props)=>{
     const parseVarsForPipeline = ()=>{    
         
         const theVars = [];
+        // aici trebuie sa adaugi si in functie de tab name la if
+        /*
+            block.tabName - nume tab de pe block
+            props.tabName
+        */
         for(const blockVar of blockVariables){
            
-            if(blockVar["pipelineName"] == pipelineName){
+            if(blockVar["pipelineName"] == pipelineName && blockVar.tabName === props.tabName){
                 theVars.push(blockVar);
             }
         }
@@ -154,7 +159,10 @@ export const PipelineView = (props)=>{
     }
 
     const startPipeline = React.useCallback(async () => {
+
+      
         let nrOfVars = 0;
+        
         nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
         const blockVars = parseVarsForPipeline();
         if(blockVars.length !== nrOfVars || (blockVars.length == 0 && nrOfVars!=0)){
@@ -208,7 +216,7 @@ export const PipelineView = (props)=>{
                 try {
                     const response = await axios({
                         method: 'GET',
-                        url: PIPELINE_STATUS(JSON.parse(sessionStorage.getItem(`${pipelineName}-runData`)).id),
+                        url: PIPELINE_STATUS(JSON.parse(sessionStorage.getItem(`${props.tabOrder}-${pipelineName}-runData`)).id),
                     });
 
                     const data = response.data;
@@ -221,8 +229,8 @@ export const PipelineView = (props)=>{
                         
                        
                         
-                        const toSave = {...JSON.parse(sessionStorage.getItem(`${pipelineName}-running-steps`)), "isPipelineStarted": false}
-                        sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                        const toSave = {...JSON.parse(sessionStorage.getItem(`${props.tabOrder}-${pipelineName}-running-steps`)), "isPipelineStarted": false}
+                        sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-running-steps`, JSON.stringify(toSave));
                         resolve(data);
                     } else {
                         
@@ -258,7 +266,7 @@ export const PipelineView = (props)=>{
         setIsPipelineStarted(false);
        
 
-        sessionStorage.removeItem(`${pipelineName}-running-steps`);
+        sessionStorage.removeItem(`${props.tabOrder}-${pipelineName}-running-steps`);
     }, [runStep, steps, pipelineName]);
 
     const runPipeline = React.useCallback(async (source) => {
@@ -272,10 +280,10 @@ export const PipelineView = (props)=>{
                 setIsPipelineStarted(true);
                 
                 // pipeline starting code
-                const toSave = {...JSON.parse(sessionStorage.getItem(`${pipelineName}-running-steps`)),
+                const toSave = {...JSON.parse(sessionStorage.getItem(`${props.tabOrder}-${pipelineName}-running-steps`)),
                     "activeStep": steps.indexOf("running"), "isPipelineStarted": true};
                 
-                sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify(toSave));
+                sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-running-steps`, JSON.stringify(toSave));
 
                 await delay(10000);
 
@@ -289,7 +297,7 @@ export const PipelineView = (props)=>{
                 });
                 
             
-                sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
+                sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-running-steps`, JSON.stringify({
                     "activeStep": -1,
                     "stepStatus": [false, false, false],
                     "isPipelineStarted": false
@@ -455,7 +463,7 @@ export const PipelineView = (props)=>{
             }).then((response) => {
                 setRunData(response.data);
                 
-                sessionStorage.setItem(`${pipelineName}-runData`, JSON.stringify(response.data));
+                sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-runData`, JSON.stringify(response.data));
             }).catch((_) => {
                 blockAlert("Error loading pipeline run data!");
             })
@@ -466,9 +474,9 @@ export const PipelineView = (props)=>{
             
             let savedState;
            if(Array.isArray(pipelineName)){
-            savedState = sessionStorage.getItem(`${pipelineName[0]}-running-steps`);
+            savedState = sessionStorage.getItem(`${props.tabOrder}-${pipelineName[0]}-running-steps`);
            } else {
-            savedState = sessionStorage.getItem(`${pipelineName}-running-steps`);
+            savedState = sessionStorage.getItem(`${props.tabOrder}-${pipelineName}-running-steps`);
            }
            
             if (savedState) {
@@ -483,7 +491,7 @@ export const PipelineView = (props)=>{
                     }, 2000)
                 }
             } else {
-                sessionStorage.setItem(`${pipelineName}-running-steps`, JSON.stringify({
+                sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-running-steps`, JSON.stringify({
                     "stepStatus": stepStatus,
                     "activeStep": -1,
                     "isPipelineStarted": isPipelineStarted

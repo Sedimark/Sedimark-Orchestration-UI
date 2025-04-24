@@ -74,7 +74,7 @@ const initialState = {
     shamrockModelUploadedFileName:"",
     shamrockModelName:"",
     brokerEntityId:"",
-    tabIndex:1,
+    tabIndex:[],
     allTabs:[]
 }    
 

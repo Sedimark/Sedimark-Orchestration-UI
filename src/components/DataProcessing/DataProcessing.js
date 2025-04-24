@@ -19,6 +19,7 @@ function DataProcessing({ logout }) {
   const allTabsStored = useSelector((state) => state.allTabs);
   const blocksVariablesStored = useSelector((state)=> state.blocksVariables);
   const selectedTabStored = useSelector((state)=>state.selectedTab);
+  const tabIndexes = useSelector((state)=>state.tabIndex);
   const [selectedTab, setSelectedTabHere] = useState("");
   const [tabPipeline, setTabPipeline] = useState("");
   const [areYouSureOpen, setAreYouSureOpen] = useState(false);
@@ -36,10 +37,14 @@ function DataProcessing({ logout }) {
 
   const closeTab = (tabInfo)=>{
     const fullTabInfo = allTabsStored.find(item=>item.name === tabInfo);
-    
+
+    const newTabIndexes = tabIndexes.filter( tab => tab !== fullTabInfo.tabOrder);
+    dispatch(setTabIndex(newTabIndexes));
     const newTabArr = allTabsStored.filter(item=>item.name !== tabInfo);
     const newVariables = blocksVariablesStored.filter(item=>  item.tabName !== fullTabInfo.name);
-    console.log(newVariables);
+    
+    sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${tabPipeline}-runData`);
+    sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${tabPipeline}-running-steps`);
     dispatch(setBlocksVariables(newVariables));
 
     dispatch(setAllTabs(newTabArr));
@@ -51,6 +56,7 @@ function DataProcessing({ logout }) {
     }
     
   }
+
 
   useEffect(()=>{
     setSelectedTabHere(selectedTabStored.tabSelected);
@@ -91,6 +97,7 @@ function DataProcessing({ logout }) {
               pipelineType={tabData.pipelineType}
               pipelineName={tabData.pipelineName}
               tabName={tabData.name}
+              tabOrder={tabData.tabOrder}
             />
           </TabPanel>
         ))}
