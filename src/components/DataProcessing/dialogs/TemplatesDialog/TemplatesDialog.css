@@ -18,3 +18,75 @@
     justify-content:space-between;
 }
 
+.no-templates-message{
+    font-size: 1.4rem;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.no-templates-icon{
+    font-size: 3.4rem;
+    font-weight: bold;
+    text-align: center;
+    margin-left: 50%;
+    margin-bottom: 20px;
+    margin-top: 40px;
+}
+
+.pipeline-templates-container{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    text-align: center;
+    height: 400px;
+    overflow-y: scroll;
+}
+
+.catalog-pipeline-container{
+    width: 300px;
+    height: 280px;
+    padding: 1.5rem;
+    border: 3px solid transparent;
+    border-radius: 16px;
+    background:
+      linear-gradient(#1e1e2f, #1e1e2f) padding-box, /* dark slate background */
+      linear-gradient(135deg, #007cf0, #027cf7, #4e27ff) border-box; /* vibrant gradient border */
+    color: #fff;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+    max-width: 400px;
+    margin: 2rem auto;
+    font-family: 'Segoe UI', sans-serif;
+    margin-left:20px;
+    scrollbar-width: thin; /* for Firefox */
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent; /* subtle white line */
+} 
+
+.pipeline-templates-container::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .pipeline-templates-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .pipeline-templates-container::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #515151, #313131);
+    border-radius: 8px;
+    opacity: 0.3;
+  }
+  
+  .pipeline-templates-container:hover::-webkit-scrollbar-thumb {
+    opacity: 1;
+    transition: opacity 0.3s;
+  }
+
+ .loading-circle-templates{
+  padding:40px;
+  padding-top:90px;
+ }
+
+ .pipeline-set-name-container{
+    margin-top:25px;
+    margin-bottom:25px;
+ }

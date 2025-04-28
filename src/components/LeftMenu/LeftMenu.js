@@ -25,6 +25,8 @@ import TemplatesDialog from '../DataProcessing/dialogs/TemplatesDialog/Templates
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import Broker from '../DataProcessing/dialogs/Broker/Broker';
+import AssetManager from '../DataProcessing/dialogs/AssetManager/AssetManager';
+import EngineeringIcon from '@mui/icons-material/Engineering';
 
 
 const drawerWidth = 240;
@@ -106,6 +108,7 @@ export default function MiniDrawer() {
   const [openPipelineSelectDialog, setOpenPipelineSelectDialog] = React.useState(false);
   const [pipelineNameSetOpen, setPipelineNameSetOpen] = React.useState(false);
   const [templatesDialog, setTemplatesDialog] = React.useState(false);
+  const [assetManager, setAssetManger] = React.useState(true);
   const navigate = useNavigate();
 
   const openPipelineSelectMenu = (dialogType) => {
@@ -294,6 +297,29 @@ export default function MiniDrawer() {
                   <ListItemText primary={"Federated Learning"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
+            {/* <ListItem key={"Pipeline Manager"} disablePadding sx={{ display: 'block' }} onClick={()=>{setIsPipelineManagerOpen(true)}}>
+                <ListItemButton
+                    sx={{
+                        minHeight: 48,
+                        justifyContent: open ? 'initial' : 'center',
+                        px: 2.5,
+                        color:"white"
+                    }}
+                    key={2}
+                >
+                    <ListItemIcon
+                        sx={{
+                            minWidth: 0,
+                            mr: open ? 3 : 'auto',
+                            justifyContent: 'center',
+                            color:"white"
+                        }}
+                    >
+                        <EngineeringIcon/>
+                    </ListItemIcon>
+                    <ListItemText primary={"Pipeline Manager"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem> */}
             
               {/* <Divider component="li"/> */}
 
@@ -333,6 +359,7 @@ export default function MiniDrawer() {
       </BigDrawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
       </Box>
+     {/* {assetManager && <AssetManager open={assetManager} handleClose={()=>{setAssetManger(false)}} ></AssetManager> } */}
      {selectDataDialog && <PipelineSelectDialog pipelineType={pipelineType} open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
      {trainModelsDialogOpen && <TrainModelDialog handleClose={handleTrainModelsMenuClose} open={trainModelsDialogOpen} close={handleTrainModelsMenuClose} /> }
      {pipelineManagerOpen && <PipelineManager open={pipelineManagerOpen} handleClose={()=>{setIsPipelineManagerOpen(false)}}/>}
