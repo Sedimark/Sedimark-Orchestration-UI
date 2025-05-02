@@ -156,30 +156,26 @@ export default function ChangePipelineName(props) {
                         <>
                             {
                                 filteredPipelines.map((value) => {
-                                    const labelId = `checkbox-list-secondary-label-${value}`;
+                                    const labelId = `checkbox-list-secondary-label-${value.name}`;
                                 
                                     return (
                                     <ListItem
-                                        key={value}
+                                        key={value.name}
                                         secondaryAction={
                                         <div className='dataset-select-toolbox'>
                                         
-                                            <Button variant='contained'
-                                             onClick={()=>{setPipelineNameToChange(value); setPipelineEditNameOpen(true)}}
-                                             sx={{"backgroundColor":"green", "color":"#fff",'&:hover': {
-                                              backgroundColor: '#00bd00', // Background color on hover
-                                              color: 'white', // Text color on hover
-                                            } }}>Change Name</Button>
+                                            <Button outlined variant='contained'
+                                             onClick={()=>{setPipelineNameToChange(value.name); setPipelineEditNameOpen(true)}}>Change Name</Button>
                                         </div>
                                         }
                                         disablePadding
                                     > 
                                         <ListItemButton onClick={()=>{ 
-                                            const currentIndex = checked.indexOf(value);
+                                            const currentIndex = checked.indexOf(value.name);
                                             const newChecked = [...checked];
                                             
                                             if (currentIndex === -1) {
-                                                newChecked.push(value);
+                                                newChecked.push(value.name);
                                             } else {
                                                 newChecked.splice(currentIndex, 1);
                                             }
@@ -190,7 +186,7 @@ export default function ChangePipelineName(props) {
                                             <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                         </ListItemAvatar>
                                         <ListItemText  id={labelId}  disableTypography
-                                        primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value)}</Typography>} />
+                                        primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value.name)}</Typography>} />
                                         </ListItemButton>
                                     </ListItem>
                                     );

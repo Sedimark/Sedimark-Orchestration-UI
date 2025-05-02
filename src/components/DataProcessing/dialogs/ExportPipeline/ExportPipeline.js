@@ -24,7 +24,7 @@ import { EXPORT_PIPELINE_CWL, EXPORT_PIPELINE_MAGE, FETCH_ALL_PIPELINES } from '
 import PipelineEditName from '../PipelineEditName/PipelineEditName';
 
 export default function ExportPipeline(props) {
- 
+  
   const [searchedString, setSearchedString] = React.useState("");
   const [filteredPipelines,setfilteredPipelines] = React.useState([]);
   const [allPipelines, setAllPipelines] = React.useState([]);
@@ -178,15 +178,15 @@ const blockNotify = ()=>{
                         <>
                             {
                                 filteredPipelines.map((value) => {
-                                    const labelId = `checkbox-list-secondary-label-${value}`;
+                                    const labelId = `checkbox-list-secondary-label-${value.name}`;
                                 
                                     return (
                                     <ListItem
-                                        key={value}
+                                        key={value.name}
                                         secondaryAction={
                                         <div className='dataset-select-toolbox'>
                                         
-                                        <Button outlined variant='contained' className='download-btn-exporter' sx={{ }} onClick={()=>{downloadTheZip(value)}} >Download zip <FontAwesomeIcon icon={faDownload} className='download-icon'/></Button>
+                                        <Button outlined variant='contained' className='download-btn-exporter' sx={{ }} onClick={()=>{downloadTheZip(value.name)}} >Download zip <FontAwesomeIcon icon={faDownload} className='download-icon'/></Button>
                                         </div>
                                         }
                                         disablePadding
@@ -196,7 +196,7 @@ const blockNotify = ()=>{
                                             <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                         </ListItemAvatar>
                                         <ListItemText  id={labelId}  disableTypography
-                                        primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value)}</Typography>} />
+                                        primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value.name)}</Typography>} />
                                         </ListItemButton>
                                     </ListItem>
                                     );

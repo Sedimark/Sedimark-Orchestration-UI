@@ -297,7 +297,7 @@ export default function MiniDrawer() {
                   <ListItemText primary={"Federated Learning"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-            {/* <ListItem key={"Pipeline Manager"} disablePadding sx={{ display: 'block' }} onClick={()=>{setIsPipelineManagerOpen(true)}}>
+            <ListItem key={"Pipeline Manager"} disablePadding sx={{ display: 'block' }} onClick={()=>{setIsPipelineManagerOpen(true)}}>
                 <ListItemButton
                     sx={{
                         minHeight: 48,
@@ -319,7 +319,7 @@ export default function MiniDrawer() {
                     </ListItemIcon>
                     <ListItemText primary={"Pipeline Manager"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
-            </ListItem> */}
+            </ListItem>
             
               {/* <Divider component="li"/> */}
 

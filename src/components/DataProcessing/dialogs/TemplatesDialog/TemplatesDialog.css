@@ -2,7 +2,6 @@
     padding-top:20px;
     padding-left: 25px;
     padding-bottom:20px;
-    margin-top: 20px;
     margin-bottom: 20px;
     background-color: black;
     border-radius: 5px;
@@ -29,7 +28,7 @@
     font-size: 3.4rem;
     font-weight: bold;
     text-align: center;
-    margin-left: 50%;
+    margin-left: 45%;
     margin-bottom: 20px;
     margin-top: 40px;
 }
@@ -39,9 +38,14 @@
     flex-direction: row;
     flex-wrap: wrap;
     text-align: center;
-    height: 400px;
+    height: 200px;
     overflow-y: scroll;
 }
+
+.pipeline-templates-container.expanded {
+  height: 400px;
+}
+
 
 .catalog-pipeline-container{
     width: 300px;
@@ -90,3 +94,19 @@
     margin-top:25px;
     margin-bottom:25px;
  }
+
+ .error-pipeline-templates{
+    position: absolute;
+    margin-top: 60px;
+    margin-bottom: 40px;
+    margin-left: 15%;
+    text-align: center;
+    font-size: 1.2rem;
+ }
+
+
+ .pipeline-wrapper {
+  text-align: center;
+  margin-top:40px;
+  margin-bottom:40px;
+}
