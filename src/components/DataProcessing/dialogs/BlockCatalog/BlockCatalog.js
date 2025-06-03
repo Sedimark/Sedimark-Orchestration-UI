@@ -328,8 +328,8 @@ export default function BlockCatalog(props) {
                                       {truncateString(formatString(block.name),29)}
                                   </div>
                                     <FontAwesomeIcon icon={faCircleInfo}  className=""/> 
-                                  <div>
-                                      {block.description}
+                                  <div title={block.description} >
+                                      {truncateString(block.description,60)}
                                   </div>
                                 </div>
                                 <Checkbox edge="end"  sx={{
@@ -346,7 +346,7 @@ export default function BlockCatalog(props) {
                           })}
                       </div>  
                     </AccordionDetails>
-                  </Accordion>
+                  </Accordion> 
 
 
                   <Accordion>
@@ -367,8 +367,8 @@ export default function BlockCatalog(props) {
                                     {truncateString(formatString(block.name),29)}
                                 </div>
                                   <FontAwesomeIcon icon={faCircleInfo}  className=""/> 
-                                <div>
-                                    {block.description}
+                                <div title={block.description}>
+                                    {truncateString(block.description,60)}
                                 </div>
                                 
                               </div>
@@ -410,8 +410,8 @@ export default function BlockCatalog(props) {
                                     {truncateString(formatString(block.name),29)}
                                 </div> 
                                   <FontAwesomeIcon icon={faCircleInfo}  className=""/> 
-                                <div>
-                                    {block.description}
+                                <div title={block.description}>
+                                    {truncateString(block.description,60)}
                                 </div>
                               </div>
                               <Checkbox edge="end"   sx={{

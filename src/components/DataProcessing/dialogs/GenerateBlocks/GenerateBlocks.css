@@ -18,12 +18,14 @@
 }
 
 .block-generating-container{
-    width: 35%;
+    width: 55%;
     margin: auto;
     padding:10px;
 }
 
 .generating-block-text{
+    padding-top:15px;
+    font-size: 1.2rem;
     width: 100%;
     text-align: center;
 }

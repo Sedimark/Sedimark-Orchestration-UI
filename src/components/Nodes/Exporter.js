@@ -418,7 +418,7 @@ export default memo(({ data, isConnectable }) => {
 
 
   return (
-    <div style={{ width:"500px", borderRadius:"6%",padding:"10px",border:"2px solid yellow", backgroundColor:"#f5ffcd", minHeight: "320px", height:"auto"  }}>
+    <div style={{ width:"500px", borderRadius:"6%",padding:"10px",border:"2px solid yellow", backgroundColor:"#f5ffcd", minHeight: `${allVariables.length > 2 ? '433px' : '320px' }`, height:"auto"  }}>
         <Handle
         type="target"
         position={Position.Left}

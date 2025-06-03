@@ -6,15 +6,18 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import {GET_PIPELINE_TEMPLATES, FETCH_PIPELINES, POST_TEMPLATE } from "../../../../utils/apiEndpoints";
+import {GET_PIPELINE_TEMPLATES, FETCH_PIPELINE_DATA, POST_TEMPLATE } from "../../../../utils/apiEndpoints";
 import { faBoxOpen, faArrowLeft,faCircleInfo, faCircleXmark,faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons';
 import {useDispatch} from 'react-redux';
-import {setTabIndex} from "../../../../reducers/nodeSlice";
+import {checkAndFormat} from "../../../../utils/checkAndFormat";
+import {setTabIndex, setPipelinesBlocks, setAllTabs, setSelectedTab, setBlocksVariables} from "../../../../reducers/nodeSlice";
+import CelebrationIcon from '@mui/icons-material/Celebration';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import { TextField } from '@mui/material';
 import Checkbox from '@mui/material/Checkbox';
 import { useNavigate } from 'react-router-dom';
+import formatName from '../../../../utils/formatName';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import style from "./TemplatesDialog.css";
@@ -30,9 +33,10 @@ export default function TemplatesDialog(props) {
   });
 
   const navigate = useNavigate();
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const storedVariables = useSelector((state)=>state.blocksVariables);
   const tabIndexStored = useSelector((state)=> state.tabIndex);
+  const storedPipelineBlocks = useSelector((state)=> state.pipelinesBlocks);
   const [allTemplates, setAllTemplates] = useState([]);
   const [allTemplatesList, setAllTemplatesList] = useState(false);
   const [nextStepVisible, setNextStepVisible] = useState(false);
@@ -62,14 +66,24 @@ export default function TemplatesDialog(props) {
   const fetchPipelineTemplates = async(template_type)=>{
 
     try{
+
       const resp = await axios.get(GET_PIPELINE_TEMPLATES(template_type));    
       setAllPipelines(resp.data.map((pipe)=>pipe.name));
-      setLoading(false);
+      setTimeout(()=>{
+        setLoading(false);
+        setAllTemplatesList(true);
+        setNextStepVisible(true);
+        setThereWasAnError(false);
+      },100)
+      
+
     } catch(err){
+
       setLoading(false);
       setThereWasAnError(true); 
       console.log(err);
       blockAlert("Error!");
+
       return;
     }
     
@@ -103,7 +117,42 @@ export default function TemplatesDialog(props) {
 
   }
 
-  const loadInTheUI = (pipeline)=>{
+     const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
+      
+        let pipeline_blocks;
+        
+        try{
+          const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+  
+          pipeline_blocks = resp.data.pipeline.blocks;
+  
+        } catch(err){
+          console.log(err);
+        }
+   
+  
+        let blocksInfoObj ;
+        if(storedPipelineBlocks){
+          blocksInfoObj = {...storedPipelineBlocks };
+        } else { 
+          blocksInfoObj = {};
+        }
+  
+        for(const block of pipeline_blocks){
+          blocksInfoObj[checkAndFormat(block.name)] = {
+            "pipeline_name": pipeline_name,
+            "tabName": newTabName
+          }
+        }
+
+        dispatch(setPipelinesBlocks(blocksInfoObj));
+  }
+
+
+  const loadInTheUI = async(pipeline)=>{
+
+    //first we close the window:
+    props.handleClose();
 
     const filteredVariables = [];  
 
@@ -125,7 +174,7 @@ export default function TemplatesDialog(props) {
         dispatch(setTabIndex([1]));
         newTabs.push({
           "name":newTabName,
-          "pipelineName": pipeline,
+          "pipelineName": pipelineName,
           "pipelineType": selectedPipelineTemplate,
           "tabOrder":1
         });
@@ -134,7 +183,7 @@ export default function TemplatesDialog(props) {
         newTabName = `Tab ${tabIndexStored[tabIndexStored.length-1]+1}`;
         newTabs.push({
           "name":newTabName,
-          "pipelineName": pipeline,
+          "pipelineName": pipelineName,
           "pipelineType": selectedPipelineTemplate,
           "tabOrder":tabIndexStored[tabIndexStored.length-1]+1
         });
@@ -143,18 +192,21 @@ export default function TemplatesDialog(props) {
         dispatch(setTabIndex(newTabArr));
       } 
 
+    await fetchAndSaveBlockNames(pipelineName , newTabName);
     setPipelineBeingCreated(false);
     setPipelineCreationDone(true);
-  }
 
+    dispatch(setAllTabs(newTabs));
+    
+    setTimeout(()=>{
+      dispatch(setSelectedTab({"changed":true, tabSelected:newTabName}));
+    },100)
+
+    dispatch(setBlocksVariables(filteredVariables));
+  }
+ 
   const createPipeline = async()=>{
-    //this application will create the pipeline
-    // so from template a pipeline will be created and will be spawn on the UI
-    /*
-      Tasks
-        2. Make a request to create the pipeline from the template
-        3. Render the pipeline on the user interface
-    */
+    
       setPipelineBeingCreated(true);
         try{
           const resp = await axios.post(POST_TEMPLATE,{
@@ -162,8 +214,8 @@ export default function TemplatesDialog(props) {
             "template_uuid":selectedPipelineTemplate.name
           });
 
-          loadInTheUI(pipelineName);
-
+          setPipelineName(formatName(pipelineName));
+          setPipelineBeingCreated(false);
         } catch(err){
           setPipelineCreationError(true);
           blockAlert("Error!");
@@ -172,6 +224,7 @@ export default function TemplatesDialog(props) {
   }
  
   const handleBack = ()=>{
+
     if(pipelineNameSetView){
       setNextStepVisible(true);
       setPipelineNameSetView(false);
@@ -181,8 +234,7 @@ export default function TemplatesDialog(props) {
       setAllTemplates([]);
       setLoading(true);
       setSelectedPipelineTemplate({}) 
-    }
-    
+    } 
   }
 
   return (
@@ -211,7 +263,7 @@ export default function TemplatesDialog(props) {
                       <div className='menu-pipelines'>
 
                         {
-                          pipelineBeingCreated && 
+                          pipelineBeingCreated && !pipelineCreationError && 
 
                             <div class="pipeline-wrapper">
                                 <h1 class="title">🚧 Building the pipeline</h1>
@@ -221,16 +273,23 @@ export default function TemplatesDialog(props) {
                                   </div>
                               </div>
 
-                          }
+                        }
 
                         {
-                          pipelineCreationError && 
+                          pipelineCreationError && !pipelineBeingCreated &&
 
                              <div className='error-container'>
                                 <FontAwesomeIcon icon={faScrewdriverWrench} className='error-icon error-msg-big'/>
                                 <p className='error-msg-big'>There was an error while generating the pipeline!</p> 
                             </div>  
 
+                        }
+                        {
+                          !pipelineBeingCreated && !pipelineCreationError && 
+                            <div className='error-container'>
+                                <CelebrationIcon className='celebration-icon' />
+                                <p className='error-msg-big'>The pipeline was created successfully!!</p> 
+                            </div>  
                         }
                           
                           
@@ -278,7 +337,7 @@ export default function TemplatesDialog(props) {
                                                 <p>Please try again later!</p>  
                                             </div>
                                         }
-                                        {(allTemplates.length == 0 && !loading && !thereWasAnError) ?
+                                        {(allTemplates.length === 0 && !loading && !thereWasAnError) ?
                                             <div>
                                                 <FontAwesomeIcon icon={faBoxOpen}  className="no-templates-icon"/>
                                                 <div className='no-templates-message'>There are no templates available!</div>
@@ -294,7 +353,7 @@ export default function TemplatesDialog(props) {
                                                               </div>
                                                                 <FontAwesomeIcon icon={faCircleInfo}  className=""/> 
                                                               <div>
-                                                                {JSON.parse(temp.details)["descr"]}
+                                                                {JSON.parse(temp.details)["description"]}
                                                               </div>
                                                             </div>
                                                             <Checkbox edge="end"  sx={{
@@ -314,8 +373,8 @@ export default function TemplatesDialog(props) {
                                       </div>
                                     :
                                     <div className='menu-pipelines'>
-                                      <div className='menu-pipelines-item'> Data models <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchPipelineTemplates("data_models");  setAllTemplatesList(true); setNextStepVisible(true); setThereWasAnError(false); }}> View </Button> </div>
-                                      <div className='menu-pipelines-item'> Federated Learning  <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchPipelineTemplates("federated_learning"); setAllTemplatesList(true); setNextStepVisible(true); setThereWasAnError(false); }}> View </Button> </div>
+                                      <div className='menu-pipelines-item'> Data models <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchPipelineTemplates("data_models") }}> View </Button> </div>
+                                      <div className='menu-pipelines-item'> Federated Learning  <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchPipelineTemplates("federated_learning") }}> View </Button> </div>
                                     </div>
                                 }
                       </>
@@ -327,7 +386,7 @@ export default function TemplatesDialog(props) {
                 <DialogActions>
                   { nextStepVisible && <Button onClick={()=>{setNextStepVisible(false); setPipelineNameSetView(true)}} disabled={Object.keys(selectedPipelineTemplate).length === 0}> Next </Button>}
                   { pipelineNameSetView && <Button onClick={()=>{setLastMenuDisplayed(true); setCloseBtnDisplayed(true); setPipelineNameSetView(false); createPipeline()}} disabled={!pipelineNameValid || pipelineName.length === 0 }> Generate </Button> }
-                  { closeBtnDisplayed && <Button onClick={()=>{props.handleClose()}}> Done </Button> }
+                  { closeBtnDisplayed && <Button onClick={()=>{loadInTheUI()}} disabled={pipelineBeingCreated || pipelineCreationError}> Load Pipeline </Button> }
                 </DialogActions>
             </Dialog>
         </ThemeProvider>

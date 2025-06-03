@@ -25,8 +25,9 @@ import TemplatesDialog from '../DataProcessing/dialogs/TemplatesDialog/Templates
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import SettingsInputAntennaIcon from '@mui/icons-material/SettingsInputAntenna';
 import Broker from '../DataProcessing/dialogs/Broker/Broker';
-import AssetManager from '../DataProcessing/dialogs/AssetManager/AssetManager';
+import FederatedLearningSelect from '../DataProcessing/dialogs/FederatedLearningSelect/FederatedLearningSelect';
 import EngineeringIcon from '@mui/icons-material/Engineering';
+import AssetManager from '../DataProcessing/dialogs/AssetManager/AssetManager';
 
 
 const drawerWidth = 240;
@@ -108,7 +109,8 @@ export default function MiniDrawer() {
   const [openPipelineSelectDialog, setOpenPipelineSelectDialog] = React.useState(false);
   const [pipelineNameSetOpen, setPipelineNameSetOpen] = React.useState(false);
   const [templatesDialog, setTemplatesDialog] = React.useState(false);
-  const [assetManager, setAssetManger] = React.useState(true);
+  const [federatedDialogOpen, setFederatedDialogOpen] = React.useState(false);
+  const [assetManagerOpen, setAssetManagerOpen] = React.useState(false);
   const navigate = useNavigate();
 
   const openPipelineSelectMenu = (dialogType) => {
@@ -226,7 +228,7 @@ export default function MiniDrawer() {
                   <ListItemText primary={"Pipelines"} sx={{ opacity: open ? 1 : 0 }} />
                 </ListItemButton>
             </ListItem>
-            <ListItem key={"My Assets"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+            <ListItem key={"My Assets"} disablePadding sx={{ display: 'block' }} onClick={()=>{setAssetManagerOpen(true)}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -274,7 +276,7 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
 
-            <ListItem key={"Federated Learning"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+            <ListItem key={"Federated Learning"} disablePadding sx={{ display: 'block' }} onClick={()=>{setFederatedDialogOpen(true)}}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -354,7 +356,7 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
 
-         
+          
         </List>
       </BigDrawer>
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
@@ -368,6 +370,8 @@ export default function MiniDrawer() {
      {openPipelineSelectDialog && <PipelineSelectDialog pipelineType={"data_preprocessing"} open={openPipelineSelectDialog} handleClose={()=>{setOpenPipelineSelectDialog(false)}} />}
      {pipelineNameSetOpen && <PipelineNameSet open={pipelineNameSetOpen} handleClose={()=>{setPipelineNameSetOpen(false)}} />}
      {templatesDialog && <TemplatesDialog openTrainModelsMenu={openTrainModelsMenu} openPipelineSelectMenu={openPipelineSelectMenu} open={templatesDialog} handleClose={()=>{setTemplatesDialog(false)}} />}
+     {federatedDialogOpen && <FederatedLearningSelect open={federatedDialogOpen} handleClose={()=>{setFederatedDialogOpen(false)}}></FederatedLearningSelect>}
+     {assetManagerOpen && <AssetManager open={assetManagerOpen} handleClose={()=>{setAssetManagerOpen(false)}}></AssetManager>}
     </Box>
   );
 }

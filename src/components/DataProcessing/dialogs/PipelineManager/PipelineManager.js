@@ -62,8 +62,7 @@ export default function PipelineManager(props) {
                 initialMenu && 
                 <div className='initial-menu-pipeline-manager'>
                   <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setDeleteMenu(true)}} sx={{width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px" }} className='button-shadow'> Delete <FontAwesomeIcon icon={faTrash} className='pipeline-manager-initial-screen-button-icon'/>  
-                  </Button>
-                   
+                  </Button>  
                   <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setEditMenu(true);}} sx={{ width:"20%", padding:"10px",margin:"auto", mt:"10px", mb:"10px"}} >Edit <FontAwesomeIcon icon={faPen} style={{"marginLeft":"30px"}} className='pipeline-manager-initial-screen-button-icon'  />  </Button>
                   <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setExportMenuCWL(true);}} sx={{ width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px"}} >Export to CWL <FontAwesomeIcon icon={faArrowUpRightFromSquare} className='pipeline-manager-initial-screen-button-icon' style={{"marginLeft":"35px"}} /> </Button>
                   <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setExportMenuMage(true);}} sx={{ width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px"}}> Export to MageAI <FontAwesomeIcon icon={faArrowUpRightFromSquare} className='pipeline-manager-initial-screen-button-icon' /> </Button>
