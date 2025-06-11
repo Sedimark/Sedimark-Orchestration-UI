@@ -50,8 +50,20 @@ export default function AssetManager(props) {
   };
   
 
+  const pipelineSpawningToast = () =>{
+      toast('A pipeline is being rendered...', {
+      icon: '👷',
+      duration: 2000,
+      position:'top-right',
+      style: {
+      borderRadius: '10px',
+      background: '#333',
+      color: '#fff',
+    },
+    });
 
-
+  }
+  
   const fetchAllTypes = async()=>{
     
     setLoading(true);
@@ -147,6 +159,7 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
  
  const spawnPipeline = async(entity)=>{
   // numele la pipeline este anomaly_annotator
+  pipelineSpawningToast()
   props.handleClose();
   const filteredVariables = [];  
 
