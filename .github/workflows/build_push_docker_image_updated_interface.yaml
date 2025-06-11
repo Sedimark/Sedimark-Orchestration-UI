@@ -1,0 +1,42 @@
+name: Create Package New Version
+
+on:
+  push:
+    branches:
+      - updated-interface
+  pull_request:
+    branches:
+      - updated-interface
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+      
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+          
+      - name: Set image tag
+        run: |
+          BRANCH=${GITHUB_REF#refs/heads/}
+          if [[ "$BRANCH" == "updated-interface" ]]; then
+              echo "IMAGE_TAG=updated-latest" >> $GITHUB_ENV
+          else
+              echo "IMAGE_TAG=${GITHUB_SHA::7}" >> $GITHUB_ENV
+          fi
+          
+      - name: Kaniko build & push
+        uses: aevea/action-kaniko@master
+        with:
+          image: orchestrator
+          cache: "false"
+          tag: ${{ env.IMAGE_TAG }}
+          path: .
+          debug: true
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          extra_args: --snapshot-mode=time
