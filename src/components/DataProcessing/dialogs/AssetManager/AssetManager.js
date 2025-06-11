@@ -1,4 +1,4 @@
-import {useState, useEffect, useSelector} from 'react';
+import {useState, useEffect} from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -7,16 +7,16 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import EntityView from '../EntityView/EntityView';
-import {BROKER_GET_ASSET_TYPES, BROKER_GET_ENTITY_TYPES} from "../../../../utils/apiEndpoints";
-import {setAllTabs,  setTabIndex} from "../../../../reducers/nodeSlice";
+import {BROKER_GET_ASSET_TYPES, BROKER_GET_ENTITY_TYPES, FETCH_PIPELINE_DATA} from "../../../../utils/apiEndpoints";
+import {setAllTabs,  setTabIndex, setPipelinesBlocks, setSelectedTab, setBlocksVariables } from "../../../../reducers/nodeSlice";
 import { faArrowLeft, faBoxOpen, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 import { truncateString } from '../../../../utils/truncateString';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useNavigate } from 'react-router-dom';
+import {checkAndFormat} from "../../../../utils/checkAndFormat";
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import style from "./AssetManager.css";
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 
 export default function AssetManager(props) {
@@ -28,10 +28,11 @@ export default function AssetManager(props) {
     },
   });
 
-  const navigate = useNavigate();
   const dispatch = useDispatch();
+  const storedVariables = useSelector((state)=>state.blocksVariables);
   const allTabs = useSelector((state)=> state.allTabs);
   const tabIndexStored = useSelector((state)=> state.tabIndex);
+  const storedPipelineBlocks = useSelector((state)=> state.pipelinesBlocks);
   const [typesMenu, setTypesMenu] = useState(true);
   const [allTypes, setAllTypes] = useState([]);
   const [entitiesList, setEntitiesList] = useState([]);
@@ -113,80 +114,99 @@ export default function AssetManager(props) {
 
 const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
     
-      // let pipeline_blocks;
+      let pipeline_blocks;
       
-      // try{
-      //   const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+      try{
+        const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
 
-      //   pipeline_blocks = resp.data.pipeline.blocks;
+        pipeline_blocks = resp.data.pipeline.blocks;
 
-      // } catch(err){
-      //   console.log(err);
-      // }
+      } catch(err){
+        console.log(err);
+      }
  
 
-      // let blocksInfoObj ;
-      // if(storedPipelineBlocks){
-      //   blocksInfoObj = {...storedPipelineBlocks };
-      // } else { 
-      //   blocksInfoObj = {};
-      // }
+      let blocksInfoObj ;
+      if(storedPipelineBlocks){
+        blocksInfoObj = {...storedPipelineBlocks };
+      } else { 
+        blocksInfoObj = {};
+      }
 
-      // for(const block of pipeline_blocks){
-      //   blocksInfoObj[checkAndFormat(block.name)] = {
-      //     "pipeline_name": pipeline_name,
-      //     "tabName": newTabName
-      //   }
-      // }
+      for(const block of pipeline_blocks){
+        blocksInfoObj[checkAndFormat(block.name)] = {
+          "pipeline_name": pipeline_name,
+          "tabName": newTabName
+        }
+      }
 
     
-      // dispatch(setPipelinesBlocks(blocksInfoObj));
+      dispatch(setPipelinesBlocks(blocksInfoObj));
    }
 
  
  const spawnPipeline = async(entity)=>{
   // numele la pipeline este anomaly_annotator
-  // const pipeline = "anomaly_annotator";
+  props.handleClose();
+  const filteredVariables = [];  
 
-  //  let newTabs = [];
+    for(const variable of storedVariables){
+      if( variable["pipelineName"] && variable["pipelineName"][0] !== pipeline){
+          filteredVariables.push(variable);
+      }
+    }
+
+
+  const pipeline = "anomaly_annotator";
+
+   let newTabs = [];
   
-  //     if(allTabs){
-  //       newTabs = [...allTabs];
-  //     }
-  //       let newTabName;
-  //       if(!tabIndexStored || tabIndexStored.length == 0){
-  //         newTabName = `Tab 1`;
-  //         dispatch(setTabIndex([1]));
-  //         newTabs.push({
-  //           "name":newTabName,
-  //           "pipelineName": pipeline,
-  //           "pipelineType": "data_preprocessing",
-  //           "tabOrder":1
-  //         });
+      if(allTabs){
+        newTabs = [...allTabs];
+      }
+        let newTabName;
+        if(!tabIndexStored || tabIndexStored.length == 0){
+          newTabName = `Tab 1`;
+          dispatch(setTabIndex([1]));
+          newTabs.push({
+            "name":newTabName,
+            "pipelineName": pipeline,
+            "pipelineType": "data_preprocessing",
+            "tabOrder":1
+          });
   
-  //       } else {
-  //         newTabName = `Tab ${tabIndexStored[tabIndexStored.length-1]+1}`;
-  //         newTabs.push({
-  //           "name":newTabName,
-  //           "pipelineName": pipeline,
-  //           "pipelineType": "data_preprocessing",
-  //           "tabOrder":tabIndexStored[tabIndexStored.length-1]+1
-  //         });
-  //         const newTabArr = [...tabIndexStored];
-  //         newTabArr.push(tabIndexStored[tabIndexStored.length-1]+1);
-  //         dispatch(setTabIndex(newTabArr));
-  //       } 
+        } else {
+          newTabName = `Tab ${tabIndexStored[tabIndexStored.length-1]+1}`;
+          newTabs.push({
+            "name":newTabName,
+            "pipelineName": pipeline,
+            "pipelineType": "data_preprocessing",
+            "tabOrder":tabIndexStored[tabIndexStored.length-1]+1
+          });
+          const newTabArr = [...tabIndexStored];
+          newTabArr.push(tabIndexStored[tabIndexStored.length-1]+1);
+          dispatch(setTabIndex(newTabArr));
+        } 
         
-  //       await fetchAndSaveBlockNames(pipeline , newTabName);
+        await fetchAndSaveBlockNames(pipeline , newTabName);
   
   
-  //       dispatch(setAllTabs(newTabs));
+        dispatch(setAllTabs(newTabs));
   
-  //       setTimeout(()=>{
-  //         dispatch(setSelectedTab({"changed":true, tabSelected:newTabName}));
-  //       },100)
-   
-  //       dispatch(setBlocksVariables(filteredVariables));
+        setTimeout(()=>{
+          dispatch(setSelectedTab({"changed":true, tabSelected:newTabName}));
+        },100)
+        
+        filteredVariables[filteredVariables.length] = {
+                "block_name": "Broker Loader",
+                "variable_name": "entity_id",
+                "value": "urn:ngsi-ld:WeatherInformation:Forecasted:Hourly:France:Les_Orres",
+                "nodeId": "broker_loader",
+                "pipelineName": "anomaly_annotator",
+                "tabName": newTabName
+        };
+        
+        dispatch(setBlocksVariables(filteredVariables));
 
  }
 

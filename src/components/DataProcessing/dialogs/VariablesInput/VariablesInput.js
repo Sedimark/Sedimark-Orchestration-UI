@@ -313,7 +313,6 @@ export default function VariablesInput(props){
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
       }
-
       
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       dispatch(setBlocksVariables(blocksVariablesStored)); 
