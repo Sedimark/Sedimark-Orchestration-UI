@@ -41,9 +41,9 @@ export default function FederatedLearningSelect(props) {
             <DialogContentText id="alert-dialog-description">
               
                   <div className='initial-menu-pipeline-manager'>
-                    <Button  outlined variant='contained' onClick={()=>{navigate('/shamrock')}} sx={{width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px" }} className='button-shadow'>  Shamrock 
+                    <Button  outlined variant='contained' onClick={()=>{navigate('/federated-learning?framework=shamrock')}} sx={{width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px" }} className='button-shadow'>  Shamrock 
                     </Button>  
-                    <Button  outlined variant='contained' onClick={()=>{navigate()}} sx={{ width:"20%", padding:"10px",margin:"auto", mt:"10px", mb:"10px"}} > Fleviden 
+                    <Button  outlined variant='contained' onClick={()=>{navigate('/federated-learning?framework=fleviden')}} sx={{ width:"20%", padding:"10px",margin:"auto", mt:"10px", mb:"10px"}} > Fleviden 
                     </Button>
                   </div>
 

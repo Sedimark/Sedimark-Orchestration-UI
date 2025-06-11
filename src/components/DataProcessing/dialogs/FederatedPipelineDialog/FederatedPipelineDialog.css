@@ -188,3 +188,11 @@ input[type="file"] {
 .back-arrow-shamrock:hover{
     cursor: pointer;
 }
+
+.federated-learning-framework-title{
+    color:#fff;
+    padding-bottom: 10px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.6rem;
+}

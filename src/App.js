@@ -8,7 +8,8 @@ import { useSelector } from 'react-redux';
 import { setGeneratedBlockCode, setErrorWhileGenerating, setNotifyBlockGenerated, setGeneratedBlockPayload, setStoredGeneratedBlockName, setSocketBlockIsGenerating, setGeneratedBlockResult, setBlockWasGenerated} from "./reducers/nodeSlice.js";
 import { useDispatch } from 'react-redux';
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
-import { Shamrock } from './components/Shamrock/Shamrock.js';
+import { ManageFederatedPipeline } from './components/ManageFederatedPipeline/ManageFederatedPipeline.js';
+import NotFound from './components/NotFound/NotFound.js';
 import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import useAuth from "./hooks/useAuth";
@@ -72,7 +73,8 @@ function App() {
             <Routes>
                  <Route element = {<DataProcessing />} path="/"></Route>
                  <Route element = {<PipelineCreatorCanvas/>} path="/pipeline-studio"></Route>
-                 <Route element={<Shamrock/>} path="/shamrock"></Route>
+                 <Route element={<ManageFederatedPipeline/>} path="/federated-learning"></Route>
+                 <Route element={<NotFound/>} path="*"></Route>
             </Routes>
         </Router>
         <Toaster/>

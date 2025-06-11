@@ -1,4 +1,4 @@
-import {useState, useEffect, useRef} from 'react';
+import {useState, useEffect, useSelector} from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -8,6 +8,7 @@ import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import EntityView from '../EntityView/EntityView';
 import {BROKER_GET_ASSET_TYPES, BROKER_GET_ENTITY_TYPES} from "../../../../utils/apiEndpoints";
+import {setAllTabs,  setTabIndex} from "../../../../reducers/nodeSlice";
 import { faArrowLeft, faBoxOpen, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 import { truncateString } from '../../../../utils/truncateString';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import style from "./AssetManager.css";
+import { useDispatch } from 'react-redux';
 
 
 export default function AssetManager(props) {
@@ -27,7 +29,9 @@ export default function AssetManager(props) {
   });
 
   const navigate = useNavigate();
-  const isFirstRender = useRef(true);
+  const dispatch = useDispatch();
+  const allTabs = useSelector((state)=> state.allTabs);
+  const tabIndexStored = useSelector((state)=> state.tabIndex);
   const [typesMenu, setTypesMenu] = useState(true);
   const [allTypes, setAllTypes] = useState([]);
   const [entitiesList, setEntitiesList] = useState([]);
@@ -100,6 +104,91 @@ export default function AssetManager(props) {
   useEffect(() => {
     fetchAllTypes();
 }, []);
+
+ 
+ // create pipeline from asset
+ // aici ce ai de facut este ca trebuie sa spawnezi anomaly annotator
+ // deci de investigat sa vezi pentru anomaly annotator concret ce cod este executat
+ // apoi pentru anomaly annotator sa pui fain frumos acolo o variabila care sa fie variabila de aici atat
+
+const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
+    
+      // let pipeline_blocks;
+      
+      // try{
+      //   const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+
+      //   pipeline_blocks = resp.data.pipeline.blocks;
+
+      // } catch(err){
+      //   console.log(err);
+      // }
+ 
+
+      // let blocksInfoObj ;
+      // if(storedPipelineBlocks){
+      //   blocksInfoObj = {...storedPipelineBlocks };
+      // } else { 
+      //   blocksInfoObj = {};
+      // }
+
+      // for(const block of pipeline_blocks){
+      //   blocksInfoObj[checkAndFormat(block.name)] = {
+      //     "pipeline_name": pipeline_name,
+      //     "tabName": newTabName
+      //   }
+      // }
+
+    
+      // dispatch(setPipelinesBlocks(blocksInfoObj));
+   }
+
+ 
+ const spawnPipeline = async(entity)=>{
+  // numele la pipeline este anomaly_annotator
+  // const pipeline = "anomaly_annotator";
+
+  //  let newTabs = [];
+  
+  //     if(allTabs){
+  //       newTabs = [...allTabs];
+  //     }
+  //       let newTabName;
+  //       if(!tabIndexStored || tabIndexStored.length == 0){
+  //         newTabName = `Tab 1`;
+  //         dispatch(setTabIndex([1]));
+  //         newTabs.push({
+  //           "name":newTabName,
+  //           "pipelineName": pipeline,
+  //           "pipelineType": "data_preprocessing",
+  //           "tabOrder":1
+  //         });
+  
+  //       } else {
+  //         newTabName = `Tab ${tabIndexStored[tabIndexStored.length-1]+1}`;
+  //         newTabs.push({
+  //           "name":newTabName,
+  //           "pipelineName": pipeline,
+  //           "pipelineType": "data_preprocessing",
+  //           "tabOrder":tabIndexStored[tabIndexStored.length-1]+1
+  //         });
+  //         const newTabArr = [...tabIndexStored];
+  //         newTabArr.push(tabIndexStored[tabIndexStored.length-1]+1);
+  //         dispatch(setTabIndex(newTabArr));
+  //       } 
+        
+  //       await fetchAndSaveBlockNames(pipeline , newTabName);
+  
+  
+  //       dispatch(setAllTabs(newTabs));
+  
+  //       setTimeout(()=>{
+  //         dispatch(setSelectedTab({"changed":true, tabSelected:newTabName}));
+  //       },100)
+   
+  //       dispatch(setBlocksVariables(filteredVariables));
+
+ }
 
 
 
@@ -213,12 +302,12 @@ export default function AssetManager(props) {
 
                                             <>
                                                   {entitiesList.map((entity)=>{
-                                                    return(<div className='entity-item'> <div className='entity-item-text'>{truncateString(entity,40)}</div> <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); setEntityViewOpen(true); setEntityDetails(entity)}}> Details </Button><Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false);}}> Create Pipeline </Button></div></div>)
+                                                    return(<div className='entity-item'> <div className='entity-item-text'>{truncateString(entity,40)}</div> <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); setEntityViewOpen(true); setEntityDetails(entity)}}> Details </Button><Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); spawnPipeline(entity)}}> Create Pipeline </Button></div></div>)
                                                 })}
                                             </>
                                           }
 
-                                    </>
+                                    </> 
                                       
                                   }
 

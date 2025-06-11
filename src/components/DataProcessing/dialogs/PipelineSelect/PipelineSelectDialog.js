@@ -152,6 +152,8 @@ export default function PipelineSelectDialog(props) {
 
     let pipeline;
     
+   
+
     if(selectedPipeline){
       
       if(Array.isArray(selectedPipeline)) {
@@ -172,6 +174,8 @@ export default function PipelineSelectDialog(props) {
     if(allTabs){
       newTabs = [...allTabs];
     }
+
+
       let newTabName;
       if(!tabIndexStored || tabIndexStored.length == 0){
         newTabName = `Tab 1`;
