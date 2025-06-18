@@ -21,7 +21,7 @@ import {
 
 export const ShamrockInput = ({
         inputtedValues,
-        handleSetValues,
+        handleSetValues, 
         selectedDropdownValues,
         setDropdownValue,
         dropdownValues,

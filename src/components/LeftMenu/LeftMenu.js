@@ -11,7 +11,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import WidgetsIcon from '@mui/icons-material/Widgets';
 import PipelineSelectDialog from '../DataProcessing/dialogs/PipelineSelect/PipelineSelectDialog';
-import Divider from '@mui/material/Divider';
+import CreateAsset from '../DataProcessing/dialogs/CreateAsset/CreateAsset';
 import SettingsIcon from '@mui/icons-material/Settings';
 import TrainModelDialog from '../DataProcessing/dialogs/TrainModel/TrainModelDialog';
 import { useNavigate } from 'react-router-dom';
@@ -111,6 +111,7 @@ export default function MiniDrawer() {
   const [templatesDialog, setTemplatesDialog] = React.useState(false);
   const [federatedDialogOpen, setFederatedDialogOpen] = React.useState(false);
   const [assetManagerOpen, setAssetManagerOpen] = React.useState(false);
+  const [createAssetOpen, setCreateAssetOpen] = React.useState(false);
   const navigate = useNavigate();
 
   const openPipelineSelectMenu = (dialogType) => {
@@ -252,7 +253,7 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
             
-            <ListItem key={"Create Asset"} disablePadding sx={{ display: 'block' }} onClick={()=>{}}>
+            <ListItem key={"Create Asset"} disablePadding sx={{ display: 'block' }} onClick={()=>{ setCreateAssetOpen(true) }}>
               <ListItemButton
                   sx={{
                     minHeight: 48,
@@ -362,6 +363,7 @@ export default function MiniDrawer() {
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
       </Box>
      {/* {assetManager && <AssetManager open={assetManager} handleClose={()=>{setAssetManger(false)}} ></AssetManager> } */}
+     {createAssetOpen && <CreateAsset open={createAssetOpen} handleClose={()=>{setCreateAssetOpen(false)}} />}
      {selectDataDialog && <PipelineSelectDialog pipelineType={pipelineType} open={selectDataDialog} handleClose={handleDataSelectDialogClose} />}
      {trainModelsDialogOpen && <TrainModelDialog handleClose={handleTrainModelsMenuClose} open={trainModelsDialogOpen} close={handleTrainModelsMenuClose} /> }
      {pipelineManagerOpen && <PipelineManager open={pipelineManagerOpen} handleClose={()=>{setIsPipelineManagerOpen(false)}}/>}

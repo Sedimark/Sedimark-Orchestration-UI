@@ -18,7 +18,7 @@ import axios from 'axios';
 import style from "./AssetManager.css";
 import { useDispatch, useSelector } from 'react-redux';
 
-
+ 
 export default function AssetManager(props) {
  
 
@@ -357,6 +357,8 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
                 </DialogActions>
             </Dialog>
         </ThemeProvider>
+
+        
     );
 
 }

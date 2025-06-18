@@ -47,4 +47,4 @@ export const BROKER_GET_ASSET_TYPES = (asset_type)=> `${process.env.REACT_APP_BR
 export const BROKER_GET_ENTITIES_BY_ID = (entity_id)=> `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/entities/${entity_id}`;
 export const GET_PIPELINE_TEMPLATES = (template_type)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/templates?template_type=${template_type}`;
 export const POST_TEMPLATE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/create/template`;
-
+export const CREATE_ASSET = `${process.env.REACT_APP_BROKER_URL}/ngsi-ld/v1/entities`;

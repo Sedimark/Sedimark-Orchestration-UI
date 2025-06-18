@@ -84,8 +84,11 @@ export const FederatedPipelineDialog = (props)=>{
     const [fileName, setName] = useState("");
     const [modelList, setModelList] = useState([]);
     const [completeModelList, setCompleteModelList] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [modelUploadError, setModelUploadError] = useState(false);
+    const [pdArgs, setPdArgs] = useState([]);
+    const [clients, setClients] = useState([]);
+    const [pdArgsServer, setPdArgsServer] = useState([]);
     /* Handles loading optimizers */
     const [optimizers, setOptimizers] = useState([]);
     const [optimizersLoadedError, setOptimizersLoadedError] = useState(false);
@@ -94,10 +97,15 @@ export const FederatedPipelineDialog = (props)=>{
     const [lossesLoadedError, setLossesLoadedError] = useState(false);
     const [modelWasSet, setModelWasSet] = useState(false);
     const [configurationMenuModel, setConfigurationMenuModel] = useState("");
-    const navigate = useNavigate();
+    const [valueChangedFleviden, setValueChangedFleviden] = useState(false);
+    const [isFullFormValidFleviden, setIsFullFormValidFleviden] = useState(false);
+    const [targets, setTargets] = useState([]);
+    const [features, setFeatures] = useState([]);
 
+    const navigate = useNavigate();
+ 
     const darkTheme = createTheme({
-        palette: {
+        palette: { 
           mode: 'dark',
         },
       });
@@ -599,6 +607,15 @@ export const FederatedPipelineDialog = (props)=>{
 
       return;
     }
+
+    if(framework_type == "fleviden"){
+      // this should be updated to incorporate proper validation
+       setInputtedValues({
+            ...inputtedValues,
+            [framework_type]: Object.assign({}, inputtedValues[framework_type], { [name]: value })
+          });
+    }
+
   }
 
 
@@ -628,30 +645,30 @@ export const FederatedPipelineDialog = (props)=>{
     
     const fetchAllTheModels = async()=>{
       
-      setLoading(true);
-      setModelUploadError(false);
-      const fullModelsArray = [];
-      const fullFrameworksArray = [];
+      // setLoading(true);
+      // setModelUploadError(false);
+      // const fullModelsArray = [];
+      // const fullFrameworksArray = [];
 
-      try{
+      // try{
        
-        const resp = await axios.get(GET_MODELS);
+      //   const resp = await axios.get(GET_MODELS);
     
-        for(const model of resp.data){
-          fullModelsArray.push(model.name);
-          fullFrameworksArray.push(model);
-        }
+      //   for(const model of resp.data){
+      //     fullModelsArray.push(model.name);
+      //     fullFrameworksArray.push(model);
+      //   }
 
-        setCompleteModelList(fullFrameworksArray);
-        setModelList(fullModelsArray);
-        setLoading(false);
+      //   setCompleteModelList(fullFrameworksArray);
+      //   setModelList(fullModelsArray);
+      //   setLoading(false);
         
-      } catch(err){
+      // } catch(err){
         
-        setLoading(false)
-        setModelUploadError(true);
-        console.log(err);
-      }
+      //   setLoading(false);
+      //   setModelUploadError(true);
+      //   console.log(err);
+      // }
   }
 
   const fetch_optimizer_losses = async(framework)=>{
@@ -863,13 +880,24 @@ export const FederatedPipelineDialog = (props)=>{
 
                         :
                           <FlevidenInput
-
+                            targets={targets}
+                            setTargets={setTargets}
                             dropdownValues={dropdownValues["fleviden"]}
                             selectedDropdownValues = {selectedDropdownValues["fleviden"]}
                             setDropdownValue={setDropdownValue}
                             inputtedValues={inputtedValues["fleviden"]}
                             handleSetValues={handleSetValues}
-
+                            valueChanged={valueChangedFleviden}
+                            isFullFormValid={isFullFormValid}
+                            saveData={saveData}
+                            features={features}
+                            setFeatures={setFeatures}
+                            pdArgs = {pdArgs}
+                            setPdArgs = {setPdArgs}
+                            clients={clients}
+                            setClients={setClients}
+                            pdArgsServer={pdArgsServer}
+                            setPdArgsServer={setPdArgsServer}
                           />
 
                         }
