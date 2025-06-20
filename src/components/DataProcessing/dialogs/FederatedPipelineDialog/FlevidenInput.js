@@ -17,6 +17,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import Button from '@mui/material/Button';
 import style from "./FederatedPipelineDialog.css"
+import { server } from "websocket";
 
 export const FlevidenInput = ({
 
@@ -30,15 +31,17 @@ export const FlevidenInput = ({
     saveData,
     features,
     setFeatures,
-    targets,
-    setTargets,
+    clientTargets,
+    setClientTargets,
+    serverTargets,
+    setServerTargets,
     pdArgs,
     setPdArgs,
     clients,
     setClients,
     pdArgsServer,
-    setPdArgsServer
-
+    setPdArgsServer,
+    setValueChanged
     })=>{
 
       const ITEM_HEIGHT = 48;
@@ -71,6 +74,7 @@ export const FlevidenInput = ({
     };
 
     const addToStoreVar = (listStoreVar, listUpdateFunc) => {
+        setValueChanged(true);
         listUpdateFunc([...listStoreVar, '']);
     };
 
@@ -154,7 +158,14 @@ export const FlevidenInput = ({
                                     aria-label={`VERBOSITY`}
                                     placeholder="Type a number…"
                                     value={inputtedValues ? inputtedValues["VERBOSITY"]: ""}
-                                    onChange={(event)=>{ handleSetValues(event.target.value, "VERBOSITY", "fleviden")}}
+                                    onChange={(event)=>{
+                                         const isValidIntInput = /^\d+$/.test(event.target.value);
+
+                                         if (isValidIntInput || event.target.value.length == 0){
+                                            handleSetValues(event.target.value, "VERBOSITY", "fleviden")
+                                         }
+                                        
+                                    }}
                                     className="shamrock-control-input"
                                     />
                                 <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
@@ -168,18 +179,27 @@ export const FlevidenInput = ({
                                 - rounds: 1
                                 //mapeaza corect
                             */}
-                            <FormControl key={'10'} sx={{ marginBottom: "30px", width: "90%" }}>
+                            <FormControl key={'11'} sx={{ marginBottom: "30px", width: "90%" }}>
                                 <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
                                 <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> ROUNDS </div> 
-                                    <TextField
-                                    error = {false}
+                                <TextField
+                                    error={false}
                                     aria-label={`ROUNDS`}
                                     placeholder="Type a number…"
-                                    value={inputtedValues ? inputtedValues["ROUNDS"]: ""}
-                                    onChange={(event)=>{ handleSetValues(event.target.value, "ROUNDS")}}
+                                    value={inputtedValues?.["ROUNDS"] || ""} // Use optional chaining
+                                    onChange={(event) => { 
+                                        const value = event.target.value;
+                                        const isValidIntInput = /^\d+$/.test(value);
+
+                                        if (isValidIntInput || value === "") {
+                                            handleSetValues(value, "ROUNDS", "fleviden");
+                                        }
+                                    }}
                                     className="shamrock-control-input"
-                                    />
-                                <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
+                                />
+                                <div className='variable-description centered-variable-description'>
+                                    Values should be positive integers
+                                </div>
                             </FormControl>
                         </div>
 
@@ -245,8 +265,19 @@ export const FlevidenInput = ({
                                     error = {false}
                                     aria-label={`epocjs`}
                                     placeholder="Type a number…"
-                                    value={inputtedValues ? inputtedValues["epochs"]: ""}
-                                    onChange={(event)=>{ handleSetValues(event.target.value, "epochs", "fleviden")}}
+                                    value={inputtedValues?.["epochs"] || ""}
+                                    onChange={(event)=>{ 
+
+                                        const value = event.target.value;
+                                        const isValidIntInput = /^\d+$/.test(value);
+
+                                        if (isValidIntInput || value === "") {
+                                            handleSetValues(event.target.value, "epochs", "fleviden")
+                                        }
+
+                                        
+                                    
+                                    }}
                                     className="shamrock-control-input"
                                     />
                                 <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
@@ -268,8 +299,14 @@ export const FlevidenInput = ({
                                     error = {false}
                                     aria-label={`VERBOSITY`}
                                     placeholder="Type a number…"
-                                    value={inputtedValues ? inputtedValues["batch_size"]: ""}
-                                    onChange={(event)=>{ handleSetValues(event.target.value, "batch_size", "fleviden")}}
+                                    value={inputtedValues?.["batch_size"] || ""}
+                                    onChange={(event)=>{
+                                        const value = event.target.value;
+                                        const isValidIntInput = /^\d+$/.test(value);
+                                        if (isValidIntInput || value === "") {
+                                            handleSetValues(event.target.value, "batch_size", "fleviden")
+                                        } 
+                                    }}
                                     className="shamrock-control-input"
                                     />
                                 <div className='variable-description centered-variable-description'>  Batch size for the model should be positive integer </div>
@@ -313,7 +350,7 @@ export const FlevidenInput = ({
                                     <TextField
                                     error = {false}
                                     aria-label={`Data Path`}
-                                    placeholder="Type a number…"
+                                    placeholder="Inputdata path…"
                                     value={inputtedValues ? inputtedValues["client_data_path"]: ""}
                                     onChange={(event)=>{ handleSetValues(event.target.value, "client_data_path", "fleviden")}}
                                     className="shamrock-control-input"
@@ -345,7 +382,7 @@ export const FlevidenInput = ({
                                     ))}
 
                                 <div className="add-feature-btn-container">
-                                    <IconButton onClick={()=>{addToStoreVar(features, setFeatures)}} className="add-item-btn-federated" aria-label="add">
+                                    <IconButton onClick={()=>{ addToStoreVar(features, setFeatures)}} className="add-item-btn-federated" aria-label="add">
                                         <Add />
                                     </IconButton>
                                 </div>                                    
@@ -364,22 +401,22 @@ export const FlevidenInput = ({
                                         Targets
                                     </FormHelperText>
 
-                                    {targets.map((target, index) => (
+                                    {serverTargets.map((target, index) => (
                                         <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                                         <TextField
                                             fullWidth
-                                            placeholder={`client_feature${index + 1}`}
+                                            placeholder={`target name`}
                                             value={target}
-                                            onChange={(e) => handleListChange(targets, setTargets, index, e.target.value)}
+                                            onChange={(e) => handleListChange(serverTargets, setServerTargets, index, e.target.value)}
                                             className="shamrock-control-input"
                                         />
-                                        <IconButton onClick={() => removeStoreVar(index, targets, setTargets)} aria-label="delete">
+                                        <IconButton onClick={() => removeStoreVar(index, serverTargets, setServerTargets)} aria-label="delete">
                                             <Delete />
                                         </IconButton>
                                         </div>
                                     ))}
                                     <div className="add-feature-btn-container">
-                                        <IconButton className="add-item-btn-federated" onClick={()=>{addToStoreVar(targets, setTargets)}} aria-label="add">
+                                        <IconButton className="add-item-btn-federated" onClick={()=>{ addToStoreVar(serverTargets, setServerTargets)}} aria-label="add">
                                             <Add />
                                         </IconButton>
                                     </div>
@@ -422,7 +459,7 @@ export const FlevidenInput = ({
                                             ))}
 
                                         <div className="add-feature-btn-container">
-                                            <IconButton className="add-item-btn-federated" onClick={()=>{addPair(pdArgs, setPdArgs)}} aria-label="add">
+                                            <IconButton className="add-item-btn-federated" onClick={()=>{ addPair(pdArgs, setPdArgs)}} aria-label="add">
                                                 <Add />
                                             </IconButton>
                                         </div>
@@ -463,47 +500,38 @@ export const FlevidenInput = ({
                                 <div className='variable-description centered-variable-description'>  The id of the server </div>
                             </FormControl>
                         </div>
-                         <div>
-                                 <FormControl sx={{ marginBottom: "30px", width: "90%" }}>
-                                            <FormHelperText sx={{ fontSize: "1.1rem" }}>CLIENTS</FormHelperText>
+                        <div>
+                              
+                            <FormControl sx={{ marginBottom: "30px", width: "90%" }}>
+                                    <FormHelperText sx={{ fontSize: "1.1rem" }}>
+                                        Clients
+                                    </FormHelperText>
 
-                                            {clients.map((pair, index) => (
-                                                <Grid container spacing={1} key={index} sx={{ mb: 1 }}>
-                                                <Grid item xs={5}>
-                                                    <TextField
-                                                    placeholder="Key"
-                                                    value={pair.key}
-                                                    onChange={(e) => handleKeyChange(clients, setClients, index, e.target.value)}
-                                                    fullWidth
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={5}>
-                                                    <TextField
-                                                    placeholder="Value"
-                                                    value={pair.value}
-                                                    onChange={(e) => handleValueChange(clients, setClients, index, e.target.value)}
-                                                    fullWidth
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={2}>
-                                                    <IconButton onClick={() => removePair(clients, setClients,index)} aria-label="delete">
-                                                    <Delete />
-                                                    </IconButton>
-                                                </Grid>
-                                                </Grid>
-                                            ))}
-                                            
-                                            <div className="add-feature-btn-container">
-                                                <IconButton className="add-item-btn-federated" onClick={()=>{addPair(clients, setClients)}} aria-label="add">
-                                                    <Add />
-                                                </IconButton>
-                                            </div>
-                                            
-                                            <div className='variable-description centered-variable-description'>
-                                                Add clients
-    
-                                            </div>
-                                    </FormControl>
+                                    {clients.map((client, index) => (
+                                        <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                                        <TextField
+                                            fullWidth
+                                            placeholder={`client id`}
+                                            value={client}
+                                            onChange={(e) => handleListChange(clients, setClients, index, e.target.value)}
+                                            className="shamrock-control-input"
+                                        />
+                                        <IconButton onClick={() => removeStoreVar(index, clients, setClients)} aria-label="delete">
+                                            <Delete />
+                                        </IconButton>
+                                        </div>
+                                    ))}
+                                    <div className="add-feature-btn-container">
+                                        <IconButton className="add-item-btn-federated" onClick={()=>{ addToStoreVar(clients, setClients)}} aria-label="add">
+                                            <Add />
+                                        </IconButton>
+                                    </div>
+                                    
+                                    <div className='variable-description centered-variable-description'>
+                                        Add clients
+                                    </div>
+                                </FormControl>
+
                         </div>
                           
                         <div>
@@ -520,8 +548,14 @@ export const FlevidenInput = ({
                                     error = {false}
                                     aria-label={`MIN_CLIENTS`}
                                     placeholder="Number of min clients"
-                                    value={inputtedValues ? inputtedValues["min_clients"]: ""}
-                                    onChange={(event)=>{ handleSetValues(event.target.value, "min_clients", "fleviden")}}
+                                    value={inputtedValues?.["min_clients"] || ""} 
+                                    onChange={(event)=>{ 
+                                        const value = event.target.value;
+                                        const isValidIntInput = /^\d+$/.test(value);
+                                        if (isValidIntInput || value === "") {
+                                          handleSetValues(event.target.value, "min_clients", "fleviden");
+                                        }
+                                    }}
                                     className="shamrock-control-input"
                                     />
                                 <div className='variable-description centered-variable-description'>  Values should be positive integers , represents the number of minimum clients</div>
@@ -579,22 +613,22 @@ export const FlevidenInput = ({
                                         Targets
                                     </FormHelperText>
 
-                                    {targets.map((target, index) => (
+                                    {clientTargets.map((target, index) => (
                                         <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
                                         <TextField
                                             fullWidth
-                                            placeholder={`client_feature${index + 1}`}
+                                            placeholder={`target name`}
                                             value={target}
-                                            onChange={(e) => handleListChange(targets, setTargets, index, e.target.value)}
+                                            onChange={(e) => handleListChange(clientTargets, setClientTargets, index, e.target.value)}
                                             className="shamrock-control-input"
                                         />
-                                        <IconButton onClick={() => removeStoreVar(index, targets, setTargets)} aria-label="delete">
+                                        <IconButton onClick={() => removeStoreVar(index, clientTargets, setClientTargets)} aria-label="delete">
                                             <Delete />
                                         </IconButton>
                                         </div>
                                     ))}
                                     <div className="add-feature-btn-container">
-                                        <IconButton className="add-item-btn-federated" onClick={()=>{addToStoreVar(targets, setTargets)}} aria-label="add">
+                                        <IconButton className="add-item-btn-federated" onClick={()=>{  addToStoreVar(clientTargets, setClientTargets)}} aria-label="add">
                                             <Add />
                                         </IconButton>
                                     </div>
@@ -606,17 +640,17 @@ export const FlevidenInput = ({
 
                         </div>
                         
-                         <div>
+                         <div> 
                                  <FormControl sx={{ marginBottom: "30px", width: "90%" }}>
                                             <FormHelperText sx={{ fontSize: "1.1rem" }}>PD_ARGS</FormHelperText>
 
-                                            {pdArgs.map((pair, index) => (
+                                            {pdArgsServer.map((pair, index) => (
                                                 <Grid container spacing={1} key={index} sx={{ mb: 1 }}>
                                                 <Grid item xs={5}>
                                                     <TextField
                                                     placeholder="Key"
                                                     value={pair.key}
-                                                    onChange={(e) => handleKeyChange(pdArgs, setPdArgs,index, e.target.value)}
+                                                    onChange={(e) => handleKeyChange(pdArgsServer, setPdArgsServer,index, e.target.value)}
                                                     fullWidth
                                                     />
                                                 </Grid>
@@ -624,12 +658,12 @@ export const FlevidenInput = ({
                                                     <TextField
                                                     placeholder="Value"
                                                     value={pair.value}
-                                                    onChange={(e) => handleValueChange(pdArgs, setPdArgs,index, e.target.value)}
+                                                    onChange={(e) => handleValueChange(pdArgsServer, setPdArgsServer,index, e.target.value)}
                                                     fullWidth
                                                     />
                                                 </Grid>
                                                 <Grid item xs={2}>
-                                                    <IconButton onClick={() => removePair(index)} aria-label="delete">
+                                                    <IconButton onClick={() => removePair(pdArgsServer, setPdArgsServer, index)} aria-label="delete">
                                                     <Delete />
                                                     </IconButton>
                                                 </Grid>
@@ -637,7 +671,7 @@ export const FlevidenInput = ({
                                             ))}
 
                                         <div className="add-feature-btn-container">
-                                            <IconButton className="add-item-btn-federated" onClick={()=>{addPair(pdArgs, setPdArgs)}} aria-label="add">
+                                            <IconButton className="add-item-btn-federated" onClick={()=>{  addPair(pdArgsServer, setPdArgsServer)}} aria-label="add">
                                                 <Add />
                                             </IconButton>
                                         </div>
@@ -655,7 +689,7 @@ export const FlevidenInput = ({
                         <Button variant="contained" sx={{marginTop:"5px", width:"90px" }} disabled={!valueChanged || !isFullFormValid} onClick={()=>{saveData()}}>Save</Button>
                 </div>
 
-                {/* come to comment till here  */}
+          
             </div>      
     
         );

@@ -27,6 +27,7 @@ import { useNavigate } from 'react-router-dom';
 
 import axios from 'axios';
 import style from "./FederatedPipelineDialog.css";
+import { server } from "websocket";
 
 
 const defaultConfig = {
@@ -99,7 +100,8 @@ export const FederatedPipelineDialog = (props)=>{
     const [configurationMenuModel, setConfigurationMenuModel] = useState("");
     const [valueChangedFleviden, setValueChangedFleviden] = useState(false);
     const [isFullFormValidFleviden, setIsFullFormValidFleviden] = useState(false);
-    const [targets, setTargets] = useState([]);
+    const [clientTargets, setClientTargets] = useState([]);
+    const [serverTargets, setServerTargets] = useState([]);
     const [features, setFeatures] = useState([]);
 
     const navigate = useNavigate();
@@ -131,6 +133,7 @@ export const FederatedPipelineDialog = (props)=>{
     useEffect(()=>{
       dispatch(setShamrockModelName(configurationMenuModel));
     },[configurationMenuModel])
+
 
 
      const spawnNodes = ()=>{
@@ -314,7 +317,7 @@ export const FederatedPipelineDialog = (props)=>{
         } , 
 
         "fleviden":{
-          "VERBOSITY": 2,
+          "VERBOSITY": 1,
           "ROUNDS":1,
           "client_id":"",
           "client_server":"",
@@ -352,43 +355,69 @@ export const FederatedPipelineDialog = (props)=>{
     }; 
 
   
-    const saveData = () => {
+    const saveData = (framework) => {
 
-        dispatch(setShamrockValueIsModified(true));
-        blockSuccess("The values have been successfully saved!");
-        setTimeout(() => {
-          const fullValues = {
-            inputtedValues: inputtedValues,
-            selectedDropdownValues: selectedDropdownValues
-          };
+          dispatch(setShamrockValueIsModified(true));
+          blockSuccess("The values have been successfully saved!");
+          setTimeout(() => {
+            let fullValues;
+            // if(framework == "shamrock"){
+            //    fullValues = {
+            //   inputtedValues: inputtedValues,
+            //   selectedDropdownValues: selectedDropdownValues
+            // };
+            
+            // } else if(framework == "fleviden") {
 
-          dispatch(setShamrockValues(fullValues));
-          dispatch(setFullYAMLDocument({}));
-          dispatch(setSharmockPipelineName(""));
-          spawnNodes();
-          props.handleClose();
-        }, 1500);
-        props.setIsPipelineEditorOpen(true);
+            // }
+            fullValues = {
+              inputtedValues: inputtedValues,
+              selectedDropdownValues: selectedDropdownValues
+            };
+
+            dispatch(setShamrockValues(fullValues));
+            dispatch(setFullYAMLDocument({}));
+            dispatch(setSharmockPipelineName(""));
+            spawnNodes();
+            props.handleClose();
+          }, 1500);
+          props.setIsPipelineEditorOpen(true);
+
+        
+       
     };
 
 
     const checkFormValidity = ()=>{
-      const hasEmptyInputtedValues = Object.values(inputtedValues).some(value => value === "");
-      const hasEmptyDropdownValues = Object.values(selectedDropdownValues).some(value => value === "");
+      
+      const hasEmptyInputtedValues = Object.values(inputtedValues[props.frameworkType]).some(value => value === "");
+      const hasEmptyDropdownValues = Object.values(selectedDropdownValues[props.frameworkType]).some(value => value === "");
         
-      if (hasEmptyInputtedValues || hasEmptyDropdownValues) {
-        setIsFullFormValid(false);
+   
+      
+      if (props.frameworkType == "shamrock"){
+        if (hasEmptyInputtedValues || hasEmptyDropdownValues) {
+          setIsFullFormValid(false);
+        } else {
+          setIsFullFormValid(true);
+        }
       } else {
-        setIsFullFormValid(true);
+        if (hasEmptyInputtedValues || hasEmptyDropdownValues) {
+          setIsFullFormValidFleviden(false);
+        } else if(features.length == 0 || serverTargets.length == 0 || clientTargets.length == 0 || pdArgs.length == 0 || pdArgsServer.length == 0 || clients.length == 0){
+          setIsFullFormValidFleviden(false);
+        } else {
+          setIsFullFormValidFleviden(true);
+        }
       }
-
+    
     }
 
     const handleSetValues = (value, name, framework_type)=>{
       
       setValueChanged(true);
 
-      if(name == "model"){
+      if(name == "model" && framework_type=="shamrock"){
         setInputtedValues({
         ...inputtedValues,
         [framework_type]: Object.assign({}, inputtedValues[framework_type], { [name]: value })
@@ -396,7 +425,7 @@ export const FederatedPipelineDialog = (props)=>{
         return;
       }
 
-      if(name === "n_splits"){
+      if(name === "n_splits" && framework_type=="shamrock"){
         if (value.length == 0){
           setInputtedValues({
         ...inputtedValues,
@@ -416,7 +445,7 @@ export const FederatedPipelineDialog = (props)=>{
         }
       }
 
-      if(name === "split_index"){
+      if(name === "split_index" && framework_type=="shamrock"){
         if (value.length == 0){
           setInputtedValues({
           ...inputtedValues,
@@ -436,7 +465,7 @@ export const FederatedPipelineDialog = (props)=>{
         }
       }
 
-      if(name === "max_iter"){
+      if(name === "max_iter" && framework_type=="shamrock"){
         if (value.length == 0){
           setInputtedValues({
           ...inputtedValues,
@@ -456,7 +485,7 @@ export const FederatedPipelineDialog = (props)=>{
         }
       }
 
-      if(name === "local_epochs"){
+      if(name === "local_epochs" && framework_type=="shamrock"){
         if (value.length == 0){
           setInputtedValues({
             ...inputtedValues,
@@ -480,7 +509,7 @@ export const FederatedPipelineDialog = (props)=>{
 
         // lr
     // lr
-      if (name === "lr") {
+      if (name === "lr" && framework_type=="shamrock") {
         if (value.length === 0) {
           setInputtedValues({
             ...inputtedValues,
@@ -507,7 +536,7 @@ export const FederatedPipelineDialog = (props)=>{
         return;
 }
 
-      if(name === "batch_size"){
+      if(name === "batch_size" && framework_type=="shamrock"){
         if (value.length == 0){
           setInputtedValues({
           ...inputtedValues,
@@ -527,7 +556,7 @@ export const FederatedPipelineDialog = (props)=>{
         }
       }
       
-      if (name === "max_aggr") {
+      if (name === "max_aggr" && framework_type=="shamrock") {
         if (value.length === 0) {
           setInputtedValues({
           ...inputtedValues,
@@ -554,7 +583,7 @@ export const FederatedPipelineDialog = (props)=>{
         return;
       }
 
-      if (name === "max_time") {
+      if (name === "max_time" && framework_type=="shamrock") {
         if (value.length === 0) {
           setInputtedValues({
           ...inputtedValues,
@@ -582,7 +611,7 @@ export const FederatedPipelineDialog = (props)=>{
       }
 
 
-    if (name === "metric_min") {
+    if (name === "metric_min" && framework_type=="shamrock") {
       if (value.length === 0) {
         setInputtedValues({
       ...inputtedValues,
@@ -608,12 +637,34 @@ export const FederatedPipelineDialog = (props)=>{
       return;
     }
 
-    if(framework_type == "fleviden"){
+    if(framework_type == "fleviden" ){
+      setValueChangedFleviden(true);
       // this should be updated to incorporate proper validation
-       setInputtedValues({
+      if(name == "VERBOSITY" || name == "ROUNDS" || name == "epochs" || name == "batch_size" || name == "min_clients"){
+
+        const isValidIntInput = /^\d+$/.test(value);
+  
+        
+        if(isValidIntInput || value.length == 0)
+        {
+          
+          setInputtedValues({
             ...inputtedValues,
             [framework_type]: Object.assign({}, inputtedValues[framework_type], { [name]: value })
           });
+          return;
+        } else {
+          return;
+        }
+      } else  {
+
+         setInputtedValues({
+            ...inputtedValues,
+            [framework_type]: Object.assign({}, inputtedValues[framework_type], { [name]: value })
+          });
+
+      }
+ 
     }
 
   }
@@ -747,8 +798,8 @@ export const FederatedPipelineDialog = (props)=>{
             } , 
 
             "fleviden":{
-              "VERBOSITY": 2
-            }
+              "VERBOSITY": 0
+            } 
         
          });
 
@@ -759,7 +810,7 @@ export const FederatedPipelineDialog = (props)=>{
 
     useEffect(()=>{
       checkFormValidity();
-    },[selectedDropdownValues,inputtedValues])
+    },[selectedDropdownValues,inputtedValues, features, clientTargets, serverTargets, pdArgs, pdArgsServer, clients])
 
 
     const setDropdownValue = async(value, dropdown_menu_name, framework_type) => {
@@ -877,18 +928,17 @@ export const FederatedPipelineDialog = (props)=>{
                             saveData={saveData}
                         
                           />
+                          
+                          :
 
-                        :
                           <FlevidenInput
-                            targets={targets}
-                            setTargets={setTargets}
                             dropdownValues={dropdownValues["fleviden"]}
                             selectedDropdownValues = {selectedDropdownValues["fleviden"]}
                             setDropdownValue={setDropdownValue}
                             inputtedValues={inputtedValues["fleviden"]}
                             handleSetValues={handleSetValues}
                             valueChanged={valueChangedFleviden}
-                            isFullFormValid={isFullFormValid}
+                            isFullFormValid={isFullFormValidFleviden}
                             saveData={saveData}
                             features={features}
                             setFeatures={setFeatures}
@@ -898,6 +948,11 @@ export const FederatedPipelineDialog = (props)=>{
                             setClients={setClients}
                             pdArgsServer={pdArgsServer}
                             setPdArgsServer={setPdArgsServer}
+                            setValueChanged={setValueChangedFleviden}
+                            clientTargets={clientTargets}
+                            serverTargets={serverTargets}
+                            setClientTargets={setClientTargets}
+                            setServerTargets={setServerTargets}
                           />
 
                         }

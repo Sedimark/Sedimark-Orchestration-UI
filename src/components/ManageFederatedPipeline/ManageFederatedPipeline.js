@@ -455,13 +455,14 @@ export const ManageFederatedPipeline = ()=>{
         setOpenDialog(false);
         setOpenActionsMenu(true);
 
-        } else if (fullYAMLDocument && Object.keys(fullYAMLDocument).length !== 0) {
+      }  else if (fullYAMLDocument && Object.keys(fullYAMLDocument).length !== 0) {
         
         setStoredValues(true);
         setOpenDialog(false);
         setOpenActionsMenu(true);
 
-        } else {
+        } 
+    else {
 
         setStoredValues(false);
         setOpenDialog(true);

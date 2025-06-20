@@ -6,12 +6,11 @@ import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import ControlledEditor from '@monaco-editor/react';
 import { validateNgsiLdString } from "../../../../utils/ngsiLdValidate";
 import { CREATE_ASSET } from "../../../../utils/apiEndpoints";
+import { FormBuilder } from "./FormBuilder";
 import style from "./CreateAsset.css";
 import toast from 'react-hot-toast';
-import { Block } from "@mui/icons-material";
 import axios from 'axios';
 
 export default function CreateAsset(props) {
@@ -22,9 +21,15 @@ export default function CreateAsset(props) {
   });
 
   const [editorValue, setEditorValue] = useState();
-  const handleEditorChange = (val)=>{
-    setEditorValue(val);
-  }
+  const [asset, setAsset] = useState({});
+  const [formDisplay, setFormDisplay] = useState(false);
+  const formFields = [
+
+  { name: "title", label: "Titlu", type: "string" },
+  { name: "tags", label: "Cuvinte cheie", type: "keywords" },
+  { name: "startDate", label: "Data început", type: "date" }
+
+  ]
 
     const blockAlert = (msg) => {
         toast.error(msg, {
@@ -40,30 +45,27 @@ export default function CreateAsset(props) {
     })
   };
   
-  const validateAssetObject = async()=>{
+  const postAssetObject = async()=>{
 
-     const result = validateNgsiLdString(editorValue);
-  
-      if (result.isValid) {
-        //result.asset contains the asset
-        try{
-          const resp = axios.post(CREATE_ASSET,result.asset);
-          blockSuccess("Asset was created successfully!");
+    try{
+      const resp = axios.post(CREATE_ASSET,asset);
+      blockSuccess("Asset was created successfully!");
 
-        } catch(err){
-          blockAlert("There was an error while posting the asset!");
-        }
-
-        //post the asset to the broker
-      } else {
-        //display error message
-        blockAlert(result.error);
-      }
+    } catch(err){
+      blockAlert("There was an error while posting the asset!");
+    }
 
       props.handleClose()
   }
 
+  const generateAndDisplayForm = ()=>{
+    setFormDisplay(true);
+    //here we generate the form based on what is the requirement
+  }
 
+   const handleSubmit = ()=>{
+     console.log("Form data:", data);
+   }
 
   return(
       <ThemeProvider theme={darkTheme}>
@@ -82,31 +84,49 @@ export default function CreateAsset(props) {
                 </DialogTitle>
                 <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                
-                    <div>
-                      Create an asset by providing the ngsild object below:
-                    </div>
 
-                      <ControlledEditor
-                        options={{
-                            readOnly: false, // Set to false to make it editable
-                            minimap: { enabled: false },
-                            scrollBeyondLastLine: false,
-                            contextmenu: true // Enable context menu for editing
-                        }}
-                        height="60vh"
-                        className='code-editor'
-                        defaultLanguage="json"
-                        theme="vs-dark"
-                        value={editorValue}
-                        onChange={handleEditorChange}
-                    />
-                   <Button variant='contained' color='primary'   sx={{ 
-                      marginTop: '20px',
-                      marginLeft: '45%',
-                    }}  onClick={()=>{validateAssetObject()}}>
-                       Create 
-                    </Button>
+              {
+                  formDisplay ?
+                  <div>
+                      <FormBuilder fields={formFields} onSubmit={handleFormSubmit}/>
+                  </div>
+                  :
+                  <>
+                    <div className="select-asset-type">Select what kind of asset you want to create:</div>
+
+                        <div className="type-of-asset-btns">
+                            <Button variant='contained' color='primary'   sx={{ 
+                              marginTop: '',
+                              marginLeft: '45%',
+                              width:"150px"
+                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                              Workflow  
+                            </Button>
+                            <Button variant='contained' color='primary'   sx={{ 
+                              marginTop: '10px',
+                              marginLeft: '45%',
+                              width:"150px"
+                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                              Data  
+                            </Button>
+                            <Button variant='contained' color='primary'   sx={{ 
+                              marginTop: '10px',
+                              marginLeft: '45%',
+                              width:"150px"
+                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                              AI Model  
+                            </Button>
+                            <Button variant='contained' color='primary'   sx={{ 
+                              marginTop: '10px',
+                              marginLeft: '45%',
+                              width:"150px"
+                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                              Service  
+                            </Button>
+                      </div>
+                  </>
+              }
+
                 </DialogContentText>
                 </DialogContent>
                 <DialogActions>
