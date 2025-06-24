@@ -12,13 +12,9 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import {ModelDetails} from "./ModelDetails/ModelDetails";
 import { GET_ALL_MODELS} from '../../../../utils/apiEndpoints';
 import {setSelectedTrainedModel} from "../../../../reducers/nodeSlice";
-import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction, setSelectedTab,} from '../../../../reducers/nodeSlice';
+import { setSelectedPipelineNamePrediction, setSelectedPipelinePrediction} from '../../../../reducers/nodeSlice';
 import { useSelector } from "react-redux";
 import styles from "./TrainModelDialog.css";
-
-const ITEM_HEIGHT = 48;
-const ITEM_PADDING_TOP = 8;
-
  
 
 export default function TrainModelDialog(props){
@@ -51,7 +47,7 @@ export default function TrainModelDialog(props){
       if(rowName !== selectedTrainedModel )
      {  
           dispatch(setSelectedTrainedModel(rowName));
-          handleChangeSelectedTab();
+         
           setIsPredSelected(true);
          
      } else if (rowName === selectedTrainedModel){
@@ -92,10 +88,7 @@ export default function TrainModelDialog(props){
     handleDone();
   }
 
-  const handleChangeSelectedTab = ()=>{
-    dispatch(setSelectedTab({"changed":true, tabSelected:"3"}));
-  }
-  
+
     useEffect(()=>{
       fetchAllModelsAndSet();
     },[]);

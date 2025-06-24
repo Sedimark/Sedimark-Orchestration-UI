@@ -22,7 +22,7 @@ import { truncateString } from '../../utils/truncateString';
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux'; 
 import formatName from '../../utils/formatName';
-import {setPipelineStudioNodes,setStoredPipelineName, setBlocksVariables,  setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
+import {setPipelineStudioNodes,setStoredPipelineName, setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
  
 export default memo(({ data, isConnectable }) => {
 
@@ -46,7 +46,6 @@ export default memo(({ data, isConnectable }) => {
   }));
   
   const allRunningPipelines = useSelector((state)=> state.runningPipelines);
-  const selectedTab = useSelector((state)=> state.selectedTab);
   const variablesValues = useSelector((state) => state.blocksVariables);
   const shamrockWasSaved = useSelector((state)=> state.shamrockWasSaved);
   const [seeVariablesMenuOpen, setSeeVariablesMenuOpen] = useState(false);
@@ -168,8 +167,10 @@ export default memo(({ data, isConnectable }) => {
 
   const getStoredVariableValue = (varName) => {
 
+ 
+ 
     for (const variable of variablesValues) {
-      if (variable.variable_name === varName && variable.block_name === data.name) {
+      if (variable.variable_name === varName && variable.block_name === data.name && variable.tabName === data.tabName) {
         if (Array.isArray(variable.value)) {
           return parseArray(variable.value);
         } else {
@@ -228,11 +229,14 @@ export default memo(({ data, isConnectable }) => {
     processName(data.name);
     setFullNodeName(data.name);
 
+
+
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
      
       
       const allVarsData = [];
       for(const varValue of Object.keys(data.config)){
+       
         if(varValue === "pipelineName"){
           continue;
         }
@@ -248,9 +252,11 @@ export default memo(({ data, isConnectable }) => {
       return;
    }
 
+    
     const allVars = Object.keys(data.config);
     const allVarsType = Object.values(data.config);
     
+
     let varObj;
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
@@ -260,6 +266,7 @@ export default memo(({ data, isConnectable }) => {
       if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
+          tabName:data.tabName,
           ...parsedJSONVar
         }
         allVarsData.push(varObj);
@@ -273,14 +280,9 @@ export default memo(({ data, isConnectable }) => {
     }
    
     setAllVariables(allVarsData);
-
+    
   }, [])
 
-  useEffect(() => {
-    processVariablesValues(variablesValues);
-
-  }, [variablesValues])
- 
 
   useEffect(()=>{
     
@@ -409,6 +411,9 @@ export default memo(({ data, isConnectable }) => {
     }
        
   },[brokerEntityId])
+
+
+
  
   return (
     <div style={{ width:"500px", borderRadius: "6%", padding: "10px", border: "2px solid blue", backgroundColor: "#e0e9ff", minHeight: "200px", height:"auto" }}>
@@ -524,9 +529,9 @@ export default memo(({ data, isConnectable }) => {
         position={Position.Right}
         id="right"
         style={{ padding: "10px", border: "3px solid blue" }}
-        isConnectable={true}
+        isConnectable={true} 
       />
-      {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={() => { setVariablesInputOpen(false); }} />}
+      {variablesInputOpen && <VariablesInput fullNodeName={fullNodeName} variablesData={allVariables} open={variablesInputOpen} handleClose={() => { setVariablesInputOpen(false); }} tabName={data.tabName} />}
       {viewDataDialog && <ViewData open={viewDataDialog} handleClose={handleCloseViewData} pipelineType={data.pipelineType}></ViewData>}
       {changeBlockNameOpen && !isFromShamrock &&<ChangeBlockName name={pipelineStudioName} handleAction={(name)=>{changeBlockName(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}} />}
       {changeBlockNameOpen && isFromShamrock &&  <ChangeBlockName name={data.name} handleAction={(name)=>{changeBlockNameShamrock(name)}} open={changeBlockNameOpen} handleClose={()=>{setChangeBlockNameOpen(false)}}></ChangeBlockName>}

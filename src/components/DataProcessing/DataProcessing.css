@@ -134,7 +134,7 @@
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
-  width: 250px;
+  width: 200px;
   background-color: #f0f5fd;
   border-radius: 10px;
   -webkit-box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
@@ -228,5 +228,25 @@ box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
 .tab-name{
   display: flex;
   flex-direction: row;
+  /* font-size: 1.4rem; */
 }
 
+.tab-name{
+  margin-top:5px;
+}
+
+.close-tab-btn{
+  margin-top:3px;
+}
+
+.no-pipeline-open-text-container{
+  margin-top:12%;
+  font-size: 1.9rem;
+  margin-left: 20%;
+  color:#c7c7c7;
+  user-select: none;
+}
+
+.no-pipeline-open-text-icon{
+  font-size: 2.5rem;
+}

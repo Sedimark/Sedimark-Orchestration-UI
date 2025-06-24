@@ -394,7 +394,7 @@ export const PipelineCreatorCanvas = ()=>{
     
 
     const checkNodes = ()=>{
-
+       
         if(nodes.length === 0){
           blockAlert("There is no block on the interface!");
           return;
@@ -437,7 +437,7 @@ export const PipelineCreatorCanvas = ()=>{
       
       let start;
       for(const node of nodes){
-        if(node.type === "loader"){
+        if(node.type === "loader" || (node.type === "generated" && node.data.fromPipelineStudio.type === "loader")){
           start = node.id;
         }
       }

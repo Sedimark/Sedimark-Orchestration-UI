@@ -72,19 +72,33 @@ const initialState = {
     shamrockIsBeingSaved: false,
     shamrockRunData:null,
     shamrockModelUploadedFileName:"",
-    shamrockModelName:"",
-    brokerEntityId:""
+    federatedModelName:"",
+    ///fleviden related values
+    flevidenValues:{},
+    selectedFederatedFramework:"",
+    brokerEntityId:"",
+    tabIndex:[],
+    allTabs:[]
 }    
 
 export const nodeSlice = createSlice({
     name:'nodes',
     initialState,
     reducers:{
+        setSelectedFederatedFramework:(state, action)=>{
+            state.selectedFederatedFramework = action.payload;
+        },
+        setTabIndex:(state, action)=>{
+            state.tabIndex = action.payload;
+        },
+        setAllTabs:(state, action)=>{
+            state.allTabs = action.payload;
+        },
         setBrokerEntityId:(state, action)=>{
             state.brokerEntityId = action.payload;
         },
-        setShamrockModelName:(state, action)=>{
-            state.shamrockModelName = action.payload;
+        setFederatedModelName:(state, action)=>{
+            state.federatedModelName = action.payload;
         },
         setShamrockModelUploadedFileName:(state, action)=>{
             state.shamrockModelUploadedFileName = action.payload;
@@ -340,6 +354,10 @@ export const nodeSlice = createSlice({
 
         setSelectedTab:(state, action) =>{
             state.selectedTab = action.payload;
+        },
+
+        setFlevidenValues: (state,action) => {
+            state.flevidenValues = action.payload;
         }
 
     }
@@ -427,8 +445,12 @@ export const {
     setShamrockIsBeingSaved,
     setShamrockRunData,
     setShamrockModelUploadedFileName,
-    setShamrockModelName,
-    setBrokerEntityId
+    setFederatedModelName,
+    setBrokerEntityId,
+    setTabIndex,
+    setAllTabs,
+    setFlevidenValues,
+    setSelectedFederatedFramework
     
 } = nodeSlice.actions
 

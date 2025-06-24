@@ -9,6 +9,7 @@
     font-weight: bold;
     color:#fff;
     width: 500px;
+    
 }
 
 .pipeline-save-step{
@@ -22,7 +23,8 @@
 }
 
 .pipeline-save-step-container{
-    margin-top:10px;
+    margin-top:15px;
+    margin-left: 15px;
 }
 
 .pipeline-save-step-container-done{
@@ -85,10 +87,11 @@
 
 .pipeline-creation-failed{
     font-size: 1.4rem;
-    text-align: center;
     margin:auto;
-   
-    
+}
+
+.pipeline-name-wrapper{
+    text-align: center;
 }
 
 .pipeline-failed-icon{

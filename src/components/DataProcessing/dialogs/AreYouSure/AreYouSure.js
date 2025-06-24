@@ -156,8 +156,6 @@ export default function AreYouSure(props) {
       return `Are you sure you want to remove ${formatString(selectedPipeline)} from the view?`
     }
   }
- 
-  
 
   return (
     

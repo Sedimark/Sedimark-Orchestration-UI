@@ -27,7 +27,6 @@ import axios from "axios";
 
 function Flow(props) {
   
-  const selectedTab = useSelector((state)=> state.selectedTab);
   const selectedTrainedModel = useSelector((state)=> state.selectedTrainedModel);
   const selectedPipelineTrain = useSelector((state)=> state.selectedPipelineTrain);
   const blockVariablesCount = useSelector((state)=> state.pipelineNrOfVariables);
@@ -153,7 +152,7 @@ function Flow(props) {
         newNodes.push({
           id: nodeType.node_id,
           type: 'loader',
-          data: { label: 'Loader', config:nodeData , name: nodeType.node_name, pipelineType: props.pipelineType},
+          data: { label: 'Loader', config:nodeData , name: nodeType.node_name, pipelineType: props.pipelineType, tabName:props.tabName},
           position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
        });
       
@@ -164,7 +163,7 @@ function Flow(props) {
           {
            id: nodeType.node_id,
            type: 'transformer',
-           data: { label: 'Transformer', config:nodeData, name: nodeType.node_name},
+           data: { label: 'Transformer', config:nodeData, name: nodeType.node_name, tabName:props.tabName},
            position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           });
         
@@ -175,7 +174,7 @@ function Flow(props) {
           {
             id: nodeType.node_id,
             type: 'exporter',
-            data: { label: 'Exporter', config:nodeData, name: nodeType.node_name},
+            data: { label: 'Exporter', config:nodeData, name: nodeType.node_name, tabName:props.tabName},
             position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           }
         );
@@ -187,7 +186,7 @@ function Flow(props) {
           {
             id: nodeType.node_id,
             type: 'custom',
-            data: { label: 'Custom', config:nodeData, name: nodeType.node_name},
+            data: { label: 'Custom', config:nodeData, name: nodeType.node_name, tabName:props.tabName},
             position: { x: positions[nodeType.node_id][0], y: positions[nodeType.node_id][1] },
           }
         );
@@ -270,7 +269,7 @@ function Flow(props) {
     setPipelineEdges([...connectionEdges]);
     setPipelineEdges(connectionEdges);
    
- 
+
     addNodes(allNodes, pipeline_name);
   }
 
@@ -369,7 +368,7 @@ function Flow(props) {
 
   const parseAndCountVariables = (pipeline_data, pipeline_name)=>{
 
-
+  
     let nrOfVars = 0;
     
     for(const pipe_data of pipeline_data){
@@ -381,7 +380,6 @@ function Flow(props) {
       number_of_variables: nrOfVars
     }
 
-  
     
     if(!checkAndSeeIfVariablesPresent(blockVariablesCount,pipeline_name)){
       const newVar = [...blockVariablesCount, variablesForPipeline];
@@ -435,9 +433,9 @@ function Flow(props) {
       dispatch(setSelectedPipelinePrediction([resp.data.name]));
     }catch(err){
 
-      if(model.length !== 0 && selectedTab.tabSelected==="3"){
-        blockAlert("No pipeline found for the model!");
-      }
+      // if(model.length !== 0 && selectedTab.tabSelected==="3"){
+      //   blockAlert("No pipeline found for the model!");
+      // }
       setSelectedPipeline([]);
       dispatch(setSelectedPipelineNamePrediction(""));
       dispatch(setSelectedPipelinePrediction([""]));
@@ -497,49 +495,9 @@ function Flow(props) {
   },[selectedTrainedModel])
 
 
-  const selectPipelineBasedOnProps = (pipeline_type)=> {
-    if( pipeline_type === "training"){
-      setSelectedPipeline(selectedPipelineTrain);
-    } else if (pipeline_type === "data_preprocessing"){
-      setSelectedPipeline(selectedPipelineDataPreProcessing);
-    } else if (pipeline_type === "streaming"){
-      setSelectedPipeline(selectedPipelineStreaming);
-    }
-  }
-
-
   useEffect(()=>{ 
-    selectPipelineBasedOnProps(props.pipelineType);
-  },[props, selectedPipelineDataPreProcessing, selectedPipelineTrain, selectedPipelinePrediction])
-
-  useEffect(()=>{
-
-    if(nodes.length !==0){
-      const fullObjList = [];
-
-       let  objToStore = {
-        block_name:nodes[0].data.name,
-        variable_name:"entity_id",
-        value:brokerEntityId,
-        nodeId:nodes[0].id,
-        pipelineName:nodes[0].data.config.pipelineName
-      }
-
-      fullObjList.push(objToStore);
-
-      objToStore = {
-        block_name:nodes[nodes.length-1].data.name,
-        variable_name:"entity_id",
-        value:brokerEntityId,
-        nodeId:nodes[nodes.length-1].id,
-        pipelineName:nodes[nodes.length-1].data.config.pipelineName
-      }
-
-      fullObjList.push(objToStore); 
-      dispatch(setBlocksVariables(fullObjList)); 
-    }
-  },[nodes])
-
+    setSelectedPipeline([props.pipelineName]);
+  },[])
 
 
 

@@ -9,9 +9,9 @@ import Custom from '../Nodes/Custom.js';
 import CustomEdge from "../CustomEdge/CustomEdge.js";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faPenToSquare, faCircleInfo, faFloppyDisk, faFileArrowUp, faSpinner, faCircleStop, faCirclePlay, faChartLine, faTrashCan} from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
-import { setShamrockFileName, setShamrockValues,  setSharmockPipelineName, setFullYAMLDocument, setShamrockWasSaved, setShamrockLastSavedPipeline } from "../../reducers/nodeSlice.js";
-import { ShamrockDialog } from "../DataProcessing/dialogs/ShamrockDialog/ShamrockDialog.js";
+import { useNavigate } from 'react-router-dom'; 
+import { setShamrockFileName, setShamrockValues,  setSharmockPipelineName, setFullYAMLDocument, setShamrockWasSaved, setShamrockLastSavedPipeline, setSelectedFederatedFramework } from "../../reducers/nodeSlice.js";
+import { FederatedPipelineDialog } from "../DataProcessing/dialogs/FederatedPipelineDialog/FederatedPipelineDialog.js";
 import SaveDialog from "../DataProcessing/dialogs/SaveDialog/SaveDialog.js";
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import toast from 'react-hot-toast';
@@ -23,11 +23,13 @@ import Alert from '@mui/material/Alert';
 import { setShamrockNodes, setShamrockRunData,  setShamrockEdges, setShamrockValueIsModified } from "../../reducers/nodeSlice.js";
 import { uniqueNamesGenerator, Config, adjectives, colors, animals } from 'unique-names-generator';
 import {CREATE_FOLDER,DELETE_FILES_MAGE, FETCH_PIPELINE_RUN_DATA, DELETE_PIPELINE,CREATE_TRIGGER, RUN_STREAMING_PIPELINE, STREAMING_PIPELINE_STATUS, DELETE_TRIGGER } from "../../utils/apiEndpoints.js";
-import style from "./Shamrock.css";
+import style from "./ManageFederatedPipeline.css";
 import { styled } from '@mui/material/styles';
 import yaml from "js-yaml";
 import axios from "axios";
 import {useDispatch} from 'react-redux';
+import { useSearchParams } from 'react-router-dom';
+
 
 
 const CustomTooltip = styled(({ className, ...props }) => (
@@ -47,9 +49,10 @@ const CustomTooltip = styled(({ className, ...props }) => (
 
 
 
-export const Shamrock = ()=>{
+export const ManageFederatedPipeline = ()=>{
 
     const lastSavedPipeline = useSelector((state)=> state.shamrockLastSavedPipeline);
+    const flevidenValues = useSelector((state) => state.flevidenValues);
     const wasPipelineSaved = useSelector((state)=> state.shamrockWasSaved);
     const pipelineName = useSelector((state)=> state.shamrockPipelineName);
     const shamrockValues = useSelector((state)=> state.shamrockValues);
@@ -60,7 +63,7 @@ export const Shamrock = ()=>{
     const shamrockWasSaved = useSelector((state)=> state.shamrockWasSaved);
     const shamrockRunData = useSelector((state)=> state.shamrockRunData);
     const shamrockNodeChanged = useSelector((state)=> state.shamrockNodeChanged);
-    
+    const [federatedPipelineFramework, setFederatedPipelineFramework] = useState("");
     const [isPolling, setIsPolling] = useState(false);
     const [loading, setLoading] = useState(false);
     const [runData, setRunData] = useState(null);
@@ -73,6 +76,7 @@ export const Shamrock = ()=>{
     const [openError, setOpenError] = useState(false);
     const [openLoading, setOpenLoading] = useState(false);
     const [isPipelineEditorOpen, setIsPipelineEditorOpen] = useState(false);
+    const [searchParams, setSearchParams] = useSearchParams();
     
 
    const handleClose = (event, reason) => {
@@ -357,7 +361,7 @@ export const Shamrock = ()=>{
                   log_file: "metrics.txt"
                 },
                 model: {
-                  // model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
+                  // model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${federatedModelName}`,
                   model:"simple_cnn",
                   optimizer: shamrockValues["selectedDropdownValues"]["framework"],
                   lr: shamrockValues["inputtedValues"]["lr"],
@@ -384,7 +388,7 @@ export const Shamrock = ()=>{
               fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
               fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
               fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
-              // fullYAMLDocumentCopy["model"]["model_uri"] = `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`
+              // fullYAMLDocumentCopy["model"]["model_uri"] = `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${federatedModelName}`
               fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
               finalYaml = fullYAMLDocumentCopy;
             }
@@ -446,19 +450,20 @@ export const Shamrock = ()=>{
 
     useEffect(()=>{
 
-    if (storedShamrockValues && Object.keys(storedShamrockValues).length !== 0) {
+    if ((storedShamrockValues && Object.keys(storedShamrockValues).length !== 0) ||(flevidenValues && Object.keys(flevidenValues).length !== 0)) {
         
         setStoredValues(true);
         setOpenDialog(false);
         setOpenActionsMenu(true);
 
-        } else if (fullYAMLDocument && Object.keys(fullYAMLDocument).length !== 0) {
+      }  else if (fullYAMLDocument && Object.keys(fullYAMLDocument).length !== 0) {
         
         setStoredValues(true);
         setOpenDialog(false);
         setOpenActionsMenu(true);
 
-        } else {
+        } 
+    else {
 
         setStoredValues(false);
         setOpenDialog(true);
@@ -466,7 +471,7 @@ export const Shamrock = ()=>{
 
        } 
 
-    },[shamrockValues, fullYAMLDocument])
+    },[shamrockValues, flevidenValues,  fullYAMLDocument])
 
 
 
@@ -536,26 +541,15 @@ export const Shamrock = ()=>{
       }
     }
 
-   
-    useEffect(()=>{
-        if(storedShamrockEdges && storedShamrockNodes && storedShamrockEdges.length!=0 && storedShamrockNodes.length != 0){
-            setEdges(storedShamrockEdges);
-            setNodes(storedShamrockNodes);
-        } 
-
-    },[])
 
 
     useEffect(()=>{
-        
         setNodes([]);
         setTimeout(() => setNodes(storedShamrockNodes), 0);
         setEdges(storedShamrockEdges);
     },[storedShamrockNodes, storedShamrockNodes])
 
-    useEffect(()=>{
 
-    },[])
 
     const fetchDataFirst = async () => {
       if(!pipelineName){
@@ -613,7 +607,27 @@ export const Shamrock = ()=>{
   
   }, [isPolling]);
 
+
+  const handleQueryParams = ()=>{
+
+    const selectedFederatedFramework = searchParams.get('framework');
+    if(!selectedFederatedFramework || (selectedFederatedFramework !== "fleviden" && selectedFederatedFramework !== "shamrock")){
+      navigate("/not-found")
+      return;
+    }
+
+    setFederatedPipelineFramework(selectedFederatedFramework);
+    dispatch(setSelectedFederatedFramework(selectedFederatedFramework));
+
+  }
+
+
   useEffect(()=>{
+
+    // search for query params
+    // if there are none or not ok just redirect user to 404 page
+    handleQueryParams();
+
     fetchDataFirst();
     if(shamrockWasSaved){
       setFetchingStatus(true);
@@ -621,12 +635,17 @@ export const Shamrock = ()=>{
       setFetchingStatus(false);
     }
 
-  },[])
-
-  useEffect(()=>{
     if(shamrockRunData){
       setRunData(shamrockRunData);
     }
+
+    if(storedShamrockEdges && storedShamrockNodes && storedShamrockEdges.length!=0 && storedShamrockNodes.length != 0){
+      setEdges(storedShamrockEdges);
+      setNodes(storedShamrockNodes);
+    } 
+
+    
+
   },[])
 
   useEffect(() => {
@@ -685,6 +704,7 @@ export const Shamrock = ()=>{
   }, [isPipelineStarted]);
 
 
+
   return(
     <div style={{ width: '100vw', height: '100vh' }}>
 
@@ -694,7 +714,7 @@ export const Shamrock = ()=>{
         </div>  
     }
 
-        { openDialog && <ShamrockDialog open={openDialog} handleClose={()=>{setOpenDialog(false)}}  setIsPipelineEditorOpen={setIsPipelineEditorOpen}/>}
+        { openDialog && <FederatedPipelineDialog open={openDialog} frameworkType={federatedPipelineFramework} handleClose={()=>{setOpenDialog(false)}}  setIsPipelineEditorOpen={setIsPipelineEditorOpen}/> }
 
         {
             openActionsMenu &&

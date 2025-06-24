@@ -31,7 +31,7 @@ import { useDispatch, useSelector } from 'react-redux';
 
 export default function DeletePipeline(props) {
   
-  const dispatch = useDispatch();
+  const dispatch = useDispatch(); 
   const preprocessingPipeline = useSelector((state)=> state.selectedPipelineDataPreprocessing);
   const trainingPipeline = useSelector((state)=> state.selectedPipelineTrain);
   const streamingPipeline = useSelector((state)=> state.selectedPipelineStreaming);
@@ -226,18 +226,18 @@ export default function DeletePipeline(props) {
                         <>
                             {
                                 filteredPipelines.map((value) => {
-                                    const labelId = `checkbox-list-secondary-label-${value}`;
+                                    const labelId = `checkbox-list-secondary-label-${value.name}`;
                                 
                                     return (
                                     <ListItem
-                                        key={value}
+                                        key={value.name}
                                         secondaryAction={
                                         <div className='dataset-select-toolbox'>
                                         
                                             <Checkbox
                                                 edge="end"
-                                                onChange={handleToggle(value)}
-                                                checked={checked.indexOf(value) !== -1}
+                                                onChange={handleToggle(value.name)}
+                                                checked={checked.indexOf(value.name) !== -1}
                                                 inputProps={{ 'aria-labelledby': labelId }}
                                             />
                                         </div>
@@ -245,11 +245,11 @@ export default function DeletePipeline(props) {
                                         disablePadding
                                     > 
                                         <ListItemButton onClick={()=>{ 
-                                            const currentIndex = checked.indexOf(value);
+                                            const currentIndex = checked.indexOf(value.name);
                                             const newChecked = [...checked];
                                             
                                             if (currentIndex === -1) {
-                                                newChecked.push(value);
+                                                newChecked.push(value.name);
                                             } else {
                                                 newChecked.splice(currentIndex, 1);
                                             }
@@ -260,7 +260,7 @@ export default function DeletePipeline(props) {
                                             <p className='select-dialog-list'><FontAwesomeIcon icon={faCodeBranch}/></p> 
                                         </ListItemAvatar>
                                         <ListItemText  id={labelId}  disableTypography
-                                        primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value)}</Typography>} />
+                                        primary={<Typography variant="body2" style={{ color: '#FFFFFF',fontSize:"1.3rem" }}>{formatString(value.name)}</Typography>} />
                                         </ListItemButton>
                                     </ListItem>
                                     );
@@ -303,5 +303,5 @@ export default function DeletePipeline(props) {
                </div>
 
     );
-
+ 
 }

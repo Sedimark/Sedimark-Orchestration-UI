@@ -123,7 +123,7 @@ export default function Plots(props) {
             onClose={props.handleClose}
             aria-labelledby="alert-dialog-title"
             aria-describedby="alert-dialog-description"
-            maxWidth="lg" fullWidth="lg"
+            maxWidth="md" fullWidth="md"
         >
             <DialogTitle id="alert-dialog-title">
             {"Metrics "}

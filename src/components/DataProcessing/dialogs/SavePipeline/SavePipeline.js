@@ -108,7 +108,7 @@ export default function SavePipeline(props) {
 
 
     const saveThePipeline = async()=>{
-        
+
         dispatch(setStoredPipelineName(pipelineName));
         setPipelineBeingCreated(true);
         
@@ -141,7 +141,7 @@ export default function SavePipeline(props) {
         try{
             const resp = await axios.post(TAG_PIPELINE,{
                 "name":pipelineName,
-                "tag": [pipeline_tag,"shamrock"]
+                "tags": [pipeline_tag]
             });
             setTimeout(()=>{
                 setAddTag(true);
@@ -446,7 +446,7 @@ export default function SavePipeline(props) {
                                 value={pipelineName}
                                 onChange={(event)=>{handleTextChange(event)}}
                                 onKeyDown={handleKeyDown}
-                                sx={{width:"400px", mt:"10px" }}
+                                sx={{width:"500px", mt:"10px" }}
                             />
                             <div className='info-icon-container'>
                                 <FontAwesomeIcon icon={faCircleInfo}/>
@@ -481,7 +481,7 @@ export default function SavePipeline(props) {
                 </div>
              }
               
-             <div ><span className="pipeline-being-created-text pipeline-name-container">Pipeline Name:</span>  {pipelineName}</div>                  
+             <div className='pipeline-name-wrapper'><span className="pipeline-being-created-text pipeline-name-container">Pipeline Name:</span>  {pipelineName}</div>                  
 
                 <div className='pipeline-save-step-container top-step'><span className={ createPipeline ? 'pipeline-save-step step-fullfilling' : 'pipeline-save-step' } >1</span> Create Pipeline </div>
                 <div className='pipeline-save-step-container'><span className={addTag ? 'pipeline-save-step step-fullfilling' : 'pipeline-save-step' }>2</span> Add Tag </div>
