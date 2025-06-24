@@ -21,12 +21,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 export default function SaveDialog(props) {
  
+  const selectedFederatedFramework = useSelector((state)=>state.selectedFederatedFramework);
+  const flevidenValues = useSelector((state) => state.flevidenValues);
   const shamrockPipelineName = useSelector((state)=> state.shamrockPipelineName);
   const shamrockIsPipelineNameValid = useSelector((state)=> state.shamrockIsPipelineNameValid)
   const shamrockValues = useSelector((state)=> state.shamrockValues);
   const shamrockNodes = useSelector((state)=> state.shamrockNodes);
   const fullYAMLDocument = useSelector((state)=> state.fullYAMLDocument);
-  const shamrockModelName = useSelector((state)=>state.shamrockModelName);
+  const federatedModelName = useSelector((state)=>state.federatedModelName);
   const [pipelineName, setPipelineName] = useState("");
   const [isPipelineNameValid, setIsPipelineNameValid] = useState(false);
   const [lowerCasePipelineName, setLowerCasePipelineName] = useState("");
@@ -89,86 +91,140 @@ export default function SaveDialog(props) {
 }
 
 
-const createFiles = async()=>{
+const createFiles = async(framework)=>{
+
 
     let finalYaml = "";
     let fullYAMLDocumentCopy ;
     const randomNumber = Math.floor(10000 + Math.random() * 90000);
 
 
-    if((!shamrockValues || Object.keys(shamrockValues).length !== 0)){
+    // here we check if we are talking either about some values that were inputted
+    // or we are talking about a file that was uploaded
+    if(framework == "shamrock"){
+         if((!shamrockValues || Object.keys(shamrockValues).length !== 0)){
+
+          
+            finalYaml =  {
+              node: {
+                port: 8182,
+                node_id: "server"
+              },
+              dataset: {
+                builtin_dataset: "mnist",
+                n_splits: shamrockValues["inputtedValues"]["n_splits"],
+                split_index: shamrockValues["inputtedValues"]["split_index"],
+                node_id: "server",
+                n_workers_torch: 0
+              },
+              topology: {
+                topology_name: shamrockValues["selectedDropdownValues"]["topology"],
+                local_epochs: shamrockValues["inputtedValues"]["local_epochs"],
+                max_iter: shamrockValues["inputtedValues"]["max_iter"],
+                log_file: "metrics.txt"
+              },
+              model: { 
+                model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${federatedModelName}`,
+                model:shamrockValues["selectedDropdownValues"]["model"],
+                optimizer: shamrockValues["selectedDropdownValues"]["optimizer"],
+                lr: shamrockValues["inputtedValues"]["lr"],
+                batch_size: shamrockValues["inputtedValues"]["batch_size"],
+                loss: shamrockValues["selectedDropdownValues"]["loss"],
+                metrics: ["accuracy_score"]
+              },
+              seed: randomNumber, ///creeaza un numar random :) 
+              framework: shamrockValues["selectedDropdownValues"]["framework"],
+              log_file: `/home/src/default_repo/configs/${pipelineName}/results/server.txt`,
+              stop_condition: {
+                condition: "fed_server",
+                max_aggr: shamrockValues["inputtedValues"]["max_aggr"],
+                max_time: shamrockValues["inputtedValues"]["max_time"],
+                metric_name: "accuracy_score",
+                metric_min: shamrockValues["inputtedValues"]["metric_min"]
+              }
+          };
+
+          } else {
+
+              // here we handle the case here wwe are dealing with an uploaded file
+              // and we try to extract values from it such that we can populate the final object
+
+            
+            fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
+            // fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
+            fullYAMLDocumentCopy["model"]["model_uri"]=`${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${federatedModelName}`;
+            // fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
+            fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
+            finalYaml = fullYAMLDocumentCopy;
+
+          }
+
+            finalYaml = yaml.dump(fullYAMLDocumentCopy);
+    } else if(framework == "fleviden"){
+      
+        if((!flevidenValues || Object.keys(flevidenValues).length !== 0)){
+
+          
+            finalYaml =  {
+              "DEBUG": flevidenValues["selectedDropdownValues"]["DEBUG"],
+              "VERBOSITY": flevidenValues["inputtedValues"]["VERBOSITY"],
+              "ROUNDS": flevidenValues["inputtedValues"]["ROUNDS"],
+              
+              "client": {
+                "ID": flevidenValues["inputtedValues"]["client_id"],
+                "SERVER": flevidenValues["inputtedValues"]["client_server"],
+                "EPOCHS": flevidenValues["inputtedValues"]["epochs"],
+                "BATCH_SIZE": flevidenValues["inputtedValues"]["batch_size"],
+                "DATA_PATH": flevidenValues["inputtedValues"]["client_data_path"],
+                "FEATURES": flevidenValues["features"],
+                "TARGETS": flevidenValues["clientTargets"],
+                "PD_ARGS": flevidenValues["pdArgs"],
+              },
+              
+              "server": {
+                "ID": flevidenValues["inputtedValues"]["server_id"],
+                "CLIENTS": flevidenValues["clients"],
+                "MIN_CLIENTS": flevidenValues["inputtedValues"]["min_clients"],
+                "DATA_PATH": flevidenValues["inputtedValues"]["server_data_path"],
+                "FEATURES": flevidenValues["serverFeatures"],
+                "TARGETS": flevidenValues["serverTargets"],
+                "PD_ARGS": flevidenValues["pdArgsServer"],
+              }
+            };
+
+          } else {
+
+              // here we handle the case here wwe are dealing with an uploaded file
+              // and we try to extract values from it such that we can populate the final object
+
+            
+            fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
+            finalYaml = fullYAMLDocumentCopy;
+
+          }
+
+            finalYaml = yaml.dump(fullYAMLDocumentCopy);
+
+    }
+    
+
+
+      try{
+        const resp = await axios.post(CREATE_FOLDER,{
+          type:"folder",
+          name:pipelineName,
+          path:"configs"
+        });
+
+      } catch(err){
+        setOpenError(true);
+        setErrorMessage("There was an error while creating the folder!");
+        props.alertUser("error");
+        return false;
+      }
+
 
     
-      finalYaml =  {
-        node: {
-          port: 8182,
-          node_id: "server"
-        },
-        dataset: {
-          builtin_dataset: "mnist",
-          n_splits: shamrockValues["inputtedValues"]["n_splits"],
-          split_index: shamrockValues["inputtedValues"]["split_index"],
-          node_id: "server",
-          n_workers_torch: 0
-        },
-        topology: {
-          topology_name: shamrockValues["selectedDropdownValues"]["topology"],
-          local_epochs: shamrockValues["inputtedValues"]["local_epochs"],
-          max_iter: shamrockValues["inputtedValues"]["max_iter"],
-          log_file: "metrics.txt"
-        },
-        model: { 
-          model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
-          model:shamrockValues["selectedDropdownValues"]["model"],
-          optimizer: shamrockValues["selectedDropdownValues"]["optimizer"],
-          lr: shamrockValues["inputtedValues"]["lr"],
-          batch_size: shamrockValues["inputtedValues"]["batch_size"],
-          loss: shamrockValues["selectedDropdownValues"]["loss"],
-          metrics: ["accuracy_score"]
-        },
-        seed: randomNumber, ///creeaza un numar random :) 
-        framework: shamrockValues["selectedDropdownValues"]["framework"],
-        log_file: `/home/src/default_repo/configs/${pipelineName}/results/server.txt`,
-        stop_condition: {
-          condition: "fed_server",
-          max_aggr: shamrockValues["inputtedValues"]["max_aggr"],
-          max_time: shamrockValues["inputtedValues"]["max_time"],
-          metric_name: "accuracy_score",
-          metric_min: shamrockValues["inputtedValues"]["metric_min"]
-        }
-    };
-
-    } else {
-
-
-      
-      fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
-      // fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
-      fullYAMLDocumentCopy["model"]["model_uri"]=`${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`;
-      // fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
-      fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
-      finalYaml = fullYAMLDocumentCopy;
-
-    }
-
-      finalYaml = yaml.dump(fullYAMLDocumentCopy);
-
-
-    try{
-      const resp = await axios.post(CREATE_FOLDER,{
-        type:"folder",
-        name:pipelineName,
-        path:"configs"
-      });
-
-    } catch(err){
-      setOpenError(true);
-      setErrorMessage("There was an error while creating the folder!");
-      props.alertUser("error");
-      return false;
-    }
-
-
     try{
       const resp = await axios.post(CREATE_FOLDER,{
         type:"folder",
@@ -224,7 +280,7 @@ const createFiles = async()=>{
 
     //check if
     
-    let wasFileCreationSuccesful = createFiles();
+    let wasFileCreationSuccesful = createFiles(selectedFederatedFramework);
 
     if(!wasFileCreationSuccesful){
       setErrorMessage("There was an error while saving the files!");
@@ -269,7 +325,16 @@ const createFiles = async()=>{
 
           const allBlocksData = [];
 
-            let blockName = "shamrock";
+            let blockName;
+
+            if(selectedFederatedFramework == "shamrock"){
+
+                blockName = "shamrock";
+
+            } else {
+                blockName = "fleviden_init";
+            }
+
             let resp;
 
             try{
@@ -287,7 +352,10 @@ const createFiles = async()=>{
 
 
             let code = resp.data.content.replaceAll("<pipeline_name>", pipelineName);
-            code = code.replaceAll("ws:mageapi:8000/mage/ws", "wss://endpoints.sedimark.work/mage/ws");
+            if(selectedFederatedFramework == "shamrock"){
+              code = code.replaceAll("ws:mageapi:8000/mage/ws", "wss://endpoints.sedimark.work/mage/ws");
+            }
+            
             
             let variables = resp.data.variables;
 
@@ -305,7 +373,7 @@ const createFiles = async()=>{
             allBlocksData.push(myBlock);
 
 
-            blockName = "shamrock_transformer";
+            blockName = selectedFederatedFramework == "shamrock" ? "shamrock_transformer" : "fleviden_transformer" ;
              
 
             try{
@@ -322,7 +390,10 @@ const createFiles = async()=>{
             }
             
              code = resp.data.content.replaceAll("<pipeline_name>", pipelineName);
-             code = code.replaceAll("ws:mageapi:8000/mage/ws", "wss://endpoints.sedimark.work/mage/ws");
+             if(selectedFederatedFramework == "shamrock"){
+              code = code.replaceAll("ws:mageapi:8000/mage/ws", "wss://endpoints.sedimark.work/mage/ws");
+            }
+             
              variables = resp.data.variables;
 
              myBlock = {

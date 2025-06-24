@@ -160,7 +160,6 @@ export const PipelineView = (props)=>{
 
     const startPipeline = React.useCallback(async () => {
 
-      
         let nrOfVars = 0;
         
         nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
@@ -270,6 +269,7 @@ export const PipelineView = (props)=>{
     }, [runStep, steps, pipelineName]);
 
     const runPipeline = React.useCallback(async (source) => {
+
         // aici ar fii pipeline starting code
         if (source === "button") {
             const result = await startPipeline();
@@ -500,6 +500,13 @@ export const PipelineView = (props)=>{
         }
 
     }, [pipelineName]);
+
+    useEffect(()=>{
+        console.log("runData:");
+        console.log(runData);
+        console.log("runData:");
+
+    },[runData])
 
     useEffect(()=>{
         

@@ -1,4 +1,4 @@
-export const expectedSchema = {
+export const expectedSchemaShamrock = {
     node: {
       port: "number",
       node_id: "string"
@@ -35,3 +35,30 @@ export const expectedSchema = {
     }
   };
   
+
+  export const expectedSchemaFleviden = {
+    DEBUG: "boolean",
+    VERBOSITY: "number",
+    ROUNDS: "number",
+    client: {
+        ID: "string",
+        SERVER: "string",
+        EPOCHS: "number",
+        BATCH_SIZE: "number",
+        MODEL_PATH: "string",
+        DATA_PATH: "string",
+        FEATURES: "array",
+        TARGETS: "array",
+        PD_ARGS: "object"  // Changed to an object type
+    },
+    server: {
+        ID: "string",
+        CLIENTS: "array",
+        MIN_CLIENTS: "number",
+        MODEL_PATH: "string",
+        DATA_PATH: "string",
+        FEATURES: "array",
+        TARGETS: "array",
+        PD_ARGS: "object"  // Changed to an object type
+    }
+};

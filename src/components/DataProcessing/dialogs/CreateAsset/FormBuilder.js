@@ -10,11 +10,11 @@ import {
 import { DatePicker } from "@mui/x-date-pickers/DatePicker"
 import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Add } from "@mui/icons-material"
 import dayjs from "dayjs"
 
-export default function FormBuilder({ fields, onSubmit }) {
+export const  FormBuilder = ({ fields, onSubmit }) => {
   // 1. Generează schema Zod
   const zodShape = {}
   fields.forEach((field) => {
@@ -43,115 +43,150 @@ export default function FormBuilder({ fields, onSubmit }) {
     }, {})
   })
 
-  const keywordInputs = React.useRef({}) // pentru a stoca keyword inputuri per field
+const [keywordInputs, setKeywordInputs] = React.useState({})
 
-  const addKeyword = (name) => {
-    const currentInput = keywordInputs.current[name]?.trim()
-    const currentValues = watch(name)
-    if (currentInput && !currentValues.includes(currentInput)) {
-      setValue(name, [...currentValues, currentInput])
-      keywordInputs.current[name] = ""
-    }
-  }
+// Adaugă un keyword într-un câmp de tip "keywords"
+const addKeyword = (name) => {
+  const currentInput = (keywordInputs[name] || "").trim()
+  const currentValues = watch(name)
 
-  const removeKeyword = (name, kw) => {
-    setValue(name, watch(name).filter((k) => k !== kw))
+  if (currentInput && !currentValues.includes(currentInput)) {
+    setValue(name, [...currentValues, currentInput]) // adaugă în RHF field array
+    setKeywordInputs(prev => ({ ...prev, [name]: "" })) // golește inputul vizual
   }
+}
+
+
+const removeKeyword = (name, kw) => {
+  const currentValues = watch(name)
+  setValue(name, currentValues.filter(k => k !== kw))
+}
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ maxWidth: 600, mx: "auto", mt: 4 }}>
-      <Stack spacing={3}>
-        {fields.map((field) => {
-          if (field.type === "string") {
-            return (
-              <Controller
-                key={field.name}
-                name={field.name}
-                control={control}
-                render={({ field: rhfField }) => (
-                  <TextField
-                    {...rhfField}
-                    label={field.label}
-                    error={!!errors[field.name]}
-                    helperText={errors[field.name]?.message}
-                    fullWidth
-                  />
-                )}
-              />
-            )
-          }
+    <div >
+         
+            <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ 
+                mx: "auto",
+                maxWidth: 750, 
+                mt: 4,
+                maxHeight: "100%",
+                backgroundColor:"#000",
+                borderRadius:"5px",
+                padding:"20px",
+                
+                maxHeight: '500px', // Set your desired max height
+                overflowY: 'auto', // Enable vertical scrolling when content exceeds maxHeight
 
-          if (field.type === "keywords") {
-            const kwName = field.name
-            const keywords = watch(kwName)
-            return (
-              <Box key={kwName}>
-                <Stack direction="row" spacing={1}>
-                  <TextField
-                    label={`Add ${field.label}`}
-                    value={keywordInputs.current[kwName] || ""}
-                    onChange={(e) => {
-                      keywordInputs.current[kwName] = e.target.value
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault()
-                        addKeyword(kwName)
-                      }
-                    }}
-                    fullWidth
-                  />
-                  <IconButton onClick={() => addKeyword(kwName)}>
-                    <Add />
-                  </IconButton>
-                </Stack>
-                <Box mt={1} sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                  {keywords.map((kw) => (
-                    <Chip key={kw} label={kw} onDelete={() => removeKeyword(kwName, kw)} />
-                  ))}
-                </Box>
-                {errors[kwName] && (
-                  <Box sx={{ color: "red", fontSize: "0.875rem", mt: 1 }}>
-                    {errors[kwName]?.message}
-                  </Box>
-                )}
-              </Box>
-            )
-          }
+                // overflowY: "auto",
+                pr: 2, // padding pentru a nu tăia conținutul la scroll
+                scrollbarWidth: "thin", // pentru Firefox
+                scrollbarColor: "#ccc transparent", // Firefox
+                "&::-webkit-scrollbar": {
+                  width: "6px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  backgroundColor: "#ccc",
+                  borderRadius: "3px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  backgroundColor: "transparent",
+                },
+                }}>
 
-          if (field.type === "date") {
-            return (
-              <Controller
-                key={field.name}
-                name={field.name}
-                control={control}
-                render={({ field: rhfField }) => (
-                  <DatePicker
-                    label={field.label}
-                    value={rhfField.value ? dayjs(rhfField.value) : null}
-                    onChange={(date) =>
-                      rhfField.onChange(date ? date.toDate() : null)
+                <Stack spacing={3}>
+                    {fields.map((field) => {
+                    if (field.type === "string") {
+                        return (
+                        <Controller
+                            key={field.name}
+                            name={field.name}
+                            control={control}
+                            render={({ field: rhfField }) => (
+                            <TextField
+                                {...rhfField}
+                                label={field.label}
+                                error={!!errors[field.name]}
+                                helperText={errors[field.name]?.message}
+                                fullWidth
+                            />
+                            )}
+                        />
+                        )
                     }
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        error: !!errors[field.name],
-                        helperText: errors[field.name]?.message
-                      }
-                    }}
-                  />
-                )}
-              />
-            )
-          }
 
-          return null
-        })}
+                    if (field.type === "keywords") {
+                        const kwName = field.name
+                        const keywords = watch(kwName)
+                        return (
+                        <Box key={kwName}>
+                            <Stack direction="row" spacing={1}>
+                            <TextField
+                                label={`Add ${field.label}`}
+                                value={keywordInputs[kwName] || ""}
+                                onChange={(e) => {
+                                setKeywordInputs(prev => ({ ...prev, [kwName]: e.target.value }))
+                                }}
+                                onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault()
+                                    addKeyword(kwName)
+                                }
+                                }}
+                                fullWidth
+                            />
+                            <IconButton onClick={() => addKeyword(kwName)}>
+                                <Add />
+                            </IconButton>
+                            </Stack>
+                            <Box mt={1} sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                            {keywords.map((kw) => (
+                                <Chip key={kw} label={kw} onDelete={() => removeKeyword(kwName, kw)} />
+                            ))}
+                            </Box>
+                            {errors[kwName] && (
+                            <Box sx={{ color: "red", fontSize: "0.875rem", mt: 1 }}>
+                                {errors[kwName]?.message}
+                            </Box>
+                            )}
+                        </Box>
+                        )
+                    }
 
-        <Button type="submit" variant="contained" color="primary">
-          Submit
-        </Button>
-      </Stack>
-    </Box>
+                    if (field.type === "date") {
+                        return (
+                        <Controller
+                            key={field.name}
+                            name={field.name}
+                            control={control}
+                            render={({ field: rhfField }) => (
+                            <DatePicker
+                                label={field.label}
+                                value={rhfField.value ? dayjs(rhfField.value) : null}
+                                onChange={(date) =>
+                                rhfField.onChange(date ? date.toDate() : null)
+                                }
+                                slotProps={{
+                                textField: {
+                                    fullWidth: true,
+                                    error: !!errors[field.name],
+                                    helperText: errors[field.name]?.message
+                                }
+                                }}
+                            />
+                            )}
+                        />
+                        )
+                    }
+
+                    return null
+                    })}
+
+                    <Button type="submit" variant="contained" color="primary">
+                    Submit
+                    </Button>
+                </Stack>
+                </Box>
+    </div>
+   
   )
 }

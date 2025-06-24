@@ -35,7 +35,6 @@ export const ShamrockInput = ({
         isFullFormValid,
         losses,
         saveData
-
     })=>{
 
         
@@ -52,9 +51,9 @@ export const ShamrockInput = ({
 
     return(
          <div className="shamrock-dialog-options-content">
-        
+                 <div className="federated-framework-title"> SHAMROCK </div>
                 <div className="shamrock-dialog-options-section">
-
+                           
                         <div className="shamrock-dialog-options-section-title"> Dataset </div>
 
                             <div>
@@ -184,14 +183,11 @@ export const ShamrockInput = ({
                     </div>
 
                     <div className="shamrock-dialog-options-section">
-                                        {/* Here */}
+                                        
                         <div className="shamrock-dialog-options-section-title"> Model </div>
                             
                         <div>
-                                {/* 
-                                        This is an input for multiple choice
-                                        - optimizer: CentralTopology, GossipClientTopology, FederatedServerTopology, FederatedClientTopology,
-                                */}
+                               
 
                                 <FormControl sx={{  width: "90%", mb:"10px" }}>
                                         <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> model </div>  

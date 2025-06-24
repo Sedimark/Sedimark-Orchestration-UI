@@ -26,8 +26,7 @@ export const FlevidenInput = ({
     setDropdownValue,
     inputtedValues,
     handleSetValues,
-    valueChanged,
-    isFullFormValid,
+    modelList,
     saveData,
     features,
     setFeatures,
@@ -41,7 +40,12 @@ export const FlevidenInput = ({
     setClients,
     pdArgsServer,
     setPdArgsServer,
-    setValueChanged
+    setValueChanged,
+    serverFeatures,
+    setServerFeatures,
+    isFullFormValid,
+    valueChanged
+
     })=>{
 
       const ITEM_HEIGHT = 48;
@@ -108,6 +112,7 @@ export const FlevidenInput = ({
 
     return(
              <div className="shamrock-dialog-options-content">
+                    <div className="federated-framework-title"> FLEVIDEN </div>
                   <div className="shamrock-dialog-options-section">
                         <div className="shamrock-dialog-options-section-title"> General params </div>
                          <div>
@@ -143,6 +148,37 @@ export const FlevidenInput = ({
                               </FormControl>
 
                           </div>
+
+                          <div>
+                                <FormControl sx={{  width: "90%", mb:"10px" }}>
+                                        <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> Model </div>  
+                                            <InputLabel id="demo-multiple-name-label"></InputLabel>
+                                            <Select
+                                            labelId="demo-multiple-name-label"
+                                            id="demo-multiple-name"
+                                            value={selectedDropdownValues ? selectedDropdownValues["model"] : ""}
+                                            onChange={(event)=>{  setDropdownValue(event.target.value, "model","fleviden") }}
+                                            input={<OutlinedInput label="Name" />}
+                                            MenuProps={MenuProps}
+                                            className="shamrock-control-input"
+                                            >
+
+                                            {   
+                                                modelList.map((variableName) => (
+                                                    <MenuItem
+                                                    key={variableName}
+                                                    value={variableName}
+                                                    
+                                                    >
+                                                    {variableName}
+                                                    </MenuItem>
+                                                        )) 
+                                            }
+
+                                            </Select>                                          
+                                    </FormControl>
+                                    
+                                </div>
                           <div>
                             {/* 
                                 This is an input for numbers
@@ -170,15 +206,13 @@ export const FlevidenInput = ({
                                     />
                                 <div className='variable-description centered-variable-description'>  Values should be positive integers </div>
                             </FormControl>
+                            
+     
+
                         </div>
 
                         <div>
-                            {/* 
-                                This is an input for numbers
-
-                                - rounds: 1
-                                //mapeaza corect
-                            */}
+                        
                             <FormControl key={'11'} sx={{ marginBottom: "30px", width: "90%" }}>
                                 <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
                                 <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> ROUNDS </div> 
@@ -315,13 +349,8 @@ export const FlevidenInput = ({
 
 
                         
-                        <div>
-                            {/* 
-                                This is an input for numbers
-
-                                - rounds: 1
-                                //mapeaza corect
-                            */}
+                        {/* <div>
+                          
                             <FormControl key={'10'} sx={{ marginBottom: "30px", width: "90%" }}>
                                 <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
                                 <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> MODEL_PATH </div> 
@@ -335,7 +364,7 @@ export const FlevidenInput = ({
                                     />
                                 <div className='variable-description centered-variable-description'>  Path where the client model is hosted </div>
                             </FormControl>
-                        </div>
+                        </div> */}
 
                         <div>
                             {/* 
@@ -562,13 +591,8 @@ export const FlevidenInput = ({
                             </FormControl>
                         </div>
 
-                         <div>
-                            {/* 
-                                This is an input for numbers
-
-                                - rounds: 1
-                                //mapeaza corect
-                            */}
+                         {/* <div>
+                            
                             <FormControl key={'10'} sx={{ marginBottom: "30px", width: "90%" }}>
                                 <FormHelperText sx={{ fontSize:"1.1rem" }}></FormHelperText>
                                 <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> MODEL_PATH </div> 
@@ -582,7 +606,7 @@ export const FlevidenInput = ({
                                     />
                                 <div className='variable-description centered-variable-description'>  Where the model that the server is training is located </div>
                             </FormControl>
-                        </div>
+                        </div> */}
 
                         <div>
                             {/* 
@@ -639,6 +663,40 @@ export const FlevidenInput = ({
                                 </FormControl>
 
                         </div>
+
+                         <div>
+                            <FormControl sx={{ marginBottom: "30px", width: "90%" }}>
+                                    <FormHelperText sx={{ fontSize: "1.1rem" }}>
+                                        FEATURES
+                                    </FormHelperText>
+
+                                    {serverFeatures.map((feature, index) => (
+                                        <div key={index} style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                                        <TextField
+                                            fullWidth
+                                            placeholder={`feature name`}
+                                            value={feature}
+                                            onChange={(e) => handleListChange(serverFeatures, setServerFeatures, index, e.target.value)}
+                                            className="shamrock-control-input"
+                                        />
+                                        <IconButton onClick={() => removeStoreVar(index, serverFeatures, setServerFeatures)} aria-label="delete">
+                                            <Delete />
+                                        </IconButton>
+                                        </div>
+                                    ))}
+
+                                <div className="add-feature-btn-container">
+                                    <IconButton onClick={()=>{ addToStoreVar(serverFeatures, setServerFeatures)}} className="add-item-btn-federated" aria-label="add">
+                                        <Add />
+                                    </IconButton>
+                                </div>                                    
+
+                                    <div className='variable-description centered-variable-description'>
+                                        Add features
+                                    </div>
+                                </FormControl>
+
+                        </div>
                         
                          <div> 
                                  <FormControl sx={{ marginBottom: "30px", width: "90%" }}>
@@ -686,7 +744,7 @@ export const FlevidenInput = ({
 
                   </div>
                 <div className="shamrock-options-dialog-save-btn">
-                        <Button variant="contained" sx={{marginTop:"5px", width:"90px" }} disabled={!valueChanged || !isFullFormValid} onClick={()=>{saveData()}}>Save</Button>
+                        <Button variant="contained" sx={{marginTop:"5px", width:"90px" }} disabled={!valueChanged || !isFullFormValid} onClick={()=>{saveData("fleviden")}}>Save</Button>
                 </div>
 
           

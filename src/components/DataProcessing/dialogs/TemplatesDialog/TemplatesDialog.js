@@ -6,7 +6,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
-import {GET_PIPELINE_TEMPLATES, FETCH_PIPELINE_DATA, POST_TEMPLATE } from "../../../../utils/apiEndpoints";
+import {GET_PIPELINE_TEMPLATES, FETCH_PIPELINE_DATA, POST_TEMPLATE, CREATE_TRIGGER } from "../../../../utils/apiEndpoints";
 import { faBoxOpen, faArrowLeft,faCircleInfo, faCircleXmark,faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons';
 import {useDispatch} from 'react-redux';
 import {checkAndFormat} from "../../../../utils/checkAndFormat";
@@ -20,6 +20,7 @@ import { useNavigate } from 'react-router-dom';
 import formatName from '../../../../utils/formatName';
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { truncateString } from '../../../../utils/truncateString';
 import style from "./TemplatesDialog.css";
 
 
@@ -221,6 +222,28 @@ export default function TemplatesDialog(props) {
           blockAlert("Error!");
         }
 
+        // aici ii dam un trigger
+        const newDate = Date.now();
+
+        try{
+          const response = await axios.post(CREATE_TRIGGER,{
+            name: formatName(pipelineName),
+            trigger_type:"api",
+            interval:"",
+            start_time:newDate,
+        });
+      
+        } catch(err){
+          
+            console.log(err);
+            toast.error("There was an error when creating a trigger for the pipeline!", {
+              duration: 2000,
+              position: 'top-right',
+          });
+        
+          return ;
+        }
+
   }
  
   const handleBack = ()=>{
@@ -349,7 +372,7 @@ export default function TemplatesDialog(props) {
                                                 return (<div>
                                                             <div className='catalog-pipeline-container'>
                                                               <div className='catalog-block-container-data-loader-title' title={`template`}>
-                                                                  {temp.name}
+                                                                  {truncateString(temp.name,19)}
                                                               </div>
                                                                 <FontAwesomeIcon icon={faCircleInfo}  className=""/> 
                                                               <div>
@@ -366,7 +389,7 @@ export default function TemplatesDialog(props) {
                                                             checked = {selectedPipelineTemplate === temp}
                                                           />
                                                           </div>)
-                
+                 
                                               })}
                                             </div>
                                         }

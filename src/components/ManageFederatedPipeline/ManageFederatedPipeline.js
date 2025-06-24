@@ -10,7 +10,7 @@ import CustomEdge from "../CustomEdge/CustomEdge.js";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faPenToSquare, faCircleInfo, faFloppyDisk, faFileArrowUp, faSpinner, faCircleStop, faCirclePlay, faChartLine, faTrashCan} from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom'; 
-import { setShamrockFileName, setShamrockValues,  setSharmockPipelineName, setFullYAMLDocument, setShamrockWasSaved, setShamrockLastSavedPipeline } from "../../reducers/nodeSlice.js";
+import { setShamrockFileName, setShamrockValues,  setSharmockPipelineName, setFullYAMLDocument, setShamrockWasSaved, setShamrockLastSavedPipeline, setSelectedFederatedFramework } from "../../reducers/nodeSlice.js";
 import { FederatedPipelineDialog } from "../DataProcessing/dialogs/FederatedPipelineDialog/FederatedPipelineDialog.js";
 import SaveDialog from "../DataProcessing/dialogs/SaveDialog/SaveDialog.js";
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
@@ -52,6 +52,7 @@ const CustomTooltip = styled(({ className, ...props }) => (
 export const ManageFederatedPipeline = ()=>{
 
     const lastSavedPipeline = useSelector((state)=> state.shamrockLastSavedPipeline);
+    const flevidenValues = useSelector((state) => state.flevidenValues);
     const wasPipelineSaved = useSelector((state)=> state.shamrockWasSaved);
     const pipelineName = useSelector((state)=> state.shamrockPipelineName);
     const shamrockValues = useSelector((state)=> state.shamrockValues);
@@ -360,7 +361,7 @@ export const ManageFederatedPipeline = ()=>{
                   log_file: "metrics.txt"
                 },
                 model: {
-                  // model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`,
+                  // model_uri: `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${federatedModelName}`,
                   model:"simple_cnn",
                   optimizer: shamrockValues["selectedDropdownValues"]["framework"],
                   lr: shamrockValues["inputtedValues"]["lr"],
@@ -387,7 +388,7 @@ export const ManageFederatedPipeline = ()=>{
               fullYAMLDocumentCopy = JSON.parse(JSON.stringify(fullYAMLDocument));
               fullYAMLDocumentCopy["model"]["model"]="simple_cnn";
               fullYAMLDocumentCopy["topology"]["topology_name"]="CentralTopology";
-              // fullYAMLDocumentCopy["model"]["model_uri"] = `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${shamrockModelName}`
+              // fullYAMLDocumentCopy["model"]["model_uri"] = `${process.env.REACT_APP_MLFLOW_API_URL}/model/package?name=${federatedModelName}`
               fullYAMLDocumentCopy["log_file"] = `/home/src/default_repo/configs/${pipelineName}/results/server.txt`;
               finalYaml = fullYAMLDocumentCopy;
             }
@@ -449,7 +450,7 @@ export const ManageFederatedPipeline = ()=>{
 
     useEffect(()=>{
 
-    if (storedShamrockValues && Object.keys(storedShamrockValues).length !== 0) {
+    if ((storedShamrockValues && Object.keys(storedShamrockValues).length !== 0) ||(flevidenValues && Object.keys(flevidenValues).length !== 0)) {
         
         setStoredValues(true);
         setOpenDialog(false);
@@ -470,7 +471,7 @@ export const ManageFederatedPipeline = ()=>{
 
        } 
 
-    },[shamrockValues, fullYAMLDocument])
+    },[shamrockValues, flevidenValues,  fullYAMLDocument])
 
 
 
@@ -543,7 +544,6 @@ export const ManageFederatedPipeline = ()=>{
 
 
     useEffect(()=>{
-        
         setNodes([]);
         setTimeout(() => setNodes(storedShamrockNodes), 0);
         setEdges(storedShamrockEdges);
@@ -617,7 +617,8 @@ export const ManageFederatedPipeline = ()=>{
     }
 
     setFederatedPipelineFramework(selectedFederatedFramework);
-    
+    dispatch(setSelectedFederatedFramework(selectedFederatedFramework));
+
   }
 
 

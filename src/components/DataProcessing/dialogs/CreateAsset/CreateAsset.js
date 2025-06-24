@@ -8,7 +8,17 @@ import DialogActions from '@mui/material/DialogActions';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { validateNgsiLdString } from "../../../../utils/ngsiLdValidate";
 import { CREATE_ASSET } from "../../../../utils/apiEndpoints";
+import { LocalizationProvider } from '@mui/x-date-pickers'
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowLeft } from '@fortawesome/free-solid-svg-icons';
 import { FormBuilder } from "./FormBuilder";
+import {
+  formSchemaWorkflowAsset,
+  serviceAsset,
+  dataAsset,
+  AIModelAsset
+} from "../../../../utils/assetTypes";
 import style from "./CreateAsset.css";
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -23,14 +33,8 @@ export default function CreateAsset(props) {
   const [editorValue, setEditorValue] = useState();
   const [asset, setAsset] = useState({});
   const [formDisplay, setFormDisplay] = useState(false);
-  const formFields = [
-
-  { name: "title", label: "Titlu", type: "string" },
-  { name: "tags", label: "Cuvinte cheie", type: "keywords" },
-  { name: "startDate", label: "Data început", type: "date" }
-
-  ]
-
+  const [selectedAssetType, setSelectedAssetType] = useState("");
+  
     const blockAlert = (msg) => {
         toast.error(msg, {
             duration: 4000,
@@ -58,13 +62,30 @@ export default function CreateAsset(props) {
       props.handleClose()
   }
 
-  const generateAndDisplayForm = ()=>{
+  const getSchemaBasedOffAsset = ()=> {
+
+    switch(selectedAssetType){
+      case "workflow":
+        return formSchemaWorkflowAsset;
+      case "data":
+        return dataAsset;
+      case "AIModel":
+        return AIModelAsset;
+      case "service" :
+        return serviceAsset
+
+    }
+  }
+
+
+  const generateAndDisplayForm = (assetType)=>{
+    setSelectedAssetType(assetType);
     setFormDisplay(true);
     //here we generate the form based on what is the requirement
   }
 
    const handleSubmit = ()=>{
-     console.log("Form data:", data);
+     
    }
 
   return(
@@ -76,22 +97,37 @@ export default function CreateAsset(props) {
                     aria-describedby="alert-dialog-description" 
                     maxWidth="md" 
                     fullWidth={true}
+                  
                 >
  
-                <DialogTitle id="alert-dialog-title">
-                    
+                <DialogTitle id="alert-dialog-title"> 
+                  {formDisplay &&
+                      <div className="left-back-icon">
+                          <FontAwesomeIcon icon={faArrowLeft}  onClick={()=>{setFormDisplay(false)}} className="left-icon-studio"/>
+                      </div>    
+                  }
+                        
                     <div className="close-button-save-pipeline" onClick={props.handleClose}> x </div>
                 </DialogTitle>
-                <DialogContent>
-                <DialogContentText id="alert-dialog-description">
+                <DialogContent 
+                    sx={{
+                        
+                      display: "flex",
+                      flexDirection: "column",
+                    }}
+                 >
+                <DialogContentText id="alert-dialog-description" >
 
               {
                   formDisplay ?
-                  <div>
-                      <FormBuilder fields={formFields} onSubmit={handleFormSubmit}/>
+                  <div className="form-container-dialog-inside">
+                       <LocalizationProvider dateAdapter={AdapterDayjs}>
+                          <FormBuilder fields={getSchemaBasedOffAsset()} onSubmit={handleSubmit} />
+                       </LocalizationProvider>
+                      
                   </div>
                   :
-                  <>
+                  <div className="asset-type-select-btn"> 
                     <div className="select-asset-type">Select what kind of asset you want to create:</div>
 
                         <div className="type-of-asset-btns">
@@ -99,32 +135,32 @@ export default function CreateAsset(props) {
                               marginTop: '',
                               marginLeft: '45%',
                               width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                            }}  onClick={()=>{generateAndDisplayForm("workflow")}}>
                               Workflow  
                             </Button>
                             <Button variant='contained' color='primary'   sx={{ 
                               marginTop: '10px',
                               marginLeft: '45%',
                               width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                            }}  onClick={()=>{generateAndDisplayForm("data")}}>
                               Data  
                             </Button>
                             <Button variant='contained' color='primary'   sx={{ 
                               marginTop: '10px',
                               marginLeft: '45%',
                               width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                            }}  onClick={()=>{generateAndDisplayForm("AIModel")}}>
                               AI Model  
                             </Button>
                             <Button variant='contained' color='primary'   sx={{ 
                               marginTop: '10px',
                               marginLeft: '45%',
                               width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm()}}>
+                            }}  onClick={()=>{generateAndDisplayForm("service")}}>
                               Service  
                             </Button>
                       </div>
-                  </>
+                  </div>
               }
 
                 </DialogContentText>

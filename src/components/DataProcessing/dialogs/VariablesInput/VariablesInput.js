@@ -363,21 +363,37 @@ export default function VariablesInput(props){
       const obj = {...variablesInput};
       const errorMonitorObj = {};
       
-      
-
       for(const value of data){
-
+      
         if(value.type === "multiple_selection"){
-          obj[value.varName] = [];
+
+          if(value.default_value){
+            obj[value.varName] = [value.default_value];
+          } else {
+            obj[value.varName] = [];
+          }
+          
           errorMonitorObj[value.varName] = false;
         } else if (value.type === "drop_down") {
+          
+          if(value.default_value){
+            obj[value.varName] = [value.default_value];
+          } else {
             obj[value.varName] = [];
+          }
+
             const updatedDropdownValues = dropdownValues;
             updatedDropdownValues[value.varName]  = value["values"];
             setDropDownValues(updatedDropdownValues);
             errorMonitorObj[value.varName] = false;
         } else if(value.type === "number" || value.type === "int"){
-                obj[value.varName] = "";
+            
+            if(value.default_value){
+            obj[value.varName] = `${value.default_value}`;
+            } else {
+              obj[value.varName] = "";
+            }
+
             if(value.range){
               const newRules = rulesForVariables;
               newRules[value.varName] = value.range;
@@ -386,6 +402,13 @@ export default function VariablesInput(props){
             errorMonitorObj[value.varName] = false;
         } else if(value.type === "string" || value.type === "str" || value.type === "secret" ){
                 obj[value.varName] = "";
+
+                if(value.default_value){
+                obj[value.varName] = `${value.default_value}`;
+                } else {
+                  obj[value.varName] = "";
+                }
+
                 if(value.regex){
                   const newRules = rulesForVariables;
                   newRules[value.varName] = value.regex;
@@ -394,6 +417,13 @@ export default function VariablesInput(props){
                 errorMonitorObj[value.varName] = false;
         } else if(value.type === "date"){
           obj[value.varName] = [];
+          
+            if(value.default_value){
+                  obj[value.varName] = [value.default_value];
+            } else {
+                  obj[value.varName] = [];
+            }
+
           errorMonitorObj[value.varName] = false;
         }
       }
@@ -411,6 +441,7 @@ export default function VariablesInput(props){
         obj[block.variable_name] = block.value;
       }
      }
+
       setVariablesInput(obj);
       setHasInputError(errorMonitorObj);
    }
