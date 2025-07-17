@@ -41,7 +41,7 @@ export default function GenerateBlocks(props) {
     /* Those values are related to block generation trough socket */
     const errorWhileGenerating = useSelector((state)=> state.errorWhileGenerating);
     const socketBlockIsGenerating = useSelector((state)=> state.socketBlockIsGenerating);
-    // const blockWasGenerated = useSelector((state)=> state.blockWasGenerated);
+    const blockWasGenerated = useSelector((state)=> state.blockWasGenerated);
     const generatedBlockResult = useSelector((state)=> state.generatedBlockResult);
     /*-- ^ -- */
 
@@ -182,9 +182,9 @@ export default function GenerateBlocks(props) {
     const defaultEditorValue = "";
     const pingInterval = useRef(null);
 
-    // useEffect(()=>{
-    //   setGeneratedBlockType(storedBlockType);
-    // },[storedBlockType])
+    useEffect(()=>{
+      setGeneratedBlockType(storedBlockType);
+    },[storedBlockType])
 
     const MenuProps = {
       PaperProps: {
@@ -201,11 +201,11 @@ export default function GenerateBlocks(props) {
         },
       });
 
-    // useEffect(()=>{
+    useEffect(()=>{
 
-    //   setThereWasAnError(errorWhileGenerating);
-    //   dispatch(setNotifyBlockGenerated(false));
-    // },[errorWhileGenerating])
+      setThereWasAnError(errorWhileGenerating);
+      dispatch(setNotifyBlockGenerated(false));
+    },[errorWhileGenerating])
     
     
     const sendMessageToWS = () => {
@@ -228,7 +228,7 @@ export default function GenerateBlocks(props) {
     };
 
      const resetGeneration = ()=>{
-      //  setEditorValue("");
+       setEditorValue("");
        setBlockCode("");
        setBlockResultsGenerated(false);
 
@@ -268,17 +268,17 @@ export default function GenerateBlocks(props) {
     useEffect(()=>{
      
        
-        // setEditorValue(generatedBlockCode);
-        // setBlockCode(generatedBlockCode);
+        setEditorValue(generatedBlockCode);
+        setBlockCode(generatedBlockCode);
         if(generatedBlockCode.length != 0){
           setBlockResultsGenerated(true);
         }
     },[generatedBlockCode])
 
 
-    // useEffect(()=>{
-    //   setGeneratedBlockName(storedGeneratedBlockName);
-    // },[storedGeneratedBlockName])
+    useEffect(()=>{
+      setGeneratedBlockName(storedGeneratedBlockName);
+    },[storedGeneratedBlockName])
 
     
 
@@ -327,8 +327,8 @@ export default function GenerateBlocks(props) {
       setBlockCode(message.generation);
       setBlockResultsGenerated(true);
       setBlockIsGenerating(false);
-      // setEditorValue(message.generation);
-// 
+      setEditorValue(message.generation);
+
       blockResultsRef.current = true; // Update ref value
 
       dispatch(setGeneratedBlockCode(message.generation));
@@ -422,7 +422,7 @@ export default function GenerateBlocks(props) {
             <DialogContentText id="alert-dialog-description">
                 <div className='prompt-box-container'>
                    
-                    {/* {
+                     {
                         !blockIsGenerating && !thereWasAnError && !blockResultsGenerated && 
                         <div className='prompt-input-container'>
                             
@@ -478,9 +478,9 @@ export default function GenerateBlocks(props) {
 
                             </div>
                         </div>
-                    } */}
+                    } 
                 
-                    {/* {
+                    {
                         blockIsGenerating && !thereWasAnError && 
                             <div className='block-generating-container'>
                                 <div class="loader loader-centered">
@@ -495,11 +495,11 @@ export default function GenerateBlocks(props) {
                                 </div>
                                 
                             </div>
-                    } */}
+                    }
 
                 
-                 {/* { !blockIsGenerating && !thereWasAnError && !blockResultsGenerated && <Button className="generate-block-btn" disabled={message.length == 0 || !generatedBlockType ||generatedBlockType.length == 0} onClick={()=>{sendMessage(); setBlockIsGenerating(true);  dispatch(setStoredBlockIsGenerating(true))}} variant='contained'> Generate </Button>}    */}
-                 {/* {blockResultsGenerated && !thereWasAnError &&  */}
+                 { !blockIsGenerating && !thereWasAnError && !blockResultsGenerated && <Button className="generate-block-btn" disabled={message.length == 0 || !generatedBlockType ||generatedBlockType.length == 0} onClick={()=>{sendMessage(); setBlockIsGenerating(true);  dispatch(setStoredBlockIsGenerating(true))}} variant='contained'> Generate </Button>}   
+                 {blockResultsGenerated && !thereWasAnError && 
                   <div className='generated-block-results-container'>
                     {
                       !editorToggle &&
@@ -539,7 +539,7 @@ export default function GenerateBlocks(props) {
                               scrollBeyondLastLine: false,
                               contextmenu: false
                             }} height="60vh" className='code-editor' defaultLanguage="python" editable={false}  theme="vs-dark" value={editorValue} onChange={()=>{
-                              // setEditorValue(defaultEditorValue)
+                              setEditorValue(defaultEditorValue)
                               
                               }} />
 
@@ -548,7 +548,7 @@ export default function GenerateBlocks(props) {
                   
         
                   </div>
-                 {/* } */}
+                 }
                    {
                       thereWasAnError && 
                       <div className='error-container'>

@@ -30,6 +30,7 @@ import {checkAndFormat} from "../../../../utils/checkAndFormat";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {  setBlocksVariables, setSelectedTab} from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import toast from 'react-hot-toast';
 import style from "./PipelineSelectDialog.css";
 
 
@@ -53,6 +54,7 @@ export default function PipelineSelectDialog(props) {
   const [hasError, setHasError] = React.useState(false);
   const [foundPipeline, setFoundPipeline] = React.useState(false);
   const [pipelineType , setPipelineType] = React.useState("") ;
+  const [noValueSelected, setNoValueSelected] = React.useState(true);
 
   const darkTheme = createTheme({
     palette: {
@@ -111,6 +113,9 @@ export default function PipelineSelectDialog(props) {
     setfilteredPipelines(updatedPipelines);
   }
 
+  const blockNotifyError = (text)=>{
+    toast.alert(text);
+  }
 
    const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
     
@@ -118,13 +123,18 @@ export default function PipelineSelectDialog(props) {
       
       try{
         const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
-
+        console.log(resp);
         pipeline_blocks = resp.data.pipeline.blocks;
 
       } catch(err){
         console.log(err);
+        blockNotifyError("There was an error while fetching the pipeline");
+        return;
       }
  
+
+      console.log("pipeline_blocks:");
+      console.log(pipeline_blocks);
 
       let blocksInfoObj ;
       if(storedPipelineBlocks){
@@ -222,6 +232,7 @@ export default function PipelineSelectDialog(props) {
         setPipelineType(value.tag); 
         setOnlyOneOptionSelected(false);
         setFoundPipeline(false);
+        setNoValueSelected(false);
     }
  }
  
@@ -271,7 +282,32 @@ export default function PipelineSelectDialog(props) {
                   </Paper>
                 
                
-                     <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px", borderRadius:"3px" }}>
+                     <List dense sx={{ 
+                          width: '100%', 
+                          bgcolor: 'background.paper', 
+                          marginTop: "10px", 
+                          borderRadius: "3px", 
+                          height: "500px", 
+                          overflowY: "scroll",
+                          // Scrollbar styling
+                          '&::-webkit-scrollbar': {
+                            width: '6px',
+                          },
+                          '&::-webkit-scrollbar-track': {
+                            background: 'rgba(0, 0, 0, 0.1)',
+                            borderRadius: '10px',
+                          },
+                          '&::-webkit-scrollbar-thumb': {
+                            background: 'rgba(128, 128, 128, 0.3)',
+                            borderRadius: '10px',
+                            '&:hover': {
+                              background: 'rgba(128, 128, 128, 0.5)',
+                            },
+                          },
+                          // Firefox
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: 'rgba(128, 128, 128, 0.3) rgba(0, 0, 0, 0.1)',
+                        }}>
                        <ListItem
                           key={"my-key"}
                           secondaryAction={
@@ -363,7 +399,7 @@ export default function PipelineSelectDialog(props) {
               </DialogContent>
               <DialogActions>
                 <Button onClick={props.handleClose}>Close</Button>
-                <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}} disabled={onlyOneOptionSelected || isLoading || hasError || foundPipeline }>Apply</Button>
+                <Button onClick={()=>{props.handleClose();  addCorespondingPipeline()}} disabled={onlyOneOptionSelected || isLoading || hasError || noValueSelected  }>Load</Button>
               </DialogActions>
             
         </Dialog>

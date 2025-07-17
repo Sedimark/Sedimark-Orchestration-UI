@@ -48,6 +48,7 @@ import Box from '@mui/material/Box';
 import Flow from "../Flow/Flow";
 import DialogActions from "@mui/material/DialogActions";
 import CircularProgress from '@mui/material/CircularProgress';
+import style from "./PipelineView.css"
 
 
 const CustomTooltip = styled(({ className, ...props }) => (
@@ -453,7 +454,7 @@ export const PipelineView = (props)=>{
 
 
 
-    //aici se verifica daca pipeline-ul este pornit sau nu si daca il salveaza in local storage
+    
 
     useEffect(() => {
         if (pipelineName.length > 0) {
@@ -707,8 +708,12 @@ export const PipelineView = (props)=>{
                                         props.pipelineType === "streaming" ?
                                         <div className="side-info-container-small">
                                                                                    
-                                            <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName): formatString(pipelineName)}`}>
-                                                <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
+                                            <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName): formatString(pipelineName)}`} overlayStyle={{ 
+                                                fontSize: '16px',
+                                                maxWidth: '300px',
+                                                padding: '10px'
+                                            }} >
+                                                <Button><FontAwesomeIcon icon={faCircleInfo}   className="info-icon-side-small"/>   </Button>
                                             </Tooltip>
 
                                            </div>

@@ -232,7 +232,6 @@ export default memo(({ data, isConnectable }) => {
 
 
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
-     
       
       const allVarsData = [];
       for(const varValue of Object.keys(data.config)){
