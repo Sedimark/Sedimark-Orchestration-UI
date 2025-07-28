@@ -46,6 +46,14 @@ export default function PipelineManager(props) {
             aria-describedby="alert-dialog-description"
             fullWidth="lg"
             maxWidth="lg"
+            {...( deleteMenu && {
+            PaperProps: {
+            style: {
+                height: "750px",
+                maxHeight: "750px"
+                  }
+              }
+          })}
         >
             <DialogTitle id="alert-dialog-title">
             {!initialMenu && 

@@ -497,7 +497,7 @@ function Flow(props) {
 
   useEffect(()=>{ 
     setSelectedPipeline([props.pipelineName]);
-  },[])
+  },[props.pipelineName])
 
 
 

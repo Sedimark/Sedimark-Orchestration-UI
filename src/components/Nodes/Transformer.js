@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState } from 'react';
 import { Handle, Position } from 'reactflow';
 import styles from "./BaseNodesStyles.css";
+import toast from 'react-hot-toast';
 import { styled } from '@mui/material/styles';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { useSelector } from "react-redux/es/hooks/useSelector";
@@ -20,6 +21,8 @@ import { faArrowUpRightFromSquare, faPencil, faListUl, faScroll } from '@fortawe
 import { setShamrockNodeChanged, setStoredPipelineName,setPipelineStudioNodes,setPipelineStudioEdgeToDelete,setBlockCatalogSelectedOptions, setShamrockNodes} from "../../reducers/nodeSlice";
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux';
+import { fetchLinkedPipelinesOfType } from '../../utils/fetchLinkedPipelines';
+import LinkIcon from '@mui/icons-material/Link';
 import Logs from '../DataProcessing/dialogs/Logs/Logs';
 
 export default memo(({ data, isConnectable }) => {
@@ -43,6 +46,7 @@ export default memo(({ data, isConnectable }) => {
   const [pipelineStudioDescription, setPipelineStudioDescription] = useState("");
   const [seeLogs, setSeeLogs] = useState(false);
   const [isFromShamrock, setIsFromShamrock] = useState(false);
+  const [linkedPipeline, setLinkedPipeline] = useState(false);
   const storedPipelineNodes = useSelector((state)=>state.pipelineStudioNodes);
   const blockCatalogSelectedOptions = useSelector((state)=> state.blockCatalogSelectedOptions);
   const dispatch = useDispatch();
@@ -70,6 +74,13 @@ export default memo(({ data, isConnectable }) => {
   const openVariablesEditMenu = ()=>{
     setVariablesInputOpen(true);
   }
+
+  const blockAlert = (msg) => {
+        toast.error(msg, {
+            duration: 2000,
+            position: 'top-right',
+        })
+    }; 
 
   const deleteNode = ()=>{
 
@@ -112,10 +123,15 @@ export default memo(({ data, isConnectable }) => {
   
 
   useEffect(()=>{
+
     processName(data.name);
     setFullNodeName(data.name);
 
     
+    //we pre-load all the pipelines that can be linked
+    // and only then feed them further to the Variables Input dialog
+    
+
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
        
       const allVarsData = [];
@@ -127,9 +143,22 @@ export default memo(({ data, isConnectable }) => {
           varName:varValue,
           ...data.config[varValue]
         }
+        if (newObj["type"] === "trigger"){
+          setLinkedPipeline(true);
+          /// HERE we fetch with chained promises the result because useEffect can not handle 
+          // async await 
+          fetchLinkedPipelinesOfType(newObj["tag"]).then(result => {
+              newObj["values"] = result;
+
+          }).catch(err => {
+            console.log(err);
+            newObj["values"] = [];
+            blockAlert("There was an error while fetching the linked pipelines!");
+          });
+        }
         allVarsData.push(newObj);
       }
-      
+
       setAllVariables(allVarsData);
       setVariablesPresent(true);
       return;
@@ -141,12 +170,29 @@ export default memo(({ data, isConnectable }) => {
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
       const parsedJSONVar = parseJSONVar(allVarsType[i]);
-      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
+      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date","trigger"].includes(parsedJSONVar["type"])) {
+       
+        if(parsedJSONVar["type"] === "trigger"){
+          
+          setLinkedPipeline(true);
+          fetchLinkedPipelinesOfType(parsedJSONVar["tag"]).then(result => {
+              parsedJSONVar["values"] = result;
+          }).catch(err => {
+            console.log(err);
+            parsedJSONVar["values"] = [];
+            blockAlert("There was an error while fetching the linked pipelines!");
+          });
+
+        } else {
+          setLinkedPipeline(false);
+        }
+
         varObj = {
           varName: allVars[i],
           tabName:data.tabName,
           ...parsedJSONVar
         }
+
         allVarsData.push(varObj);
       }
     }
@@ -267,9 +313,6 @@ export default memo(({ data, isConnectable }) => {
     setChangeBlockNameOpen(false);
  } 
  
- // here we handle the change of name for the shamrock pipeline case
-
- // ** AICI ESTE CODUL CARE TREBUIE COPIAT ATUNCI CAND AI DE FACUT PARTE DE UPDATE DE NUME **
 
  const changeBlockNameShamrock = (name)=>{
 
@@ -296,8 +339,6 @@ export default memo(({ data, isConnectable }) => {
   setChangeBlockNameOpen(false);
 
 }
- 
-
 
  useEffect(()=>{
   
@@ -336,6 +377,14 @@ export default memo(({ data, isConnectable }) => {
           :
         <div className='base-node-header node-header-filter processing-node-header' title={fullNodeName}>
           {nodeName? nodeName:"Transformer"}
+          {linkedPipeline && <LinkIcon className='linked-block-pipeline-icon' 
+             style={{ 
+                  width: '45px',
+                  height: '45px',
+                  position:"fixed",
+                  top:"5%"
+              }}
+          ></LinkIcon> } 
         </div>
         }
   
@@ -361,14 +410,21 @@ export default memo(({ data, isConnectable }) => {
                        </TableRow>
                      </TableHead>
                      <TableBody>
-                        {  allVariables.map((row,index) => (
-                          <StyledTableRow key={index}>
-                            <StyledTableCell component="th" scope="row">
-                             {row["varName"]}
-                            </StyledTableCell>
+                      {allVariables.slice(0, 2).map((row, index) => (
+                        <StyledTableRow key={index}>
+                          <StyledTableCell component="th" scope="row" title={row["varName"]}>
+                            {truncateString(row["varName"], 25)}
+                          </StyledTableCell>
                           <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                         </StyledTableRow>
                       ))}
+                      {allVariables.length > 2 && (
+                        <StyledTableRow>
+                          <StyledTableCell component="th" scope="row" colSpan={2} style={{color:"gray"}}>
+                            ... more
+                          </StyledTableCell>
+                        </StyledTableRow>
+                      )}
                     </TableBody>  
                   </Table>
                 </TableContainer>

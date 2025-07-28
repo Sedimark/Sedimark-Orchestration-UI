@@ -24,7 +24,7 @@ import TextField from '@mui/material/TextField';
 import {  IconButton, InputAdornment } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
-import { FETCH_MINIO_FILE } from '../../../../utils/apiEndpoints';
+import { FETCH_MINIO_FILE, FETCH_PIPELINES, FETCH_PIPELINE_DATA } from '../../../../utils/apiEndpoints';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -35,8 +35,8 @@ import {
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
 import formatName from '../../../../utils/formatName';
-import { setBlocksVariables } from '../../../../reducers/nodeSlice';
-
+import { setBlocksVariables, setLinkedTabToDelete, setPipelinesBlocks, setTabIndex, setAllTabs, setSelectedTab, setSelectedView } from '../../../../reducers/nodeSlice';
+import {checkAndFormat} from "../../../../utils/checkAndFormat";
 import axios from "axios";
 
 const ITEM_HEIGHT = 48;
@@ -60,7 +60,9 @@ export default function VariablesInput(props){
     const [defaultDate, setDefaultDate] = useState("");
     const [isDateOk, setIsDateOk] = useState(false);
     //** Data related to pipeline names */
-
+    const storedPipelineBlocks = useSelector((state)=> state.pipelinesBlocks);
+    const allTabs = useSelector((state)=> state.allTabs);
+    const tabIndexStored = useSelector((state)=> state.tabIndex);
     const storedPipelinesBlockInfo = useSelector((state)=> state.pipelinesBlocks);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
@@ -82,7 +84,13 @@ export default function VariablesInput(props){
     const [hasDate, setHasDate] = useState(false);
     const [showPassword, setShowPassword] = useState({});
     const [allEmptyFields, setAllEmptyFields] = useState(false);
-    
+    const [hasTriggerVar, setHasTriggerVar] = useState(false);
+    const [linkedPipeline, setLinkedPipeline] = useState("");
+    const [pipelineType , setPipelineType] = useState("");
+    const [parentPipeline, setParentPipeline] = useState("");
+    const [pipelineLinkedInitialValue, setPipelineLinkedInitialValue] = useState("");
+    const [variableNameTrigger, setVariableNameTrigger] = useState("");
+    const storedVariables = useSelector((state)=>state.blocksVariables);
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -228,8 +236,7 @@ export default function VariablesInput(props){
 
       } 
 
-     
-
+    
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
         block_name:props.fullNodeName,
@@ -244,7 +251,19 @@ export default function VariablesInput(props){
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
     
-    };
+  };
+
+
+  const getPipelineName = ()=>{
+    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+        if(key == formatName(props.fullNodeName)){
+          return value.pipeline_name;
+        }
+    }
+      return "";
+  }
+   
+
 
     const darkTheme = createTheme({
       palette: {
@@ -282,23 +301,26 @@ export default function VariablesInput(props){
       })
     }; 
     
-
+    
     const createObjToStore = ()=>{
+      
       
       let inputedValuesVariables = [...variableValues];
       let objToStore;
-    
+
       let pipelineName = "";
     
       for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
         if(key == formatName(props.fullNodeName)){
           pipelineName = value.pipeline_name;
+          break;
         }
       }
 
+      setParentPipeline(pipelineName);
       
-
       for(const key in variablesInput){
+
          objToStore = {
           block_name:props.fullNodeName,
           variable_name:key,
@@ -318,9 +340,217 @@ export default function VariablesInput(props){
       dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
+     
+    const blockNotifyError = (text)=>{
+        toast.error(text);
+    }
+
+
+    const closeTab = (tabInfo)=>{
+        
+        const fullTabInfo = allTabs.find(item=>item.name === tabInfo["name"]);
+        const newTabIndexes = tabIndexStored.filter( tab => tab !== fullTabInfo.tabOrder);
+        dispatch(setTabIndex(newTabIndexes));
+        const newTabArr = allTabs.filter(item=>item.name !== tabInfo["name"]);
+        const newVariables = blocksVariablesStored.filter(item=>  item.tabName !== fullTabInfo.name);
+        
+        let pipelineName = "";
+    
+        for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+          if(key == formatName(props.fullNodeName)){
+            pipelineName = value.pipeline_name;
+            break;
+          }
+        }
+
+        sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${pipelineName}-runData`);
+        sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${pipelineName}-running-steps`);
+        dispatch(setBlocksVariables(newVariables));
+    
+        dispatch(setAllTabs(newTabArr));
+        if(newTabArr.length > 0){
+          // setSelectedTabHere(newTabArr[0]);
+          dispatch(setSelectedView(newTabArr[0]));
+        } else {
+          dispatch(setTabIndex(null));
+        }
+     
+    }
+
+
+    const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
+        
+          let pipeline_blocks;
+          
+          try{
+            const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+            pipeline_blocks = resp.data.pipeline.blocks;
+    
+          } catch(err){
+            console.log(err);
+            blockNotifyError("There was an error while fetching the pipeline");
+            return false;
+          }
+     
+          let blocksInfoObj ;
+          if(storedPipelineBlocks){
+            blocksInfoObj = {...storedPipelineBlocks };
+          } else { 
+            blocksInfoObj = {};
+          }
+    
+          for(const block of pipeline_blocks){
+            blocksInfoObj[checkAndFormat(block.name)] = {
+              "pipeline_name": pipeline_name,
+              "tabName": newTabName
+            }
+          }
+
+          dispatch(setPipelinesBlocks(blocksInfoObj));
+    
+          return true;
+    }
+
+  
+    const handleSpawnPipeline = async()=>{
+        
+
+
+        // we check to see if there was made a change to the variable variableNameTrigger
+        //if yes it means that the function that changes the name of the trigger function
+        // was called and indeed it means that it was updated
+
+        if (variableNameTrigger == ""){
+          // no updates to the linked pipeline dropdown menu
+          return;
+        }
+
+        // we check to see if the old value matches the new value
+        // we iterate over old values , values that are stored
+       
+        // check if the new_value matches the old value
+        let oldLinkedValue;
+        for(const block of blocksVariablesStored){
+          if (block["variable_name"] == variableNameTrigger){
+             oldLinkedValue = block["value"];
+             if(linkedPipeline === block["value"]){
+              // here it means that it was triggered at some point but the final value is the same
+              // with the old value, no need to update the pipeline in this scenario
+              return;
+             }
+          }
+        }
+
+        let storedAllTabs = allTabs;
+        //check if there is already a tab spawned 
+        // to check if a pipeline is already spawned you need to check the parent pipeline
+        // and take a look at the old pipeline
+        //we iterate and check
+        // oldLinkedValue - the value of the old pipeline selected
+
+        // logic for deleting the old tab and spawning a new one with the new variable name
+        let pipelineName = "";
+    
+        for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+          if(key == formatName(props.fullNodeName)){
+            pipelineName = value.pipeline_name;
+            break;
+          }
+        }
+
+
+        //first we find the tab
+        let tabToDelete ;
+        for(const tab of allTabs){
+          if(tab["parentPipeline"] === pipelineName && tab["pipelineName"] === oldLinkedValue ){
+              //we delete the pipeline and then 
+              tabToDelete = tab; 
+          }
+        }
+
+        // now we delete the tab
+        // if there is a tab found then we delete it 
+        // if not we move forward
+                
+        if(tabToDelete){
+          dispatch(setLinkedTabToDelete(tabToDelete.name));
+        }
+      
+        // logic for creating a new tab
+
+        let pipeline = linkedPipeline; 
+
+        // Initialize newTabs
+        let newTabs = storedAllTabs ? [...storedAllTabs] : [];
+
+
+        // remove the tab that is going to be deleted
+        if(tabToDelete){
+          // we remove the tab that is going to be deleted 
+          // because the operation is async and it takes time till it gets 
+          //deleted 
+
+          newTabs = newTabs.filter(item => item.name !== tabToDelete.name )
+        }
+        
+
+        // Initialize tabIndexStored if it's undefined
+        const currentTabIndexStored = tabIndexStored || [];
+        
+        // Determine new tab name and order
+        let newTabName, tabOrder;
+        if (!currentTabIndexStored.length) {
+            tabOrder = 1;
+        } else {
+            const lastIndex = currentTabIndexStored[currentTabIndexStored.length - 1];
+            tabOrder = lastIndex + 1;
+        }
+
+          newTabs.push({
+              "name": `${pipeline}-${pipelineName}`,
+              "parentPipeline": pipelineName,
+              "pipelineName": pipeline,
+              "pipelineType": pipelineType,
+              "tabOrder": tabOrder,
+              "isChained":true,
+          });
+  
+          const fetchedSuccess = await fetchAndSaveBlockNames(pipeline, newTabName);
+          if (!fetchedSuccess) {
+              return;
+          }
+  
+          // Update tab indices
+          const newTabArr = currentTabIndexStored.length 
+              ? [...currentTabIndexStored, currentTabIndexStored[currentTabIndexStored.length - 1] + 1]
+              : [1];
+          
+          dispatch(setTabIndex(newTabArr));
+          dispatch(setAllTabs(newTabs));
+  
+          setTimeout(() => {
+              dispatch(setSelectedTab({ "changed": true, tabSelected: newTabName }));
+          }, 100);
+  
+          
+          
+          // setTimeout(()=>{
+          //   const filteredVariables = storedVariables.filter(variable => 
+          //     !(variable["pipelineName"] && variable["pipelineName"][0] === pipeline)
+          //   );
+          //   dispatch(setBlocksVariables(filteredVariables));
+          // },500)
+          
+
+    }
+
     const handleDone = ()=>{
+        if(hasTriggerVar){
+            handleSpawnPipeline();
+          }
         props.handleClose();
         createObjToStore();
+        
     } 
 
     const convertToSnakeCase = (inputString)=>{
@@ -344,7 +574,8 @@ export default function VariablesInput(props){
 
    useEffect(()=>{
     
-    if(variablesInput){
+    if(Object.keys(variablesInput).length > 0){
+      
       for(const key of Object.keys(variablesInput)){
           if(typeof variablesInput[key] === "string" && variablesInput[key].length!==0 ){
             setAllEmptyFields(false);
@@ -352,17 +583,18 @@ export default function VariablesInput(props){
           } else if(Array.isArray(variablesInput[key]) && variablesInput[key].length!==0){
             setAllEmptyFields(false);
             return;
-          }
+          } 
       }
       setAllEmptyFields(true);
     }
+
    },[variablesInput])
 
-   const createVariableInputObjects = (data, storedVars)=>{
+   const createVariableInputObjects = async(data, storedVars)=>{
     
       const obj = {...variablesInput};
       const errorMonitorObj = {};
-      
+    
       for(const value of data){
       
         if(value.type === "multiple_selection"){
@@ -374,7 +606,7 @@ export default function VariablesInput(props){
           }
           
           errorMonitorObj[value.varName] = false;
-        } else if (value.type === "drop_down") {
+        } else if (value.type === "drop_down" || value.type === "trigger" ) {
           
           if(value.default_value){
             obj[value.varName] = [value.default_value];
@@ -386,6 +618,16 @@ export default function VariablesInput(props){
             updatedDropdownValues[value.varName]  = value["values"];
             setDropDownValues(updatedDropdownValues);
             errorMonitorObj[value.varName] = false;
+            
+            //setare valoare initiala pentru a verifica ulterior daca s-a schimbat
+            // si daca s-a schimbat atunci cande vei salva valorile noi o sa stergi
+            // pipeline-ul vechi si o sa il spawnezi pe unul nou ...
+
+            
+            if (value.type === "trigger"){
+              setHasTriggerVar(true);
+            }
+
         } else if(value.type === "number" || value.type === "int"){
             
             if(value.default_value){
@@ -428,16 +670,24 @@ export default function VariablesInput(props){
         }
       }
      
+   // we search for the blocks that have stored values
+   // like when we set up a value for a block this value for the block is saved in redux
+   // and then afterwards the value will be fetched from redux store and it will be 
+   // passed to the actual variable 
 
+   
     let foundBlocks = [];
+    // here we search for the specific block 
     for(const block of storedVars){
        if(block.block_name === props.fullNodeName && block.tabName === props.tabName){
          foundBlocks.push(block);
        }
      }
-
+     // if there are blocks found we plug the value for the specific variable
+    
      if(foundBlocks.length != 0){
       for(const block of foundBlocks){
+
         obj[block.variable_name] = block.value;
       }
      }
@@ -446,24 +696,26 @@ export default function VariablesInput(props){
       setHasInputError(errorMonitorObj);
    }
 
-
    const parsePhantomVariables = ()=>{
       let phantomVariable = false;
       const allBlockVariables = [];
     
      for(const varInstance of props.variablesData){
-        // we check if the variable coresponds to the pipeline in the current tab and for this we check for
-        // the tabName if the one specified as for the props is the same that the variable has
-        // if not we continue skipping this iteration
-        
-        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date"))
+
+        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" ))
         {
           allBlockVariables.push(varInstance);
         } 
 
+        if(varInstance["tag"]){
+          setPipelineType(varInstance["tag"]);
+        }
+
         if(varInstance.type === "multiple_selection"){
           setAreMultipleVariables(true);
         }
+        // here we store the type of pipeline block
+        setPipelineType(varInstance);
 
      }
 
@@ -537,7 +789,6 @@ export default function VariablesInput(props){
   };
    
    useEffect(()=>{
-     
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
    },[blocksVariablesStored])
   
@@ -601,6 +852,8 @@ export default function VariablesInput(props){
  },[purifiedVariables])
 
 
+
+
  const selectPipelineBasedOnStoredData = ()=>{
  
     for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
@@ -621,8 +874,6 @@ export default function VariablesInput(props){
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
 
- 
- 
 
 
 
@@ -640,7 +891,7 @@ export default function VariablesInput(props){
                     <h1>Variables</h1>
                 </div>  
                 {purifiedVariables.map((value, index)=>{
-                    
+                  
                   if(value.type === "string" || value.type === "str"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -758,8 +1009,36 @@ export default function VariablesInput(props){
                         </FormControl>
                       </div>
                     )
-                  }
-                   else if(value.type === "date"){
+                  } else if(value.type === "trigger"){
+                 
+                    return(
+                      <div>
+                        <FormControl sx={{ m: 1, width: "60%" }}>
+                          <InputLabel id="demo-multiple-name-label">{`${value.varName}`}</InputLabel>
+                          <Select
+                            labelId="demo-multiple-name-label"
+                            id="demo-multiple-name"
+                            
+                            value={variablesInput[value.varName]}
+                            onChange={(event)=>{ setVariableNameTrigger(value.varName); setLinkedPipeline(event.target.value); setWasSomethingChanged(true); handleChange(event,"trigger",value.varName) }}
+                            input={<OutlinedInput label="Name" />}
+                            MenuProps={MenuProps}
+                          >
+                            {dropdownValues[value.varName] && dropdownValues[value.varName].map((variableName) => (
+                              <MenuItem
+                                key={variableName}
+                                value={variableName}
+                                
+                              >
+                                {variableName}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                        </FormControl>
+                      </div>
+                    )
+                  }  else if(value.type === "date"){
                     
                     return(
                       <>

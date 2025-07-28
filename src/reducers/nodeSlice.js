@@ -78,7 +78,9 @@ const initialState = {
     selectedFederatedFramework:"",
     brokerEntityId:"",
     tabIndex:[],
-    allTabs:[]
+    allTabs:[],
+    // trigger linked pipeline to delete
+    linkedTabToDelete: ""
 }    
 
 export const nodeSlice = createSlice({
@@ -358,6 +360,10 @@ export const nodeSlice = createSlice({
 
         setFlevidenValues: (state,action) => {
             state.flevidenValues = action.payload;
+        },
+
+        setLinkedTabToDelete: (state,action) => {
+            state.linkedTabToDelete = action.payload;
         }
 
     }
@@ -450,8 +456,9 @@ export const {
     setTabIndex,
     setAllTabs,
     setFlevidenValues,
-    setSelectedFederatedFramework
-    
+    setSelectedFederatedFramework,
+    setLinkedTabToDelete
+
 } = nodeSlice.actions
 
 export default nodeSlice.reducer;

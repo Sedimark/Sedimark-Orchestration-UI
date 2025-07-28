@@ -97,9 +97,10 @@ export default function PipelineSelectDialog(props) {
   
 
   const searchListByDatasetName = (list, str)=> {
+
     const filteredList = list.filter(item => {
       const searchStr = str.toLowerCase();
-      const datasetName = item.toLowerCase();
+      const datasetName = item.name.toLowerCase();
   
       return datasetName.includes(searchStr);
     });
@@ -114,7 +115,7 @@ export default function PipelineSelectDialog(props) {
   }
 
   const blockNotifyError = (text)=>{
-    toast.alert(text);
+    toast.error(text);
   }
 
    const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
@@ -129,12 +130,11 @@ export default function PipelineSelectDialog(props) {
       } catch(err){
         console.log(err);
         blockNotifyError("There was an error while fetching the pipeline");
-        return;
+        return false;
       }
  
 
-      console.log("pipeline_blocks:");
-      console.log(pipeline_blocks);
+    
 
       let blocksInfoObj ;
       if(storedPipelineBlocks){
@@ -152,78 +152,68 @@ export default function PipelineSelectDialog(props) {
 
     
       dispatch(setPipelinesBlocks(blocksInfoObj));
+
+      return true;
    }
 
-  const addCorespondingPipeline = async()=>{
-
-    if(isLoading){
+  const addCorespondingPipeline = async () => {
+    if (isLoading) {
         return;
     }
 
-    let pipeline;
+    let pipeline = Array.isArray(selectedPipeline) ? selectedPipeline : selectedPipeline;
     
-   
+    if (selectedPipeline) {
+        const filteredVariables = storedVariables.filter(variable => 
+            !(variable["pipelineName"] && variable["pipelineName"][0] === pipeline)
+        );
 
-    if(selectedPipeline){
-      
-      if(Array.isArray(selectedPipeline)) {
-        pipeline = selectedPipeline;
-      } else {
-        pipeline = selectedPipeline
-      }
-      const filteredVariables = [];  
+        // Initialize newTabs
+        let newTabs = allTabs ? [...allTabs] : [];
 
-      for(const variable of storedVariables){
-        if( variable["pipelineName"] && variable["pipelineName"][0] !== pipeline){
-            filteredVariables.push(variable);
+        // Initialize tabIndexStored if it's undefined
+        const currentTabIndexStored = tabIndexStored || [];
+        
+        // Determine new tab name and order
+        let newTabName, tabOrder;
+        if (!currentTabIndexStored.length) {
+            newTabName = 'Tab 1';
+            tabOrder = 1;
+        } else {
+            const lastIndex = currentTabIndexStored[currentTabIndexStored.length - 1];
+            tabOrder = lastIndex + 1;
+            newTabName = `Tab ${tabOrder}`;
         }
-      }
 
-    let newTabs = [];
-
-    if(allTabs){
-      newTabs = [...allTabs];
-    }
-
-
-      let newTabName;
-      if(!tabIndexStored || tabIndexStored.length == 0){
-        newTabName = `Tab 1`;
-        dispatch(setTabIndex([1]));
+        // Add new tab
         newTabs.push({
-          "name":newTabName,
-          "pipelineName": pipeline,
-          "pipelineType": pipelineType,
-          "tabOrder":1
+            "name": newTabName,
+            "pipelineName": pipeline,
+            "pipelineType": pipelineType,
+            "tabOrder": tabOrder,
+            "isChained":false
         });
 
-      } else {
-        newTabName = `Tab ${tabIndexStored[tabIndexStored.length-1]+1}`;
-        newTabs.push({
-          "name":newTabName,
-          "pipelineName": pipeline,
-          "pipelineType": pipelineType,
-          "tabOrder":tabIndexStored[tabIndexStored.length-1]+1
-        });
-        const newTabArr = [...tabIndexStored];
-        newTabArr.push(tabIndexStored[tabIndexStored.length-1]+1);
+        const fetchedSuccess = await fetchAndSaveBlockNames(pipeline, newTabName);
+        if (!fetchedSuccess) {
+            return;
+        }
+
+        // Update tab indices
+        const newTabArr = currentTabIndexStored.length 
+            ? [...currentTabIndexStored, currentTabIndexStored[currentTabIndexStored.length - 1] + 1]
+            : [1];
+        
         dispatch(setTabIndex(newTabArr));
-      } 
-      
-      await fetchAndSaveBlockNames(pipeline , newTabName);
+        dispatch(setAllTabs(newTabs));
 
+        setTimeout(() => {
+            dispatch(setSelectedTab({ "changed": true, tabSelected: newTabName }));
+        }, 100);
 
-      dispatch(setAllTabs(newTabs));
-
-      setTimeout(()=>{
-        dispatch(setSelectedTab({"changed":true, tabSelected:newTabName}));
-      },100)
- 
-      dispatch(setBlocksVariables(filteredVariables));
+        dispatch(setBlocksVariables(filteredVariables));
     }
- 
-  }
-
+}
 
   const handleRadioClick = (value)=>{
     
@@ -382,7 +372,6 @@ export default function PipelineSelectDialog(props) {
                     {
                         !isLoading && !hasError &&allPipelines.length!=0 && filteredPipelines == 0 &&
                         <div className="no-results-pipeline-manager">
-                          <FontAwesomeIcon icon={faFile} className='no-results-pipeline-manager-icon'/> 
                           <p> No results </p>
                       </div>
                     }

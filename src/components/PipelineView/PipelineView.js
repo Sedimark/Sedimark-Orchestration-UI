@@ -34,9 +34,10 @@ import {
     faCircleInfo,
     faArrowsRotate,
     faBroom,
-    faImages,
+    faLink,
     faCircleStop,
-    faMicrochip
+    faMicrochip,
+    faWarning
 } from '@fortawesome/free-solid-svg-icons';
 import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
@@ -44,6 +45,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useDispatch } from 'react-redux';
 import {setSelectedTrainedModel, setIsPredictedSelected, setRunningPipelines} from "../../reducers/nodeSlice";
 import { deleteElement } from "../../utils/deleteElement";
+import {containsString} from "../../utils/containsString";
 import Box from '@mui/material/Box';
 import Flow from "../Flow/Flow";
 import DialogActions from "@mui/material/DialogActions";
@@ -92,6 +94,9 @@ export const PipelineView = (props)=>{
     const [showTooltip, setShowTooltip] = React.useState(false);
     const [metricsOpen, setMetricsOpen]  = React.useState(false);
     const [pipelineType , setPipelineType] = React.useState("");
+    const [noTrigger, setNoTrigger] = React.useState(false);
+    const [errorLoadingData, setErrorLoadingData] = React.useState(false);
+    const [isChained, setIsChained] = React.useState(false);
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -467,6 +472,7 @@ export const PipelineView = (props)=>{
                 sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-runData`, JSON.stringify(response.data));
             }).catch((_) => {
                 blockAlert("Error loading pipeline run data!");
+                setErrorLoadingData(true);
             })
 
             if (isRun.current) return;
@@ -503,9 +509,13 @@ export const PipelineView = (props)=>{
     }, [pipelineName]);
 
     useEffect(()=>{
-        console.log("runData:");
-        console.log(runData);
-        console.log("runData:");
+        
+        if(!runData || Object.keys(runData).length === 0)
+        {
+            setNoTrigger(true);
+        } else {
+            setNoTrigger(false);
+        }
 
     },[runData])
 
@@ -567,6 +577,13 @@ export const PipelineView = (props)=>{
     },[isPipelineStarted, pipelineName])
 
 
+    useEffect(()=>{
+        if(containsString(props["tabName"], "Chained")){
+            setIsChained(true);
+        } else {
+            setIsChained(false);
+        }
+    },[props])
 
 
     return(
@@ -644,36 +661,66 @@ export const PipelineView = (props)=>{
                             </Dialog>
                         </ThemeProvider>
                         <div className="flow-container">
-
+                                                
                          {
-                            pipelineName.length !== 0  &&
+                            pipelineName.length !== 0  && pipelineNodes.length!==0 && !errorLoadingData &&
                             <>
                                <div className="container">
                                     <>
-                                       {loading ?
-                                           <div className="pipeline-controller pipeline-loading">
-                                                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
-                                                <p>Starting Pipeline...</p>
-                                            </div>
-                                        : isPipelineStarted ?
-                                            <div className="pipeline-controller pipeline-started">
-                                                {props.pipelineType !== "streaming" ?
-                                                    <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
-                                                    :
-                                                    <p className="play-btn" onClick={() => handleStreamingPipeline("stop")}><FontAwesomeIcon icon={faCircleStop} /></p>
-                                                }
+                                 {isChained ? 
+                                    <>
+                                        <div className="pipeline-controller pipeline-loading">
+                                            <p className="play-btn"><FontAwesomeIcon icon={faLink} /></p>
+                                            <p>Subpipeline Chained</p>
+                                        </div>
+                                    </>
 
-                                                <p>Running...</p>
-                                            </div> :
-                                                <div className="pipeline-controller">
-                                                    <p className="play-btn" onClick={() => props.pipelineType === "streaming" ? handleStreamingPipeline("start") : runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
-                                                    <p>Start Pipeline</p>
-                                                </div>
+                                    :
+
+                                     <>
+                                        {
+                                            !noTrigger ?
+                                            <>
+                                                { loading ?
+                                                    <div className="pipeline-controller pipeline-loading">
+                                                            <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                                                            <p>Starting Pipeline...</p>
+                                                        </div>
+                                                    : isPipelineStarted ?
+                                                        <div className="pipeline-controller pipeline-started">
+                                                            {props.pipelineType !== "streaming" ?
+                                                                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                                                                :
+                                                                <p className="play-btn" onClick={() => handleStreamingPipeline("stop")}><FontAwesomeIcon icon={faCircleStop} /></p>
+                                                            }
+
+                                                            <p>Running...</p>
+                                                        </div> :
+                                                            <div className="pipeline-controller">
+                                                                <p className="play-btn" onClick={() => props.pipelineType === "streaming" ? handleStreamingPipeline("start") : runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
+                                                                <p>Start Pipeline</p>
+                                                            </div>
+                                                    }
+                                            </> :
+
+                                            <>
+                                                        <div className="pipeline-controller pipeline-controller-warning">
+                                                                <p className="play-btn" ><FontAwesomeIcon icon={faWarning} /></p>
+                                                                <p>No trigger in MageAI!</p>
+                                                            </div>
+                                            </>
+
                                         }
+                                     </>
+
+                                    }
+                                   
+                                    
+                                      
                                     </>
                                  
                                  {
-                                    props.pipelineType !== "streaming" &&
+                                    props.pipelineType !== "streaming" && !isChained &&
                                     <div className="steps" style={{ width: "100%" }}>
                                         {pipelineName && (
                                             <Stepper activeStep={activeStep} sx={{ width: "100%" }}>
@@ -700,7 +747,7 @@ export const PipelineView = (props)=>{
                                     </div>
                                  }
                                 
-                                { pipelineName.length !== 0 &&
+                                { pipelineName.length !== 0   &&
 
                                    <>
 
@@ -747,7 +794,7 @@ export const PipelineView = (props)=>{
                           </>
                          }                            
  
-                            <Flow tabName={props.tabName} pipelineType={props.pipelineType} pipelineName={props.pipelineName}/>
+                           <Flow tabName={props.tabName} pipelineType={props.pipelineType} pipelineName={props.pipelineName}/>
                                 
                             { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps={handleDeleteTheRestData} thePipelineName={pipelineName} pipelineStudio={false} ></AreYouSure>}
                             { metricsOpen && <Metrics open={metricsOpen} pipelineName={pipelineName} handleClose={()=>{setMetricsOpen(false)}} />}

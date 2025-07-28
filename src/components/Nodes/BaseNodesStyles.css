@@ -664,3 +664,12 @@
     padding-bottom: 50px;
 }
 
+.linked-block-pipeline-icon{
+    
+    position: absolute;
+    font-size: 3rem;
+    margin-left: 20px;
+    margin-top: 5px;
+  
+
+}

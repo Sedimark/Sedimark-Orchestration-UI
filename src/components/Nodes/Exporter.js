@@ -453,8 +453,8 @@ export default memo(({ data, isConnectable }) => {
                     <TableBody>
                     {allVariables.slice(0, 2).map((row, index) => (
                     <StyledTableRow key={index}>
-                      <StyledTableCell component="th" scope="row">
-                        {row["varName"]}
+                      <StyledTableCell component="th" scope="row" title={row["varName"]}>
+                        {truncateString(row["varName"], 25)}
                       </StyledTableCell>
                       <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                     </StyledTableRow>

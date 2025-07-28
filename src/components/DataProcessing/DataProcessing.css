@@ -104,6 +104,11 @@
     justify-content: space-around;
   }
 
+  .pipeline-controller-warning{
+    background-color:#ece93b;
+    color: #000;   
+  }
+
   .pipeline-started{
     background-color:green;
   }
@@ -114,6 +119,9 @@
   .play-btn:hover{
     cursor: pointer;
   }
+.warning-btn{
+  background-color: yellow;
+}
 
 .alert-error{
  background-color: rgb(153, 0, 0);
