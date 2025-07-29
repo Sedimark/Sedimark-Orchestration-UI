@@ -415,7 +415,6 @@ export default function VariablesInput(props){
     const handleSpawnPipeline = async()=>{
         
 
-
         // we check to see if there was made a change to the variable variableNameTrigger
         //if yes it means that the function that changes the name of the trigger function
         // was called and indeed it means that it was updated
@@ -608,16 +607,18 @@ export default function VariablesInput(props){
           errorMonitorObj[value.varName] = false;
         } else if (value.type === "drop_down" || value.type === "trigger" ) {
           
+         
+
           if(value.default_value){
             obj[value.varName] = [value.default_value];
           } else {
             obj[value.varName] = [];
           }
 
-            const updatedDropdownValues = dropdownValues;
-            updatedDropdownValues[value.varName]  = value["values"];
-            setDropDownValues(updatedDropdownValues);
-            errorMonitorObj[value.varName] = false;
+          let updatedDropdownValues = dropdownValues;
+          updatedDropdownValues[value.varName]  = value["values"];
+          setDropDownValues(updatedDropdownValues);
+          errorMonitorObj[value.varName] = false;
             
             //setare valoare initiala pentru a verifica ulterior daca s-a schimbat
             // si daca s-a schimbat atunci cande vei salva valorile noi o sa stergi

@@ -3,7 +3,7 @@ export const FETCH_PIPELINE_DATA = (pipeline_name)=>`${process.env.REACT_APP_MAG
 export const FETCH_PIPELINE_PREDICT_DATA = (pipeline_name)=>`${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/read/predict/full?model_name=${pipeline_name}`;
 export const FETCH_MINIO_FILE = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/balancer/get_object?dataset_path=${pipeline_name}/statistics.json&forever=false`;
 export const FETCH_MINIO_SAMPLE = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/balancer/get_object?dataset_path=${pipeline_name}/head.json&forever=false`;
-export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/triggers?name=${pipeline_name}`;
+export const FETCH_PIPELINE_RUN_DATA = (pipeline_name) => `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/triggers?name=${pipeline_name}&trigger_name=ORCHESTRATOR_${pipeline_name}`;
 export const RUN_PIPELINE = `${process.env.REACT_APP_MAGE_API_URL}/mage/pipeline/run`;
 export const GET_ALL_MODELS = `${process.env.REACT_APP_MAGE_API_URL}/sm/models`;
 export const GET_PARAMETERS_FOR_MODEL = (model_name,version)=>`${process.env.REACT_APP_MAGE_API_URL}/sm/model/parameters?name=${model_name}&version=${version}`;

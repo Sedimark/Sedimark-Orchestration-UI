@@ -124,7 +124,6 @@ export default function PipelineSelectDialog(props) {
       
       try{
         const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
-        console.log(resp);
         pipeline_blocks = resp.data.pipeline.blocks;
 
       } catch(err){

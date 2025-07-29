@@ -196,7 +196,6 @@ export default memo(({ data, isConnectable }) => {
         allVarsData.push(varObj);
       }
     }
-
     
     if(allVarsData.length !== 0){
       setVariablesPresent(true);
@@ -204,9 +203,10 @@ export default memo(({ data, isConnectable }) => {
       setVariablesPresent(false);
     }
     setAllVariables(allVarsData);
-    
+
   },[])
 
+ 
   const processVariablesValues = (varsVals)=>{
     const storedVars = [];
     for(let val of varsVals){

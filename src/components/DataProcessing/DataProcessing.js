@@ -117,9 +117,7 @@ function DataProcessing({ logout }) {
   useEffect(()=>{
     // this use effect has the purpose of deleting a chained tab
     if(linkedTabToDelete && linkedTabToDelete.length !== 0){
-
       closeTab(linkedTabToDelete);
-
     }
   },[linkedTabToDelete])
 
@@ -164,6 +162,7 @@ function DataProcessing({ logout }) {
               pipelineName={tabData.pipelineName}
               tabName={tabData.name}
               tabOrder={tabData.tabOrder}
+              isChained={tabData.isChained}
             />
           </TabPanel>
         ))}
