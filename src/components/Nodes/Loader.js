@@ -22,7 +22,7 @@ import { truncateString } from '../../utils/truncateString';
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux'; 
 import formatName from '../../utils/formatName';
-import {setPipelineStudioNodes,setStoredPipelineName, setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
+import {setPipelineStudioNodes,setStoredPipelineName, setBlocksVariables ,setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
  
 export default memo(({ data, isConnectable }) => {
 
@@ -357,31 +357,31 @@ export default memo(({ data, isConnectable }) => {
 
     const createObjToStore = ()=>{
         
-      //   let inputedValuesVariables = [...variableValues];
-      //   let objToStore;
+        let inputedValuesVariables = [...variableValues];
+        let objToStore;
   
-      //   let pipelineName = "";
-      //   let nodeNameId = convertToSnakeCase(data.name);
+        let pipelineName = "";
+        let nodeNameId = convertToSnakeCase(data.name);
         
-      //   for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
-      //     if(key == formatName(fullNodeName)){
-      //       pipelineName = value;
-      //     }
-      //   }
+        for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+          if(key == formatName(fullNodeName)){
+            pipelineName = value;
+          }
+        }
          
-      //   objToStore = {
-      //   block_name:data.name,
-      //   variable_name:"entity_id",
-      //   value:brokerEntityId,
-      //   nodeId:nodeNameId,
-      //   pipelineName:data.config.pipelineName
-      // }
+        objToStore = {
+        block_name:data.name,
+        variable_name:"entity_id",
+        value:brokerEntityId,
+        nodeId:nodeNameId,
+        pipelineName:data.config.pipelineName
+      }
         
-      // inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
-      // setVariableValues(inputedValuesVariables);
+      inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+      setVariableValues(inputedValuesVariables);
         
-      // blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);  
-      // dispatch(setBlocksVariables(blocksVariablesStored)); 
+      blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);  
+      dispatch(setBlocksVariables(blocksVariablesStored)); 
 
     }
 
@@ -404,6 +404,7 @@ export default memo(({ data, isConnectable }) => {
   },[allRunningPipelines, data])
 
   useEffect(()=>{
+    
     if(brokerEntityId && brokerEntityId.length!==0){
       createObjToStore();
     }
@@ -448,7 +449,7 @@ export default memo(({ data, isConnectable }) => {
                       </StyledTableCell>
                       <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                     </StyledTableRow>
-                  ))}
+                  ))} 
                   {allVariables.length > 2 && (
                     <StyledTableRow>
                       <StyledTableCell component="th" scope="row" colSpan={2} style={{color:"gray"}}>

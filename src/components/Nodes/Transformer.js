@@ -18,15 +18,17 @@ import ChangeBlockName from '../DataProcessing/dialogs/ChangeBlockName/ChangeBlo
 import SeeVariables from '../DataProcessing/dialogs/SeeVariables/SeeVariables';
 import { truncateString } from '../../utils/truncateString';
 import { faArrowUpRightFromSquare, faPencil, faListUl, faScroll } from '@fortawesome/free-solid-svg-icons';
-import { setShamrockNodeChanged, setStoredPipelineName,setPipelineStudioNodes,setPipelineStudioEdgeToDelete,setBlockCatalogSelectedOptions, setShamrockNodes} from "../../reducers/nodeSlice";
+import { updateBlocksAndEnsureLatest, setStoredPipelineName,setPipelineStudioNodes,setPipelineStudioEdgeToDelete,setBlockCatalogSelectedOptions, setShamrockNodes} from "../../reducers/nodeSlice";
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux';
 import { fetchLinkedPipelinesOfType } from '../../utils/fetchLinkedPipelines';
 import LinkIcon from '@mui/icons-material/Link';
 import Logs from '../DataProcessing/dialogs/Logs/Logs';
+import {convertToSnakeCase} from "../../utils/convertToSnakeCase";
 
 export default memo(({ data, isConnectable }) => {
   
+  const blocksVariablesStored = useSelector((state)=> state.blocksVariables);
   const allRunningPipelines = useSelector((state)=> state.runningPipelines);
   const [pipelineIsRunning, setPipelineIsRunning] = useState(false);
   const [seeVariablesMenuOpen, setSeeVariablesMenuOpen] = useState(false);
@@ -120,6 +122,39 @@ export default memo(({ data, isConnectable }) => {
       setNodeName(str);
     }
   }
+
+
+  const parseAndSaveDefaultValue = (processedObj, validValues)=>{
+    // find if there is a default_value and then
+  
+    //if the default value is not in the 
+    if(!validValues.includes(processedObj["default"])){
+      // we return because the default value is not in the values fetched =-> not a valid instance
+      return;
+    }
+
+    // we need to build a new object and add it to the global store state value
+    const hasVarValue = blocksVariablesStored.find((elem)=> elem.variable_name === processedObj.varName && elem.tabName === data.tabName );
+    if(!hasVarValue){
+      // if there is no value we will use create a new object and add it to the blockVariablesStored
+      const newVarValue = {
+        "block_name": data.name,
+        "variable_name": processedObj["varName"],
+        "value": processedObj["default"],
+        "nodeId": convertToSnakeCase(data.name),
+        "pipelineName": data.config.pipelineName,
+        "tabName": data.tabName
+      }
+
+      // update blocks in the blocksVariablesStored value from store and then 
+      // you may see on the UI
+      const blocksVariablesStoredUpdated = [...blocksVariablesStored];
+      blocksVariablesStoredUpdated.push(newVarValue);
+
+      dispatch(updateBlocksAndEnsureLatest(newVarValue));
+    }
+
+  }
   
 
   useEffect(()=>{
@@ -127,13 +162,12 @@ export default memo(({ data, isConnectable }) => {
     processName(data.name);
     setFullNodeName(data.name);
 
-    
     //we pre-load all the pipelines that can be linked
     // and only then feed them further to the Variables Input dialog
-    
+   
 
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
-       
+      
       const allVarsData = [];
       for(const varValue of Object.keys(data.config)){
         if(varValue === "pipelineName"){
@@ -143,12 +177,31 @@ export default memo(({ data, isConnectable }) => {
           varName:varValue,
           ...data.config[varValue]
         }
+
+        /*
+            {
+              "varName": "data_preprocessing_pipeline_trigger",
+              "default": "data_preprocessing_test",
+              "description": "Trigger for the data preprocessing pipeline",
+              "tag": "data_preprocessing",
+              "type": "trigger"
+            }
+        */
+
+
+
         if (newObj["type"] === "trigger"){
           setLinkedPipeline(true);
           /// HERE we fetch with chained promises the result because useEffect can not handle 
           // async await 
+          // so we fetch here THE OPTIONS FOR THE DROPDOWN - like the values in the dropdown
+
           fetchLinkedPipelinesOfType(newObj["tag"]).then(result => {
               newObj["values"] = result;
+              // here we need to see if there is a default_value and if so we need to 
+              // place it in the store in the appropiate location
+               
+               parseAndSaveDefaultValue(newObj, result);
 
           }).catch(err => {
             console.log(err);
@@ -156,6 +209,7 @@ export default memo(({ data, isConnectable }) => {
             blockAlert("There was an error while fetching the linked pipelines!");
           });
         }
+
         allVarsData.push(newObj);
       }
 
@@ -230,9 +284,14 @@ export default memo(({ data, isConnectable }) => {
   }
 
   useEffect(()=>{
+
     processVariablesValues(variablesValues);
+  
    
   },[variablesValues])
+
+
+
 
 
   const parseString = (str)=>{
@@ -256,7 +315,7 @@ export default memo(({ data, isConnectable }) => {
   }
 
   const getStoredVariableValue = (varName)=>{
-  
+    
     for(const variable of variablesValues){
       if(variable.variable_name === varName && variable.block_name === data.name && variable.tabName === data.tabName){
         if(Array.isArray(variable.value)){

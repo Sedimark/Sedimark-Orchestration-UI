@@ -1,5 +1,19 @@
-import {createSlice, nanoid} from '@reduxjs/toolkit'
+import {createSlice, nanoid, createAsyncThunk } from '@reduxjs/toolkit'
 import { act } from 'react';
+
+export const updateBlocksAndEnsureLatest = createAsyncThunk(
+  'nodes/updateBlocks',
+  async (newVarValue, thunkAPI) => {
+
+    const state = thunkAPI.getState().nodes; 
+    const blocksVariablesStored = state.blocksVariablesStored;
+    
+    const blocksVariablesStoredUpdated = [...blocksVariablesStored, newVarValue];
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return blocksVariablesStoredUpdated;
+  }
+);
 
 const initialState = {
     selectedView:[1],
@@ -80,7 +94,10 @@ const initialState = {
     tabIndex:[],
     allTabs:[],
     // trigger linked pipeline to delete
-    linkedTabToDelete: ""
+    linkedTabToDelete: "",
+    status: 'idle', // can be 'idle', 'pending', or 'success'
+    error: null,
+
 }    
 
 export const nodeSlice = createSlice({
@@ -366,7 +383,22 @@ export const nodeSlice = createSlice({
             state.linkedTabToDelete = action.payload;
         }
 
-    }
+    },
+    extraReducers: (builder) => {
+    builder
+      .addCase(updateBlocksAndEnsureLatest.pending, (state) => {
+        state.status = 'loading'; 
+      })
+      .addCase(updateBlocksAndEnsureLatest.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Update the state with the data returned from the thunk!
+        state.blocksVariablesStored = action.payload;
+      })
+      .addCase(updateBlocksAndEnsureLatest.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      });
+  },
 });
 
 

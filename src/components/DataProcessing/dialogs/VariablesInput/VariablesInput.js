@@ -338,6 +338,7 @@ export default function VariablesInput(props){
       
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       dispatch(setBlocksVariables(blocksVariablesStored)); 
+      
     }
 
      
@@ -594,12 +595,15 @@ export default function VariablesInput(props){
       const obj = {...variablesInput};
       const errorMonitorObj = {};
     
+      console.log("data from Variables Input:");
+      console.log(data);
+
       for(const value of data){
       
         if(value.type === "multiple_selection"){
 
-          if(value.default_value){
-            obj[value.varName] = [value.default_value];
+          if(value.default){
+            obj[value.varName] = [value.default];
           } else {
             obj[value.varName] = [];
           }
@@ -607,10 +611,8 @@ export default function VariablesInput(props){
           errorMonitorObj[value.varName] = false;
         } else if (value.type === "drop_down" || value.type === "trigger" ) {
           
-         
-
-          if(value.default_value){
-            obj[value.varName] = [value.default_value];
+          if(value.default){
+            obj[value.varName] = [value.default];
           } else {
             obj[value.varName] = [];
           }
@@ -631,8 +633,8 @@ export default function VariablesInput(props){
 
         } else if(value.type === "number" || value.type === "int"){
             
-            if(value.default_value){
-            obj[value.varName] = `${value.default_value}`;
+            if(value.default){
+            obj[value.varName] = `${value.default}`;
             } else {
               obj[value.varName] = "";
             }
@@ -646,8 +648,8 @@ export default function VariablesInput(props){
         } else if(value.type === "string" || value.type === "str" || value.type === "secret" ){
                 obj[value.varName] = "";
 
-                if(value.default_value){
-                obj[value.varName] = `${value.default_value}`;
+                if(value.default){
+                obj[value.varName] = `${value.default}`;
                 } else {
                   obj[value.varName] = "";
                 }
@@ -661,8 +663,8 @@ export default function VariablesInput(props){
         } else if(value.type === "date"){
           obj[value.varName] = [];
           
-            if(value.default_value){
-                  obj[value.varName] = [value.default_value];
+            if(value.default){
+                  obj[value.varName] = [value.default];
             } else {
                   obj[value.varName] = [];
             }
