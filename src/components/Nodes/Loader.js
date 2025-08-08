@@ -167,8 +167,7 @@ export default memo(({ data, isConnectable }) => {
 
   const getStoredVariableValue = (varName) => {
 
- 
- 
+    
     for (const variable of variablesValues) {
       if (variable.variable_name === varName && variable.block_name === data.name && variable.tabName === data.tabName) {
         if (Array.isArray(variable.value)) {
@@ -243,7 +242,7 @@ export default memo(({ data, isConnectable }) => {
           ...data.config[varValue]
         }
         allVarsData.push(newObj);
-      }
+      } 
 
       setAllVariables(allVarsData);
       setVariablesPresent(true);
@@ -261,7 +260,7 @@ export default memo(({ data, isConnectable }) => {
       
       const parsedJSONVar = parseJSONVar(allVarsType[i]);
     
-      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
+      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date", "boolean"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
           tabName:data.tabName,
@@ -280,7 +279,6 @@ export default memo(({ data, isConnectable }) => {
     setAllVariables(allVarsData);
     
   }, [])
-
 
   useEffect(()=>{
     
@@ -411,8 +409,6 @@ export default memo(({ data, isConnectable }) => {
        
   },[brokerEntityId])
 
-
-
  
   return (
     <div style={{ width:"500px", borderRadius: "6%", padding: "10px", border: "2px solid blue", backgroundColor: "#e0e9ff", minHeight: "200px", height:"auto" }}>
@@ -431,7 +427,9 @@ export default memo(({ data, isConnectable }) => {
          
  
         {variablesPresent && !isFromPipelineStudio &&
-          <div className='base-node-info-section-container'>
+          <div className='base-node-info-section-container' style={{
+            "marginBottom":`${allVariables.length < 2 ? "1px" : "50px"}`
+          }}>
             <h3> Variables</h3> 
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 200 }} aria-label="customized table">
@@ -489,8 +487,12 @@ export default memo(({ data, isConnectable }) => {
         }
         {
           variablesPresent && 
-          <div className='base-node-info-section'>
-              <div className='base-node-bottom-toolbox'>
+          <div className='base-node-info-section' style={{
+             "marginTop": `${allVariables.length > 2 ? "80px": ""}`
+            }}>
+              <div className='base-node-bottom-toolbox' style={{
+                "marginBottom": `${allVariables.length > 2 ? "10px": ""}`
+              }}>
                 {/* <button className='change-base-btn base-toolbox-btn' onClick={() => { setViewDataDialog(true) }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button> */}
                 <button className='edit-variables-btn-loader same-width-btn' onClick={() => { openVariablesEditMenu() }} disabled={pipelineIsRunning} > Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare} /></button>
                 <button className='edit-variables-btn-loader same-width-btn' onClick={() => { setSeeLogs(true) }} disabled={pipelineIsRunning} > See Logs <FontAwesomeIcon icon={faScroll} /></button>

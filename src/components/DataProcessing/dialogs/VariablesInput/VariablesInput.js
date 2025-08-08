@@ -24,7 +24,10 @@ import TextField from '@mui/material/TextField';
 import {  IconButton, InputAdornment } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
-import { FETCH_MINIO_FILE, FETCH_PIPELINES, FETCH_PIPELINE_DATA } from '../../../../utils/apiEndpoints';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import { FETCH_MINIO_FILE, FETCH_PIPELINE_DATA } from '../../../../utils/apiEndpoints';
 import { format } from 'date-fns';
 import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -51,6 +54,65 @@ const MenuProps = {
 };
  
 
+const IOSSwitch = styled((props) => (
+  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
+))(({ theme }) => ({
+  width: 42,
+  height: 26,
+  padding: 0,
+  '& .MuiSwitch-switchBase': {
+    padding: 0,
+    margin: 2,
+    transitionDuration: '300ms',
+    '&.Mui-checked': {
+      transform: 'translateX(16px)',
+      color: '#fff', // Thumb color when checked (usually white)
+      '& + .MuiSwitch-track': {
+        backgroundColor: '#2196f3', // Blue for light mode when checked (Material Blue 500)
+        opacity: 1,
+        border: 0,
+        ...theme.applyStyles('dark', {
+          backgroundColor: '#1976d2', // Darker blue for dark mode when checked (Material Blue 700)
+        }),
+      },
+      '&.Mui-disabled + .MuiSwitch-track': {
+        opacity: 0.5,
+      },
+    },
+    '&.Mui-focusVisible .MuiSwitch-thumb': {
+      color: '#2196f3', // Blue for focus visible thumb (Material Blue 500)
+      border: '6px solid #fff',
+    },
+    '&.Mui-disabled .MuiSwitch-thumb': {
+      color: theme.palette.grey[100],
+      ...theme.applyStyles('dark', {
+        color: theme.palette.grey[600],
+      }),
+    },
+    '&.Mui-disabled + .MuiSwitch-track': {
+      opacity: 0.7,
+      ...theme.applyStyles('dark', {
+        opacity: 0.3,
+      }),
+    },
+  },
+  '& .MuiSwitch-thumb': {
+    boxSizing: 'border-box',
+    width: 22,
+    height: 22,
+  },
+  '& .MuiSwitch-track': {
+    borderRadius: 26 / 2,
+    backgroundColor: '#E9E9EA', // Unchecked track color (light grey, common for off state)
+    opacity: 1,
+    transition: theme.transitions.create(['background-color'], {
+      duration: 500,
+    }),
+    ...theme.applyStyles('dark', {
+      backgroundColor: '#39393D', // Unchecked track color for dark mode (dark grey)
+    }),
+  },
+}));
 
 
 export default function VariablesInput(props){
@@ -91,6 +153,7 @@ export default function VariablesInput(props){
     const [pipelineLinkedInitialValue, setPipelineLinkedInitialValue] = useState("");
     const [variableNameTrigger, setVariableNameTrigger] = useState("");
     const storedVariables = useSelector((state)=>state.blocksVariables);
+    
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -208,7 +271,7 @@ export default function VariablesInput(props){
 
     const handleChange = (event, type, variableName) => {
 
-      const { target: { value } } = event;
+      let { target: { value } } = event;
   
       if(type === "text"){
         
@@ -236,6 +299,13 @@ export default function VariablesInput(props){
 
       } 
 
+      // if it is boolean we need to pick up the value from checked
+      // not from other things 
+
+     if(type == "boolean"){
+        setWasSomethingChanged(true);
+        value = event.target.checked;
+     }
     
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
@@ -298,7 +368,7 @@ export default function VariablesInput(props){
       toast.error(msg, {
           duration: 2000,
           position: 'top-right',
-      })
+      });
     }; 
     
     
@@ -594,10 +664,7 @@ export default function VariablesInput(props){
     
       const obj = {...variablesInput};
       const errorMonitorObj = {};
-    
-      console.log("data from Variables Input:");
-      console.log(data);
-
+  
       for(const value of data){
       
         if(value.type === "multiple_selection"){
@@ -660,6 +727,19 @@ export default function VariablesInput(props){
                   setRulesForVariables(newRules);
                 }
                 errorMonitorObj[value.varName] = false;
+
+        } else if(value.type === "boolean"){
+              
+                obj[value.varName] = false;
+
+                if(value.default){
+                obj[value.varName] = value.default;
+                } else {
+                  obj[value.varName] = false;
+                }
+
+          errorMonitorObj[value.varName] = false;
+                
         } else if(value.type === "date"){
           obj[value.varName] = [];
           
@@ -705,7 +785,7 @@ export default function VariablesInput(props){
     
      for(const varInstance of props.variablesData){
 
-        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" ))
+        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" ))
         {
           allBlockVariables.push(varInstance);
         } 
@@ -814,7 +894,9 @@ export default function VariablesInput(props){
    },[])
 
   useEffect(()=>{
-    
+  
+  
+
   for (const key in hasInputError) {
     if (hasInputError.hasOwnProperty(key)) {
        if (hasInputError[key] === true){
@@ -852,9 +934,8 @@ export default function VariablesInput(props){
     }
   }
    setIsDateOk(true);
+   
  },[purifiedVariables])
-
-
 
 
  const selectPipelineBasedOnStoredData = ()=>{
@@ -877,10 +958,8 @@ export default function VariablesInput(props){
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
 
-
-
-
-    return (
+  
+  return (
     <div>
       <ThemeProvider theme={darkTheme}>
       <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg" fullWidth={true} >
@@ -903,6 +982,20 @@ export default function VariablesInput(props){
                        {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                     </FormControl>
                     
+                    );
+                  } else if(value.type === "boolean"){
+                    
+
+                    return(
+                      <FormGroup sx={{ margin:"auto",  width: "60%", padding: "20px" }}> 
+                          <div className='switch-var-container'>
+                            <div>
+                               <FormControlLabel control={<IOSSwitch  checked={variablesInput[value.varName]} onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"boolean", value.varName )}}/>}/>
+                               <b>{value.varName}</b>
+                            </div>
+                          </div>
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                      </FormGroup>
                     );
                   } else if(value.type === "secret"){
                     return(
@@ -942,7 +1035,7 @@ export default function VariablesInput(props){
                       )}
                     </FormControl>
                     );
-                  } else if(value.type === "number" || value.type === "int"){
+                  }  else if(value.type === "number" || value.type === "int"){
                     
                     return(
                     <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
@@ -1013,7 +1106,7 @@ export default function VariablesInput(props){
                       </div>
                     )
                   } else if(value.type === "trigger"){
-                 
+               
                     return(
                       <div>
                         <FormControl sx={{ m: 1, width: "60%" }}>
@@ -1090,7 +1183,7 @@ export default function VariablesInput(props){
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>
-              <Button  disabled={!wasSomethingChanged || formHasError || (hasDate && !isDateOk) || allEmptyFields } onClick={()=>{handleDone()}}>Done</Button>
+              <Button  disabled={!wasSomethingChanged || formHasError  || allEmptyFields } onClick={()=>{handleDone()}}>Done</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

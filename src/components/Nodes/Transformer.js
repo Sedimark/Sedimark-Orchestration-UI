@@ -18,7 +18,7 @@ import ChangeBlockName from '../DataProcessing/dialogs/ChangeBlockName/ChangeBlo
 import SeeVariables from '../DataProcessing/dialogs/SeeVariables/SeeVariables';
 import { truncateString } from '../../utils/truncateString';
 import { faArrowUpRightFromSquare, faPencil, faListUl, faScroll } from '@fortawesome/free-solid-svg-icons';
-import { updateBlocksAndEnsureLatest, setStoredPipelineName,setPipelineStudioNodes,setPipelineStudioEdgeToDelete,setBlockCatalogSelectedOptions, setShamrockNodes} from "../../reducers/nodeSlice";
+import { updateBlocksAndEnsureLatest, setBlocksVariables, setStoredPipelineName,setPipelineStudioNodes,setPipelineStudioEdgeToDelete,setBlockCatalogSelectedOptions, setShamrockNodes} from "../../reducers/nodeSlice";
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux';
 import { fetchLinkedPipelinesOfType } from '../../utils/fetchLinkedPipelines';
@@ -151,7 +151,8 @@ export default memo(({ data, isConnectable }) => {
       const blocksVariablesStoredUpdated = [...blocksVariablesStored];
       blocksVariablesStoredUpdated.push(newVarValue);
 
-      dispatch(updateBlocksAndEnsureLatest(newVarValue));
+      // dispatch(updateBlocksAndEnsureLatest(newVarValue));
+      dispatch(setBlocksVariables(blocksVariablesStoredUpdated));
     }
 
   }
@@ -165,7 +166,6 @@ export default memo(({ data, isConnectable }) => {
     //we pre-load all the pipelines that can be linked
     // and only then feed them further to the Variables Input dialog
    
-
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
       
       const allVarsData = [];
@@ -197,12 +197,10 @@ export default memo(({ data, isConnectable }) => {
           // so we fetch here THE OPTIONS FOR THE DROPDOWN - like the values in the dropdown
 
           fetchLinkedPipelinesOfType(newObj["tag"]).then(result => {
+            // here we fetch all the values for the dropdown
+            // and the populate the object that is going to get drilled down\
+            // into to other component for the dropdown
               newObj["values"] = result;
-              // here we need to see if there is a default_value and if so we need to 
-              // place it in the store in the appropiate location
-               
-               parseAndSaveDefaultValue(newObj, result);
-
           }).catch(err => {
             console.log(err);
             newObj["values"] = [];
@@ -224,7 +222,7 @@ export default memo(({ data, isConnectable }) => {
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
       const parsedJSONVar = parseJSONVar(allVarsType[i]);
-      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date","trigger"].includes(parsedJSONVar["type"])) {
+      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date","trigger","boolean"].includes(parsedJSONVar["type"])) {
        
         if(parsedJSONVar["type"] === "trigger"){
           
@@ -262,6 +260,7 @@ export default memo(({ data, isConnectable }) => {
 
  
   const processVariablesValues = (varsVals)=>{
+   
     const storedVars = [];
     for(let val of varsVals){
       if(val.block_name === fullNodeName){
@@ -283,16 +282,10 @@ export default memo(({ data, isConnectable }) => {
     setStoredVariables(storedVars);
   }
 
+
   useEffect(()=>{
-
     processVariablesValues(variablesValues);
-  
-   
   },[variablesValues])
-
-
-
-
 
   const parseString = (str)=>{
     if(str.length > 20){
@@ -415,7 +408,7 @@ export default memo(({ data, isConnectable }) => {
   }
 },[allRunningPipelines, data])
 
-
+ 
 
   return (
     <div style={{ width:"500px", borderRadius:"6%",padding:"10px",border:"2px solid #ff33cc", backgroundColor:"#ffdbfe", minHeight:"200px", height:"auto" }}>
@@ -458,7 +451,9 @@ export default memo(({ data, isConnectable }) => {
         }
           
          {variablesPresent && !isFromPipelineStudio && 
-            <div className='base-node-info-section-container '>
+            <div className='base-node-info-section-container ' style={{
+             "marginBottom": `${allVariables.length === 2 ? "100px" : allVariables.length > 2 ? "160px" : "55px"}` 
+            }}>
                   <h3> Variables</h3>
                   <TableContainer component={Paper}>
                    <Table sx={{ minWidth: 200 }} aria-label="customized table">
@@ -488,7 +483,9 @@ export default memo(({ data, isConnectable }) => {
                   </Table>
                 </TableContainer>
               
-              <div className='custom-node-bottom-toolbox '>
+              <div className='custom-node-bottom-toolbox'style={{
+                  "marginTop": `${allVariables.length === 2 ? "0px" : allVariables.length > 2 ? "5px" : ""}` 
+                 }}>
    			         <button className='processing-node-toolbox-btn' onClick={()=>{openVariablesEditMenu()}} disabled={pipelineIsRunning}> Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare}/></button>
                  <button className='processing-node-toolbox-btn same-width-btn' onClick={()=>{setSeeLogs(true)}} disabled={pipelineIsRunning}>  See Logs <FontAwesomeIcon icon={faScroll}/></button>
 		         </div>

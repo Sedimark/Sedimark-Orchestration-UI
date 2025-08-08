@@ -173,7 +173,7 @@ export const PipelineView = (props)=>{
     const startPipeline = React.useCallback(async () => {
 
         let nrOfVars = 0;
-        
+  
         nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
         const blockVars = parseVarsForPipeline();
         if(blockVars.length !== nrOfVars || (blockVars.length == 0 && nrOfVars!=0)){
@@ -183,6 +183,8 @@ export const PipelineView = (props)=>{
 
         const variables = {};
 
+        
+
         blockVariables.forEach((value) => {
             variables[value["variable_name"]] = value["value"];
         })
@@ -191,6 +193,7 @@ export const PipelineView = (props)=>{
         setStepStatus([true, true, true])
         setActiveStep(steps.indexOf("start"));
         
+  
 
         try {
             await axios({
@@ -496,8 +499,6 @@ export const PipelineView = (props)=>{
               if (err.response && err.response.status === 404) {
                     // Handle 404 Not Found specifically
                     console.log("Resource not found (404).");
-                    // Maybe set a specific state for 404 or show a different message
-                    blockAlert("Pipeline run data not found!", "info");
                     //set runDataResp to an empty object to fit with the rest of the code functionality
                     runDataResp = {}
                 } else {
@@ -527,7 +528,7 @@ export const PipelineView = (props)=>{
                 // and we need to notify the user
                 
                 //STEP 0 - notify the user
-                blockAlert("This pipeline does not have a trigger so we are creating one...","info");
+                blockAlert("Create trigger for pipeline...","info");
                 
                 // here we handle the special case - createAndFetch trigger
                 setCreateAndFetchTrigger(true);
@@ -559,8 +560,7 @@ export const PipelineView = (props)=>{
                     return false;
                 })
                 // now we are fetching with timeout ... for some retries
-                blockAlert("Fetching the pipeline trigger into the Orchestrator UI...", "info");
-
+               
                 pollWithTimeout(
                     async () => { // <--- Wrap your axios call in an async function
                         try {
@@ -582,12 +582,12 @@ export const PipelineView = (props)=>{
                         // here the resource is the resource that is like the actual runData object that 
                         //we need to work with it further
                         setRunData(resource);
-                        blockAlert("Trigger fetched successfully!", "info")
+                        blockAlert("Trigger created!", "info")
                         sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-runData`, JSON.stringify(resource));                        
                         return true;
                     })
                     .catch(error => {
-                        blockAlert("There was an error while fetching the pipeline trigger!","error");
+                        
                         setCreateAndFetchTrigger(false);
                         return false;
                     });

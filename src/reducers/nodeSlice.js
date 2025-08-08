@@ -6,9 +6,9 @@ export const updateBlocksAndEnsureLatest = createAsyncThunk(
   async (newVarValue, thunkAPI) => {
 
     const state = thunkAPI.getState().nodes; 
-    const blocksVariablesStored = state.blocksVariablesStored;
+    const blocksVariables = state.blocksVariables;
     
-    const blocksVariablesStoredUpdated = [...blocksVariablesStored, newVarValue];
+    const blocksVariablesStoredUpdated = [...blocksVariables, newVarValue];
     await new Promise(resolve => setTimeout(resolve, 500));
 
     return blocksVariablesStoredUpdated;
@@ -392,7 +392,7 @@ export const nodeSlice = createSlice({
       .addCase(updateBlocksAndEnsureLatest.fulfilled, (state, action) => {
         state.status = 'succeeded';
         // Update the state with the data returned from the thunk!
-        state.blocksVariablesStored = action.payload;
+        state.blocksVariables = action.payload;
       })
       .addCase(updateBlocksAndEnsureLatest.rejected, (state, action) => {
         state.status = 'failed';
