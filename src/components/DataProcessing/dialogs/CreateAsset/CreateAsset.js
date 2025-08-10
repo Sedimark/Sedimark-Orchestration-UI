@@ -19,9 +19,13 @@ import {
   dataAsset,
   AIModelAsset
 } from "../../../../utils/assetTypes";
+import {transformFormDataToNgsiLdAsset} from "../../../../utils/createNGSILDAsset.js"
+import { transformFormDataToNgsiLdWorkflowAsset } from "../../../../utils/createNGILDAssetWorkflow.js";
+import { transformFormDataToNgsiLdAIModelAsset } from "../../../../utils/createNGSILDAIModel.js";
 import style from "./CreateAsset.css";
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { SelectAsset } from "./SelectAsset";
 
 export default function CreateAsset(props) {
  const darkTheme = createTheme({
@@ -34,7 +38,14 @@ export default function CreateAsset(props) {
   const [asset, setAsset] = useState({});
   const [formDisplay, setFormDisplay] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState("");
-  
+  const [selectActualAsset, setSelectActualAsset] = useState(false);
+  const [assetOfType, setAssetOfType] = useState("");
+  const [selectedAsset, setSelectedAsset] = useState(false);
+
+  const ITEM_HEIGHT = 48;
+  const ITEM_PADDING_TOP = 8;
+
+
     const blockAlert = (msg) => {
         toast.error(msg, {
             duration: 4000,
@@ -49,7 +60,7 @@ export default function CreateAsset(props) {
     })
   };
   
-  const postAssetObject = async()=>{
+  const postAssetObject = async(asset)=>{
 
     try{
       const resp = axios.post(CREATE_ASSET,asset);
@@ -59,7 +70,10 @@ export default function CreateAsset(props) {
       blockAlert("There was an error while posting the asset!");
     }
 
-      props.handleClose()
+    setTimeout(()=>{
+      props.handleClose();
+    },1500)
+      
   }
 
   const getSchemaBasedOffAsset = ()=> {
@@ -81,12 +95,29 @@ export default function CreateAsset(props) {
   const generateAndDisplayForm = (assetType)=>{
     setSelectedAssetType(assetType);
     setFormDisplay(true);
-    //here we generate the form based on what is the requirement
+    setSelectActualAsset(false);
   }
 
-   const handleSubmit = ()=>{
-     
-   }
+   const handleSubmit = (data) => {
+
+    let finalNGSILDAsset;
+    switch(selectedAssetType){
+      case "workflow":
+        finalNGSILDAsset = transformFormDataToNgsiLdAsset(data);
+        break;
+      case "data":
+        finalNGSILDAsset = transformFormDataToNgsiLdWorkflowAsset(data);
+        break;
+      case "AIModel":
+        finalNGSILDAsset = transformFormDataToNgsiLdWorkflowAsset(data);
+        break;
+    }
+
+    postAssetObject(finalNGSILDAsset);
+
+  };
+
+
 
   return(
       <ThemeProvider theme={darkTheme}>
@@ -120,13 +151,27 @@ export default function CreateAsset(props) {
 
               {
                   formDisplay ?
-                  <div className="form-container-dialog-inside">
-                       <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <FormBuilder fields={getSchemaBasedOffAsset()} onSubmit={handleSubmit} />
-                       </LocalizationProvider>
-                      
-                  </div>
-                  :
+
+                      <>
+                      {selectActualAsset ?
+
+                          <div className="asset-type-select-btn" style={{marginTop:"20px"}}>
+                             <SelectAsset assetType={assetOfType}  setSelectedAsset={setSelectedAsset} generateAndDisplayForm={generateAndDisplayForm} selectActualAsset={setSelectActualAsset}/>
+                          </div>
+
+                            :
+
+                          <div className="form-container-dialog-inside">
+                              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                  <FormBuilder fields={getSchemaBasedOffAsset()} onSubmit={handleSubmit} />
+                              </LocalizationProvider>
+                              
+                          </div>
+                        }
+                      </>
+                
+                   :
+
                   <div className="asset-type-select-btn"> 
                     <div className="select-asset-type">Select what kind of asset you want to create:</div>
 
@@ -135,30 +180,24 @@ export default function CreateAsset(props) {
                               marginTop: '',
                               marginLeft: '45%',
                               width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm("workflow")}}>
+                            }}  onClick={()=>{setSelectActualAsset(true); setFormDisplay(true); setAssetOfType("workflow");  }}>
                               Workflow  
                             </Button>
                             <Button variant='contained' color='primary'   sx={{ 
                               marginTop: '10px',
                               marginLeft: '45%',
                               width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm("data")}}>
+                            }}  onClick={()=>{ setSelectActualAsset(true); setFormDisplay(true); setAssetOfType("data");}}>
                               Data  
                             </Button>
                             <Button variant='contained' color='primary'   sx={{ 
                               marginTop: '10px',
                               marginLeft: '45%',
                               width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm("AIModel")}}>
+                            }}  onClick={()=>{ setSelectActualAsset(true); setFormDisplay(true); setAssetOfType("AIModel"); } }>
                               AI Model  
                             </Button>
-                            <Button variant='contained' color='primary'   sx={{ 
-                              marginTop: '10px',
-                              marginLeft: '45%',
-                              width:"150px"
-                            }}  onClick={()=>{generateAndDisplayForm("service")}}>
-                              Service  
-                            </Button>
+                            
                       </div>
                   </div>
               }

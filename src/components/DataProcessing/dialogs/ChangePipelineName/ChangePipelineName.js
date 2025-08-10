@@ -123,7 +123,32 @@ export default function ChangePipelineName(props) {
                   <SearchIcon />
                   </IconButton> 
                     </Paper>
-                    <List dense sx={{ width: '100%', bgcolor: 'background.paper', marginTop:"10px" }}>
+                    <List dense sx={{ 
+                        width: '100%', 
+                        bgcolor: 'background.paper', 
+                        marginTop: "10px", 
+                        borderRadius: "3px", 
+                        height: "500px", 
+                        overflowY: "scroll",
+                        // Scrollbar styling
+                        '&::-webkit-scrollbar': {
+                          width: '6px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                          background: 'rgba(0, 0, 0, 0.1)',
+                          borderRadius: '10px',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                          background: 'rgba(128, 128, 128, 0.3)',
+                          borderRadius: '10px',
+                          '&:hover': {
+                            background: 'rgba(128, 128, 128, 0.5)',
+                          },
+                        },
+                        // Firefox
+                        scrollbarWidth: 'thin',
+                        scrollbarColor: 'rgba(128, 128, 128, 0.3) rgba(0, 0, 0, 0.1)',
+                      }}>
                         <ListItem
                             key={"my-key"}
                             secondaryAction={

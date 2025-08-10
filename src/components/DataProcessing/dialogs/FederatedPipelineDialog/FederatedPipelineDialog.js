@@ -736,31 +736,27 @@ export const FederatedPipelineDialog = (props)=>{
       const fullModelsArray = [];
       const fullFrameworksArray = [];
 
-      // try{
+      try{
        
-      //   const resp = await axios.get(GET_MODELS);
+        const resp = await axios.get(GET_MODELS);
     
-      //   for(const model of resp.data){
-      //     fullModelsArray.push(model.name);
-      //     fullFrameworksArray.push(model);
-      //   }
+        for(const model of resp.data){
+          fullModelsArray.push(model.name);
+          fullFrameworksArray.push(model);
+        }
 
-      //   setCompleteModelList(fullFrameworksArray);
-      //   setModelList(fullModelsArray);
-      //   setLoading(false);
+        setCompleteModelList(fullFrameworksArray);
+        setModelList(fullModelsArray);
+        setLoading(false);
         
-      // } catch(err){
+      } catch(err){
         
-      //   setLoading(false);
-      //   setModelUploadError(true);
-      //   console.log(err);
-      // }
+        setLoading(false);
+        setModelUploadError(true);
+        console.log(err);
+      }
 
-      setCompleteModelList([{
-      "name":"model.keras",
-      "framework":"keras"
-      }]);
-      setModelList(["model.keras"]);
+    
       setLoading(false);
   }
 

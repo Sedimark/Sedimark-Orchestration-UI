@@ -12,13 +12,18 @@ import { setSelectedView, setBlocksVariables } from "../../reducers/nodeSlice";
 import { Button } from "@mui/material";
 import { setAllTabs, setTabIndex } from "../../reducers/nodeSlice";
 import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
+import LinkIcon from '@mui/icons-material/Link';
+import { truncateString } from "../../utils/truncateString";
 import AutoAwesomeMosaicIcon from '@mui/icons-material/AutoAwesomeMosaic';
+import Stack from "../../utils/stack";
+// import { closeTab } from "../../utils/closeTab";
 
 function DataProcessing({ logout }) {
   const dispatch = useDispatch();
   const allTabsStored = useSelector((state) => state.allTabs);
   const blocksVariablesStored = useSelector((state)=> state.blocksVariables);
   const selectedTabStored = useSelector((state)=>state.selectedTab);
+  const linkedTabToDelete = useSelector((state)=>state.linkedTabToDelete);
   const tabIndexes = useSelector((state)=>state.tabIndex);
   const [selectedTab, setSelectedTabHere] = useState("");
   const [tabPipeline, setTabPipeline] = useState("");
@@ -31,36 +36,92 @@ function DataProcessing({ logout }) {
     dispatch(setSelectedView(newValue));
   };
 
-  const deletePipelineVariables = ()=>{
+  const fetchTabInfo = (tabInfo)=>{
+    const fullTabInfo = allTabsStored.find(item=>item.name === tabInfo);
+    return fullTabInfo;
+  }
+  
+  const closeTab = (tabInfo)=>{
+  
+    const fullTabInfo = fetchTabInfo(tabInfo);
+    
+    // here we check if there is any pipeline who has 
+    // as parentPipeline the pipeline to be deleted
+    // and if so we delete the other pipelines too
+    let pipeTabToDeleteName = fullTabInfo["pipelineName"];
+
+    // implemented stack to push all the tabs that needs to be deleted and then
+    //pop them off as we are proceeding with deletion
+    
+    const tabsStack = new Stack();
+    
+    tabsStack.push(fullTabInfo);
+    // the parent pipeline may be linked to other pipelines
+    // if we have the case with pipeline linked and we want to delete
+    // the linked pipelines too such that for this we are searching
+    // for those kind of pipelines and we want to have everything deleted
+
+    // find multiple pipes here
+    for(const tabPipe of allTabsStored){
+      if (tabPipe["parentPipeline"] == pipeTabToDeleteName ) {
+        tabsStack.push(fetchTabInfo(tabPipe["name"]));
+      }
+    }
+
+    
+
+    // pop tabIndexes of the shelf
+
+    let intermediateTabIndexes = tabIndexes ;
+    let intermediateallTabsStored = allTabsStored;
+    let intermediatenewVariables = blocksVariablesStored;
+ 
+    // tabInfo - nume tab
+    let currTab;
+
+    while (!tabsStack.isEmpty()) {
+    // we pop items off the Stack   
+
+    currTab = tabsStack.pop();
+
+    intermediateTabIndexes = intermediateTabIndexes.filter( tab => tab !== currTab.tabOrder);
+    intermediateallTabsStored = intermediateallTabsStored.filter(item=>item.name !== currTab.name);
+    intermediatenewVariables = intermediatenewVariables.filter(item=>  item.tabName !== currTab.name);
     
   }
-
-  const closeTab = (tabInfo)=>{
-    const fullTabInfo = allTabsStored.find(item=>item.name === tabInfo);
-
-    const newTabIndexes = tabIndexes.filter( tab => tab !== fullTabInfo.tabOrder);
-    dispatch(setTabIndex(newTabIndexes));
-    const newTabArr = allTabsStored.filter(item=>item.name !== tabInfo);
-    const newVariables = blocksVariablesStored.filter(item=>  item.tabName !== fullTabInfo.name);
-    
+  
     sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${tabPipeline}-runData`);
     sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${tabPipeline}-running-steps`);
-    dispatch(setBlocksVariables(newVariables));
+    
+    // dispatch with the new values
+    // last part - should contain the correct updated values
 
-    dispatch(setAllTabs(newTabArr));
-    if(newTabArr.length > 0){
-      setSelectedTabHere(newTabArr[0]);
-      dispatch(setSelectedView(newTabArr[0]));
+    dispatch(setBlocksVariables(intermediatenewVariables));
+    dispatch(setAllTabs(intermediateallTabsStored));
+    dispatch(setTabIndex(intermediateTabIndexes));
+
+    if(intermediateallTabsStored.length > 0){
+      setSelectedTabHere(intermediateallTabsStored[0]);
+      dispatch(setSelectedView(intermediateallTabsStored[0]));
     } else {
       dispatch(setTabIndex(null));
     }
     
   }
 
-
   useEffect(()=>{
     setSelectedTabHere(selectedTabStored.tabSelected);
   },[selectedTabStored])
+
+
+  useEffect(()=>{
+    // this use effect has the purpose of deleting a chained tab
+    if(linkedTabToDelete && linkedTabToDelete.length !== 0){
+      closeTab(linkedTabToDelete);
+    }
+  },[linkedTabToDelete])
+
+
   
   return (
     <div style={{ height: '100%' }}>
@@ -71,8 +132,12 @@ function DataProcessing({ logout }) {
               <Tab
                 key={tabData.name}
                 label={<div className="tab-name">
-                    <p className="tab-name">{tabData.name}</p>
-                    <Button className="close-tab-btn" onClick={()=>{setAreYouSureOpen(true); setTabPipeline(tabData.pipelineName); }}>x</Button>
+                   <>
+                      { tabData.isChained && <LinkIcon/> }  
+                        <p className="tab-name">{truncateString(tabData.name,30)}</p>
+                       { !tabData.isChained &&  <Button className="close-tab-btn" onClick={()=>{setAreYouSureOpen(true); setTabPipeline(tabData.pipelineName); }}>x</Button> }
+                   </>
+                  
                 </div>}
                 value={tabData.name}
               />
@@ -98,6 +163,7 @@ function DataProcessing({ logout }) {
               pipelineName={tabData.pipelineName}
               tabName={tabData.name}
               tabOrder={tabData.tabOrder}
+              isChained={tabData.isChained}
             />
           </TabPanel>
         ))}

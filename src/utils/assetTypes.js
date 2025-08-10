@@ -22,7 +22,7 @@
   { name: "relatedAsset", label: "Related Asset", type: "string" },
   { name: "processingSteps", label: "Processing Steps", type: "string" }
 ];
-
+ 
 export const serviceAsset = [
    { name: "identifier", label: "Identifier", type: "string" },
   { name: "title", label: "Title", type: "string" },
@@ -79,7 +79,7 @@ export const dataAsset =  [
   { name: "endDate", label: "End Date", type: "date" },
   { name: "temporalResolution", label: "Temporal Resolution", type: "string" },
   { name: "size", label: "Size", type: "string" },
-  { name: "accrualPeriodicity", label: "Accrual Periodicity", type: "string" },
+  { name: "acctualPeriodicity", label: "Accrual Periodicity", type: "string" },
   { name: "inSeries", label: "In Series", type: "string" }
 ];
 

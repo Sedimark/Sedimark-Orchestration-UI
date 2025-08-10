@@ -22,7 +22,8 @@ import { truncateString } from '../../utils/truncateString';
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux'; 
 import formatName from '../../utils/formatName';
-import {setPipelineStudioNodes,setStoredPipelineName, setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
+import isObject from '../../utils/isObject';
+import {setPipelineStudioNodes,setStoredPipelineName, setBlocksVariables ,setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
  
 export default memo(({ data, isConnectable }) => {
 
@@ -167,8 +168,7 @@ export default memo(({ data, isConnectable }) => {
 
   const getStoredVariableValue = (varName) => {
 
- 
- 
+    
     for (const variable of variablesValues) {
       if (variable.variable_name === varName && variable.block_name === data.name && variable.tabName === data.tabName) {
         if (Array.isArray(variable.value)) {
@@ -230,25 +230,39 @@ export default memo(({ data, isConnectable }) => {
     setFullNodeName(data.name);
 
 
-
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
-     
       
       const allVarsData = [];
+  
       for(const varValue of Object.keys(data.config)){
        
         if(varValue === "pipelineName"){
           continue;
         }
+
+        if(!isObject(data.config[varValue])){
+          continue;
+        }
+
+        if(!data.config[varValue]["type"]){
+          continue;
+        }
+ 
         const newObj = {
           varName:varValue,
           ...data.config[varValue]
         }
         allVarsData.push(newObj);
-      }
+      } 
 
       setAllVariables(allVarsData);
-      setVariablesPresent(true);
+
+      if(allVarsData.length != 0){
+        setVariablesPresent(true);
+      } else {
+        setVariablesPresent(false);
+      }
+      
       return;
    }
 
@@ -263,7 +277,7 @@ export default memo(({ data, isConnectable }) => {
       
       const parsedJSONVar = parseJSONVar(allVarsType[i]);
     
-      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
+      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date", "boolean"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
           tabName:data.tabName,
@@ -282,7 +296,6 @@ export default memo(({ data, isConnectable }) => {
     setAllVariables(allVarsData);
     
   }, [])
-
 
   useEffect(()=>{
     
@@ -359,31 +372,31 @@ export default memo(({ data, isConnectable }) => {
 
     const createObjToStore = ()=>{
         
-      //   let inputedValuesVariables = [...variableValues];
-      //   let objToStore;
+        let inputedValuesVariables = [...variableValues];
+        let objToStore;
   
-      //   let pipelineName = "";
-      //   let nodeNameId = convertToSnakeCase(data.name);
+        let pipelineName = "";
+        let nodeNameId = convertToSnakeCase(data.name);
         
-      //   for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
-      //     if(key == formatName(fullNodeName)){
-      //       pipelineName = value;
-      //     }
-      //   }
+        for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+          if(key == formatName(fullNodeName)){
+            pipelineName = value;
+          }
+        }
          
-      //   objToStore = {
-      //   block_name:data.name,
-      //   variable_name:"entity_id",
-      //   value:brokerEntityId,
-      //   nodeId:nodeNameId,
-      //   pipelineName:data.config.pipelineName
-      // }
+        objToStore = {
+        block_name:data.name,
+        variable_name:"entity_id",
+        value:brokerEntityId,
+        nodeId:nodeNameId,
+        pipelineName:data.config.pipelineName
+      }
         
-      // inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
-      // setVariableValues(inputedValuesVariables);
+      inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+      setVariableValues(inputedValuesVariables);
         
-      // blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);  
-      // dispatch(setBlocksVariables(blocksVariablesStored)); 
+      blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);  
+      dispatch(setBlocksVariables(blocksVariablesStored)); 
 
     }
 
@@ -406,13 +419,12 @@ export default memo(({ data, isConnectable }) => {
   },[allRunningPipelines, data])
 
   useEffect(()=>{
+    
     if(brokerEntityId && brokerEntityId.length!==0){
       createObjToStore();
     }
        
   },[brokerEntityId])
-
-
 
  
   return (
@@ -432,7 +444,9 @@ export default memo(({ data, isConnectable }) => {
          
  
         {variablesPresent && !isFromPipelineStudio &&
-          <div className='base-node-info-section-container'>
+          <div className='base-node-info-section-container' style={{
+            "marginBottom":`${allVariables.length < 2 ? "1px" : "50px"}`
+          }}>
             <h3> Variables</h3> 
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 200 }} aria-label="customized table">
@@ -445,12 +459,12 @@ export default memo(({ data, isConnectable }) => {
                 <TableBody>
                   {allVariables.slice(0, 2).map((row, index) => (
                     <StyledTableRow key={index}>
-                      <StyledTableCell component="th" scope="row">
-                        {row["varName"]}
+                      <StyledTableCell component="th" scope="row" title={row["varName"]}>
+                        {truncateString(row["varName"], 25)}
                       </StyledTableCell>
                       <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                     </StyledTableRow>
-                  ))}
+                  ))} 
                   {allVariables.length > 2 && (
                     <StyledTableRow>
                       <StyledTableCell component="th" scope="row" colSpan={2} style={{color:"gray"}}>
@@ -490,8 +504,12 @@ export default memo(({ data, isConnectable }) => {
         }
         {
           variablesPresent && 
-          <div className='base-node-info-section'>
-              <div className='base-node-bottom-toolbox'>
+          <div className='base-node-info-section' style={{
+             "marginTop": `${allVariables.length > 2 ? "80px": ""}`
+            }}>
+              <div className='base-node-bottom-toolbox' style={{
+                "marginBottom": `${allVariables.length > 2 ? "10px": ""}`
+              }}>
                 {/* <button className='change-base-btn base-toolbox-btn' onClick={() => { setViewDataDialog(true) }}>View Data <FontAwesomeIcon icon={faChartSimple} /> </button> */}
                 <button className='edit-variables-btn-loader same-width-btn' onClick={() => { openVariablesEditMenu() }} disabled={pipelineIsRunning} > Edit Variables <FontAwesomeIcon icon={faArrowUpRightFromSquare} /></button>
                 <button className='edit-variables-btn-loader same-width-btn' onClick={() => { setSeeLogs(true) }} disabled={pipelineIsRunning} > See Logs <FontAwesomeIcon icon={faScroll} /></button>

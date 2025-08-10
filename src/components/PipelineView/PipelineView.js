@@ -5,7 +5,8 @@ import {
     PIPELINE_HISTORY,
     PIPELINE_STATUS,
     RUN_PIPELINE,
-    RUN_STREAMING_PIPELINE, STREAMING_PIPELINE_STATUS
+    RUN_STREAMING_PIPELINE, STREAMING_PIPELINE_STATUS,
+    CREATE_TRIGGER
 } from "../../utils/apiEndpoints";
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {Step, StepLabel, Stepper } from "@mui/material";
@@ -33,10 +34,11 @@ import {
     faSpinner,
     faCircleInfo,
     faArrowsRotate,
-    faBroom,
-    faImages,
+    faHourglassStart,
+    faLink,
     faCircleStop,
-    faMicrochip
+    faMicrochip,
+    faWarning
 } from '@fortawesome/free-solid-svg-icons';
 import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
@@ -44,10 +46,12 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useDispatch } from 'react-redux';
 import {setSelectedTrainedModel, setIsPredictedSelected, setRunningPipelines} from "../../reducers/nodeSlice";
 import { deleteElement } from "../../utils/deleteElement";
+import {containsString} from "../../utils/containsString";
 import Box from '@mui/material/Box';
 import Flow from "../Flow/Flow";
 import DialogActions from "@mui/material/DialogActions";
 import CircularProgress from '@mui/material/CircularProgress';
+import style from "./PipelineView.css"
 
 
 const CustomTooltip = styled(({ className, ...props }) => (
@@ -91,6 +95,10 @@ export const PipelineView = (props)=>{
     const [showTooltip, setShowTooltip] = React.useState(false);
     const [metricsOpen, setMetricsOpen]  = React.useState(false);
     const [pipelineType , setPipelineType] = React.useState("");
+    const [noTrigger, setNoTrigger] = React.useState(false);
+    const [errorLoadingData, setErrorLoadingData] = React.useState(false);
+    const [createAndFetchTrigger, setCreateAndFetchTrigger] = React.useState(false);
+    const [isChained, setIsChained] = React.useState(false);
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -115,11 +123,15 @@ export const PipelineView = (props)=>{
                 duration: 2000,
                 position: 'top-right',
             })
-        } else {
+        } else if(type === "success"){
             toast.success(msg, {
                 duration: 2000,
                 position: 'top-right',
             })
+        } else if(type === "info"){
+            toast(msg, {
+                 icon: 'ℹ️️',
+            });
         }
     };
  
@@ -161,7 +173,7 @@ export const PipelineView = (props)=>{
     const startPipeline = React.useCallback(async () => {
 
         let nrOfVars = 0;
-        
+  
         nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
         const blockVars = parseVarsForPipeline();
         if(blockVars.length !== nrOfVars || (blockVars.length == 0 && nrOfVars!=0)){
@@ -171,6 +183,8 @@ export const PipelineView = (props)=>{
 
         const variables = {};
 
+        
+
         blockVariables.forEach((value) => {
             variables[value["variable_name"]] = value["value"];
         })
@@ -179,6 +193,7 @@ export const PipelineView = (props)=>{
         setStepStatus([true, true, true])
         setActiveStep(steps.indexOf("start"));
         
+  
 
         try {
             await axios({
@@ -451,28 +466,160 @@ export const PipelineView = (props)=>{
         }
     }
 
+    const pollWithTimeout = (asyncOperation, maxAttempts, delayMs, attempt = 1) => {
+        return new Promise((resolve, reject) => {
+            asyncOperation()
+            .then(result => {
+                if (Object.keys(result.data).length !== 0) { 
+                resolve(result.data);
+                } else if (attempt < maxAttempts) {
+                setTimeout(() => {
+                    pollWithTimeout(asyncOperation, maxAttempts, delayMs, attempt + 1)
+                    .then(resolve)
+                    .catch(reject);
+                }, delayMs);
+                } else {
+                reject(new Error(`Polling failed after ${maxAttempts} attempts.`));
+                }
+            })
+            .catch(error => {
+                // if there was an erro we notify the user accordingly
+              reject(new Error(`Polling failed after ${maxAttempts} attempts with error: ${error.message}`));
+            });
+        });
+    }
 
+    const handleCreateAndFetchPipelineTrigger = async()=>{
+        let runDataResp;
 
-    //aici se verifica daca pipeline-ul este pornit sau nu si daca il salveaza in local storage
+        try{
+            const response = await axios.get(FETCH_PIPELINE_RUN_DATA(pipelineName));
+            runDataResp = response.data;
+        }  catch(err){
+              if (err.response && err.response.status === 404) {
+                    // Handle 404 Not Found specifically
+                    console.log("Resource not found (404).");
+                    //set runDataResp to an empty object to fit with the rest of the code functionality
+                    runDataResp = {}
+                } else {
+                    // Handle other errors (network issues, 5xx, etc.)
+                    console.error("Error loading pipeline run data:", err);
+                    blockAlert("Error loading pipeline run data!");
+                    setErrorLoadingData(true);
+                    return false;
+                }
+
+            // blockAlert("Error loading pipeline run data!");
+            // setErrorLoadingData(true);
+            // return false;
+        }
+        
+
+            // if the response received on the API is not an empty object
+            // this pipeline does have a trigger and we may use that trigger
+            if(Object.keys(runDataResp).length !== 0 ){
+                setRunData(runDataResp);
+                sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-runData`, JSON.stringify(runDataResp));
+                return true;
+            } else {
+                // here we deal with the case when there is no trigger
+                // we need to first create the trigger 
+                // then pool the API for n times
+                // and we need to notify the user
+                
+                //STEP 0 - notify the user
+                blockAlert("Create trigger for pipeline...","info");
+                
+                // here we handle the special case - createAndFetch trigger
+                setCreateAndFetchTrigger(true);
+
+                // STEP 1 create the trigger
+
+                const newDate = Date.now();
+
+                const requestPayload = {
+                "name": pipelineName,
+                "trigger_type": "api",
+                "trigger_name": `ORCHESTRATOR_${pipelineName}`,
+                "interval": "",
+                "start_time": newDate
+                }
+
+                axios({
+                method: "POST",
+                url: CREATE_TRIGGER,
+                data: requestPayload
+
+                }).then((response) => {
+                    blockAlert("Pipeline trigger got created in MageAI!","info");
+                    return true;
+                }).catch((_) => {
+                    blockAlert("Error creating pipeline trigger");
+                    setErrorLoadingData(true);
+                    setCreateAndFetchTrigger(false);
+                    return false;
+                })
+                // now we are fetching with timeout ... for some retries
+               
+                pollWithTimeout(
+                    async () => { // <--- Wrap your axios call in an async function
+                        try {
+                        const response = await axios.get(FETCH_PIPELINE_RUN_DATA(pipelineName));
+                        // Return the data if it's not empty, otherwise return null/empty object to continue polling
+                        return Object.keys(response.data).length > 0 ? response.data : null;
+                        } catch (error) {
+                        // Handle axios specific errors if needed, or re-throw to stop polling
+                        console.log("Axios request failed during polling, retrying...", error.message);
+                        blockAlert("Error while fetching the data", "error");
+                        setCreateAndFetchTrigger(false);
+                        return null; // Return null to indicate it should retry (if error is transient)
+                        }
+                    },
+                        5, // maxAttempts
+                        1000 // delayMs
+                )
+                    .then(resource => {
+                        // here the resource is the resource that is like the actual runData object that 
+                        //we need to work with it further
+                        setRunData(resource);
+                        blockAlert("Trigger created!", "info")
+                        sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-runData`, JSON.stringify(resource));                        
+                        return true;
+                    })
+                    .catch(error => {
+                        
+                        setCreateAndFetchTrigger(false);
+                        return false;
+                    });
+
+            }
+    }
+    
 
     useEffect(() => {
+
         if (pipelineName.length > 0) {
-            axios({
-                method: "GET",
-                url: FETCH_PIPELINE_RUN_DATA(pipelineName)
-            }).then((response) => {
-                setRunData(response.data);
-                
-                sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-runData`, JSON.stringify(response.data));
-            }).catch((_) => {
-                blockAlert("Error loading pipeline run data!");
-            })
+
+            // first check if the trigger exists
+            // if it does exists than we return it 
+            // if it does not exists than we create it and then return it
+
+           const createTriggerResp = handleCreateAndFetchPipelineTrigger();
+
+           // if the response from createTrigger is false than this means that
+           // the process of creating the trigger did not worked properly
+
+           if(!createTriggerResp){
+                return;
+           } else {
+                setNoTrigger(false);
+           }
 
             if (isRun.current) return;
 
             isRun.current = true;
             
-            let savedState;
+           let savedState;
            if(Array.isArray(pipelineName)){
             savedState = sessionStorage.getItem(`${props.tabOrder}-${pipelineName[0]}-running-steps`);
            } else {
@@ -502,9 +649,13 @@ export const PipelineView = (props)=>{
     }, [pipelineName]);
 
     useEffect(()=>{
-        console.log("runData:");
-        console.log(runData);
-        console.log("runData:");
+        
+        if(!runData || Object.keys(runData).length === 0)
+        {
+            setNoTrigger(true);
+        } else {
+            setNoTrigger(false);
+        }
 
     },[runData])
 
@@ -566,6 +717,14 @@ export const PipelineView = (props)=>{
     },[isPipelineStarted, pipelineName])
 
 
+    useEffect(()=>{
+        
+        if(props["isChained"]){
+            setIsChained(true);
+        } else {
+            setIsChained(false);
+        }
+    },[props])
 
 
     return(
@@ -643,36 +802,78 @@ export const PipelineView = (props)=>{
                             </Dialog>
                         </ThemeProvider>
                         <div className="flow-container">
-
+                                                
                          {
-                            pipelineName.length !== 0  &&
+                            pipelineName.length !== 0  && pipelineNodes.length!==0 && !errorLoadingData &&
                             <>
                                <div className="container">
                                     <>
-                                       {loading ?
-                                           <div className="pipeline-controller pipeline-loading">
-                                                <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
-                                                <p>Starting Pipeline...</p>
-                                            </div>
-                                        : isPipelineStarted ?
-                                            <div className="pipeline-controller pipeline-started">
-                                                {props.pipelineType !== "streaming" ?
-                                                    <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
-                                                    :
-                                                    <p className="play-btn" onClick={() => handleStreamingPipeline("stop")}><FontAwesomeIcon icon={faCircleStop} /></p>
-                                                }
+                                 {isChained ? 
+                                    <>
+                                        <div className="pipeline-controller pipeline-loading">
+                                            <p className="play-btn"><FontAwesomeIcon icon={faLink} /></p>
+                                            <p>Subpipeline Chained</p>
+                                        </div>
+                                    </>
 
-                                                <p>Running...</p>
-                                            </div> :
-                                                <div className="pipeline-controller">
-                                                    <p className="play-btn" onClick={() => props.pipelineType === "streaming" ? handleStreamingPipeline("start") : runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
-                                                    <p>Start Pipeline</p>
-                                                </div>
+                                    :
+
+                                     <>
+                                        {
+                                            !noTrigger ?
+                                            <>
+                                                { (!createAndFetchTrigger) ?
+                                                        <>
+                                                            { loading ?
+                                                                <div className="pipeline-controller pipeline-loading">
+                                                                        <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                                                                        <p>Starting Pipeline...</p>
+                                                                    </div>
+                                                                : isPipelineStarted ?
+                                                                    <div className="pipeline-controller pipeline-started">
+                                                                        {props.pipelineType !== "streaming" ?
+                                                                            <p className="play-btn"><FontAwesomeIcon icon={faSpinner} spin /></p>
+                                                                            :
+                                                                            <p className="play-btn" onClick={() => handleStreamingPipeline("stop")}><FontAwesomeIcon icon={faCircleStop} /></p>
+                                                                        }
+
+                                                                        <p>Running...</p>
+                                                                    </div> :
+                                                                        <div className="pipeline-controller">
+                                                                            <p className="play-btn" onClick={() => props.pipelineType === "streaming" ? handleStreamingPipeline("start") : runPipeline("button")}><FontAwesomeIcon icon={faCirclePlay} /></p>
+                                                                            <p>Start Pipeline</p>
+                                                                        </div>
+                                                                }
+                                                        </>
+                                                        :
+                                                        <>
+                                                                  <div className="pipeline-controller">
+                                                                        <p className="play-btn" ><FontAwesomeIcon icon={faHourglassStart} /></p>
+                                                                        <p> Fetching trigger.. </p>
+                                                                    </div>
+                                                        </>
+                                                    }
+                                            </>
+                                            :
+
+                                            <>
+                                                        <div className="pipeline-controller pipeline-controller-warning">
+                                                                <p className="play-btn" ><FontAwesomeIcon icon={faWarning} /></p>
+                                                                <p>No trigger in MageAI!</p>
+                                                            </div>
+                                            </>
+
                                         }
+                                     </>
+
+                                    }
+                                   
+                                    
+                                      
                                     </>
                                  
                                  {
-                                    props.pipelineType !== "streaming" &&
+                                    props.pipelineType !== "streaming" && !isChained &&
                                     <div className="steps" style={{ width: "100%" }}>
                                         {pipelineName && (
                                             <Stepper activeStep={activeStep} sx={{ width: "100%" }}>
@@ -699,7 +900,7 @@ export const PipelineView = (props)=>{
                                     </div>
                                  }
                                 
-                                { pipelineName.length !== 0 &&
+                                { pipelineName.length !== 0   &&
 
                                    <>
 
@@ -707,8 +908,12 @@ export const PipelineView = (props)=>{
                                         props.pipelineType === "streaming" ?
                                         <div className="side-info-container-small">
                                                                                    
-                                            <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName): formatString(pipelineName)}`}>
-                                                <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
+                                            <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName): formatString(pipelineName)}`} overlayStyle={{ 
+                                                fontSize: '16px',
+                                                maxWidth: '300px',
+                                                padding: '10px'
+                                            }} >
+                                                <Button><FontAwesomeIcon icon={faCircleInfo}   className="info-icon-side-small"/>   </Button>
                                             </Tooltip>
 
                                            </div>
@@ -742,7 +947,7 @@ export const PipelineView = (props)=>{
                           </>
                          }                            
  
-                            <Flow tabName={props.tabName} pipelineType={props.pipelineType} pipelineName={props.pipelineName}/>
+                           <Flow tabName={props.tabName} pipelineType={props.pipelineType} pipelineName={props.pipelineName}/>
                                 
                             { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps={handleDeleteTheRestData} thePipelineName={pipelineName} pipelineStudio={false} ></AreYouSure>}
                             { metricsOpen && <Metrics open={metricsOpen} pipelineName={pipelineName} handleClose={()=>{setMetricsOpen(false)}} />}

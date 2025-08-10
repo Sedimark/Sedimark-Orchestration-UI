@@ -17,7 +17,7 @@
 
 .loading-circle-container{
     padding:40px;
-    padding-top:90px;
+    padding-top:160px;
 }
 
 .loading-text{
@@ -40,7 +40,7 @@
 }
 
 .no-result-container{
-    margin-bottom:40px;
+    margin-top:40px;
     font-size: 1.3rem;
     padding:10px;
 }

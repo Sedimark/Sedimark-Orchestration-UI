@@ -51,8 +51,8 @@ const addKeyword = (name) => {
   const currentValues = watch(name)
 
   if (currentInput && !currentValues.includes(currentInput)) {
-    setValue(name, [...currentValues, currentInput]) // adaugă în RHF field array
-    setKeywordInputs(prev => ({ ...prev, [name]: "" })) // golește inputul vizual
+    setValue(name, [...currentValues, currentInput]) 
+    setKeywordInputs(prev => ({ ...prev, [name]: "" })) 
   }
 }
 
@@ -61,6 +61,11 @@ const removeKeyword = (name, kw) => {
   const currentValues = watch(name)
   setValue(name, currentValues.filter(k => k !== kw))
 }
+
+
+const handleFormSubmit = (data) => {
+    console.log("Final Form Data:", data);
+};
 
   return (
     <div >

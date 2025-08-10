@@ -255,12 +255,13 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
                 >
  
                 <DialogTitle id="alert-dialog-title">
+                    
                     {!typesMenu && <span><FontAwesomeIcon icon={faArrowLeft}  onClick={()=>{setTypesMenu(true)}} className="left-icon-studio"/></span> }
                     <div className="close-button-save-pipeline" onClick={props.handleClose}> x </div>
                 </DialogTitle>
                 <DialogContent>
                 <DialogContentText id="alert-dialog-description">
-                
+                <div> My Assets</div>
                  {
                   typesMenu ?
                   <div className='menu-pipelines'>
@@ -292,7 +293,7 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
 
                                 <>
                                       {allTypes.map((type)=>{
-                                        return(<div className='menu-pipelines-item'> {type} <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchEntitiesRequest(type); }}> View Entities </Button></div></div>)
+                                        return(<div className='menu-pipelines-item' title={type}> {truncateString(type,31)} <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchEntitiesRequest(type); }}> View Entities </Button></div></div>)
                                     })}
                                 </>
                               }
@@ -335,7 +336,11 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
 
                                             <>
                                                   {entitiesList.map((entity)=>{
-                                                    return(<div className='entity-item'> <div className='entity-item-text'>{truncateString(entity,40)}</div> <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); setEntityViewOpen(true); setEntityDetails(entity)}}> Details </Button><Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); spawnPipeline(entity)}}> Create Pipeline </Button></div></div>)
+                                                    return(<div className='entity-item'> <div className='entity-item-text' title={entity}>{truncateString(entity,60)}</div> <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); setEntityViewOpen(true); setEntityDetails(entity)}}> Details </Button>
+                                                    {/* <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); spawnPipeline(entity)}}> Create Pipeline </Button> */}
+                                                      </div>
+                                                    </div>
+                                                    )
                                                 })}
                                             </>
                                           }

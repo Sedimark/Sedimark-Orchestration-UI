@@ -351,7 +351,7 @@ export default memo(({ data, isConnectable }) => {
     const allVarsData = [];
     for (let i = 0; i < allVars.length; i++) {
       const parsedJSONVar = parseJSONVar(allVarsType[i]);
-      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date"].includes(parsedJSONVar["type"])) {
+      if(![undefined, "", null, 0].includes(parsedJSONVar) && ["multiple_selection", "string", "number", "drop_down", "date", "boolean"].includes(parsedJSONVar["type"])) {
         varObj = {
           varName: allVars[i],
           tabName:data.tabName,
@@ -453,8 +453,8 @@ export default memo(({ data, isConnectable }) => {
                     <TableBody>
                     {allVariables.slice(0, 2).map((row, index) => (
                     <StyledTableRow key={index}>
-                      <StyledTableCell component="th" scope="row">
-                        {row["varName"]}
+                      <StyledTableCell component="th" scope="row" title={row["varName"]}>
+                        {truncateString(row["varName"], 25)}
                       </StyledTableCell>
                       <StyledTableCell align="right">{getStoredVariableValue(row["varName"])}</StyledTableCell>
                     </StyledTableRow>

@@ -24,19 +24,24 @@ import TextField from '@mui/material/TextField';
 import {  IconButton, InputAdornment } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
-import { FETCH_MINIO_FILE } from '../../../../utils/apiEndpoints';
+import FormGroup from '@mui/material/FormGroup';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
+import { FETCH_MINIO_FILE, FETCH_PIPELINE_DATA } from '../../../../utils/apiEndpoints';
 import { format } from 'date-fns';
-import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import {
   Unstable_NumberInput as BaseNumberInput,
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
 import formatName from '../../../../utils/formatName';
-import { setBlocksVariables } from '../../../../reducers/nodeSlice';
-
+import { setBlocksVariables, setLinkedTabToDelete, setPipelinesBlocks, setTabIndex, setAllTabs, setSelectedTab, setSelectedView } from '../../../../reducers/nodeSlice';
+import {checkAndFormat} from "../../../../utils/checkAndFormat";
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'; // Import the UTC plugin
 import axios from "axios";
 
 const ITEM_HEIGHT = 48;
@@ -51,6 +56,65 @@ const MenuProps = {
 };
  
 
+const IOSSwitch = styled((props) => (
+  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
+))(({ theme }) => ({
+  width: 42,
+  height: 26,
+  padding: 0,
+  '& .MuiSwitch-switchBase': {
+    padding: 0,
+    margin: 2,
+    transitionDuration: '300ms',
+    '&.Mui-checked': {
+      transform: 'translateX(16px)',
+      color: '#fff', // Thumb color when checked (usually white)
+      '& + .MuiSwitch-track': {
+        backgroundColor: '#2196f3', // Blue for light mode when checked (Material Blue 500)
+        opacity: 1,
+        border: 0,
+        ...theme.applyStyles('dark', {
+          backgroundColor: '#1976d2', // Darker blue for dark mode when checked (Material Blue 700)
+        }),
+      },
+      '&.Mui-disabled + .MuiSwitch-track': {
+        opacity: 0.5,
+      },
+    },
+    '&.Mui-focusVisible .MuiSwitch-thumb': {
+      color: '#2196f3', // Blue for focus visible thumb (Material Blue 500)
+      border: '6px solid #fff',
+    },
+    '&.Mui-disabled .MuiSwitch-thumb': {
+      color: theme.palette.grey[100],
+      ...theme.applyStyles('dark', {
+        color: theme.palette.grey[600],
+      }),
+    },
+    '&.Mui-disabled + .MuiSwitch-track': {
+      opacity: 0.7,
+      ...theme.applyStyles('dark', {
+        opacity: 0.3,
+      }),
+    },
+  },
+  '& .MuiSwitch-thumb': {
+    boxSizing: 'border-box',
+    width: 22,
+    height: 22,
+  },
+  '& .MuiSwitch-track': {
+    borderRadius: 26 / 2,
+    backgroundColor: '#E9E9EA', // Unchecked track color (light grey, common for off state)
+    opacity: 1,
+    transition: theme.transitions.create(['background-color'], {
+      duration: 500,
+    }),
+    ...theme.applyStyles('dark', {
+      backgroundColor: '#39393D', // Unchecked track color for dark mode (dark grey)
+    }),
+  },
+}));
 
 
 export default function VariablesInput(props){
@@ -60,7 +124,9 @@ export default function VariablesInput(props){
     const [defaultDate, setDefaultDate] = useState("");
     const [isDateOk, setIsDateOk] = useState(false);
     //** Data related to pipeline names */
-
+    const storedPipelineBlocks = useSelector((state)=> state.pipelinesBlocks);
+    const allTabs = useSelector((state)=> state.allTabs);
+    const tabIndexStored = useSelector((state)=> state.tabIndex);
     const storedPipelinesBlockInfo = useSelector((state)=> state.pipelinesBlocks);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
@@ -82,6 +148,13 @@ export default function VariablesInput(props){
     const [hasDate, setHasDate] = useState(false);
     const [showPassword, setShowPassword] = useState({});
     const [allEmptyFields, setAllEmptyFields] = useState(false);
+    const [hasTriggerVar, setHasTriggerVar] = useState(false);
+    const [linkedPipeline, setLinkedPipeline] = useState("");
+    const [pipelineType , setPipelineType] = useState("");
+    const [parentPipeline, setParentPipeline] = useState("");
+    const [pipelineLinkedInitialValue, setPipelineLinkedInitialValue] = useState("");
+    const [variableNameTrigger, setVariableNameTrigger] = useState("");
+    const storedVariables = useSelector((state)=>state.blocksVariables);
     
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
@@ -200,7 +273,7 @@ export default function VariablesInput(props){
 
     const handleChange = (event, type, variableName) => {
 
-      const { target: { value } } = event;
+      let { target: { value } } = event;
   
       if(type === "text"){
         
@@ -228,8 +301,14 @@ export default function VariablesInput(props){
 
       } 
 
-     
+      // if it is boolean we need to pick up the value from checked
+      // not from other things 
 
+     if(type == "boolean"){
+        setWasSomethingChanged(true);
+        value = event.target.checked;
+     }
+    
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
         block_name:props.fullNodeName,
@@ -244,7 +323,19 @@ export default function VariablesInput(props){
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
     
-    };
+  };
+
+
+  const getPipelineName = ()=>{
+    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+        if(key == formatName(props.fullNodeName)){
+          return value.pipeline_name;
+        }
+    }
+      return "";
+  }
+   
+
 
     const darkTheme = createTheme({
       palette: {
@@ -279,26 +370,29 @@ export default function VariablesInput(props){
       toast.error(msg, {
           duration: 2000,
           position: 'top-right',
-      })
+      });
     }; 
     
-
+    
     const createObjToStore = ()=>{
+      
       
       let inputedValuesVariables = [...variableValues];
       let objToStore;
-    
+
       let pipelineName = "";
     
       for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
         if(key == formatName(props.fullNodeName)){
           pipelineName = value.pipeline_name;
+          break;
         }
       }
 
+      setParentPipeline(pipelineName);
       
-
       for(const key in variablesInput){
+
          objToStore = {
           block_name:props.fullNodeName,
           variable_name:key,
@@ -316,11 +410,219 @@ export default function VariablesInput(props){
       
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       dispatch(setBlocksVariables(blocksVariablesStored)); 
+      
+    }
+
+     
+    const blockNotifyError = (text)=>{
+        toast.error(text);
+    }
+
+
+    const closeTab = (tabInfo)=>{
+        
+        const fullTabInfo = allTabs.find(item=>item.name === tabInfo["name"]);
+        const newTabIndexes = tabIndexStored.filter( tab => tab !== fullTabInfo.tabOrder);
+        dispatch(setTabIndex(newTabIndexes));
+        const newTabArr = allTabs.filter(item=>item.name !== tabInfo["name"]);
+        const newVariables = blocksVariablesStored.filter(item=>  item.tabName !== fullTabInfo.name);
+        
+        let pipelineName = "";
+    
+        for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+          if(key == formatName(props.fullNodeName)){
+            pipelineName = value.pipeline_name;
+            break;
+          }
+        }
+
+        sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${pipelineName}-runData`);
+        sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${pipelineName}-running-steps`);
+        dispatch(setBlocksVariables(newVariables));
+    
+        dispatch(setAllTabs(newTabArr));
+        if(newTabArr.length > 0){
+          // setSelectedTabHere(newTabArr[0]);
+          dispatch(setSelectedView(newTabArr[0]));
+        } else {
+          dispatch(setTabIndex(null));
+        }
+     
+    }
+
+
+    const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
+        
+          let pipeline_blocks;
+          
+          try{
+            const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
+            pipeline_blocks = resp.data.pipeline.blocks;
+    
+          } catch(err){
+            console.log(err);
+            blockNotifyError("There was an error while fetching the pipeline");
+            return false;
+          }
+     
+          let blocksInfoObj ;
+          if(storedPipelineBlocks){
+            blocksInfoObj = {...storedPipelineBlocks };
+          } else { 
+            blocksInfoObj = {};
+          }
+    
+          for(const block of pipeline_blocks){
+            blocksInfoObj[checkAndFormat(block.name)] = {
+              "pipeline_name": pipeline_name,
+              "tabName": newTabName
+            }
+          }
+
+          dispatch(setPipelinesBlocks(blocksInfoObj));
+    
+          return true;
+    }
+
+  
+    const handleSpawnPipeline = async()=>{
+        
+
+        // we check to see if there was made a change to the variable variableNameTrigger
+        //if yes it means that the function that changes the name of the trigger function
+        // was called and indeed it means that it was updated
+
+        if (variableNameTrigger == ""){
+          // no updates to the linked pipeline dropdown menu
+          return;
+        }
+
+        // we check to see if the old value matches the new value
+        // we iterate over old values , values that are stored
+       
+        // check if the new_value matches the old value
+        let oldLinkedValue;
+        for(const block of blocksVariablesStored){
+          if (block["variable_name"] == variableNameTrigger){
+             oldLinkedValue = block["value"];
+             if(linkedPipeline === block["value"]){
+              // here it means that it was triggered at some point but the final value is the same
+              // with the old value, no need to update the pipeline in this scenario
+              return;
+             }
+          }
+        }
+
+        let storedAllTabs = allTabs;
+        //check if there is already a tab spawned 
+        // to check if a pipeline is already spawned you need to check the parent pipeline
+        // and take a look at the old pipeline
+        //we iterate and check
+        // oldLinkedValue - the value of the old pipeline selected
+
+        // logic for deleting the old tab and spawning a new one with the new variable name
+        let pipelineName = "";
+    
+        for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+          if(key == formatName(props.fullNodeName)){
+            pipelineName = value.pipeline_name;
+            break;
+          }
+        }
+
+
+        //first we find the tab
+        let tabToDelete ;
+        for(const tab of allTabs){
+          if(tab["parentPipeline"] === pipelineName && tab["pipelineName"] === oldLinkedValue ){
+              //we delete the pipeline and then 
+              tabToDelete = tab; 
+          }
+        }
+
+        // now we delete the tab
+        // if there is a tab found then we delete it 
+        // if not we move forward
+                
+        if(tabToDelete){
+          dispatch(setLinkedTabToDelete(tabToDelete.name));
+        }
+      
+        // logic for creating a new tab
+
+        let pipeline = linkedPipeline; 
+
+        // Initialize newTabs
+        let newTabs = storedAllTabs ? [...storedAllTabs] : [];
+
+
+        // remove the tab that is going to be deleted
+        if(tabToDelete){
+          // we remove the tab that is going to be deleted 
+          // because the operation is async and it takes time till it gets 
+          //deleted 
+
+          newTabs = newTabs.filter(item => item.name !== tabToDelete.name )
+        }
+        
+
+        // Initialize tabIndexStored if it's undefined
+        const currentTabIndexStored = tabIndexStored || [];
+        
+        // Determine new tab name and order
+        let newTabName, tabOrder;
+        if (!currentTabIndexStored.length) {
+            tabOrder = 1;
+        } else {
+            const lastIndex = currentTabIndexStored[currentTabIndexStored.length - 1];
+            tabOrder = lastIndex + 1;
+        }
+
+          newTabs.push({
+              "name": `${pipeline}-${pipelineName}`,
+              "parentPipeline": pipelineName,
+              "pipelineName": pipeline,
+              "pipelineType": pipelineType,
+              "tabOrder": tabOrder,
+              "isChained":true,
+          });
+  
+          const fetchedSuccess = await fetchAndSaveBlockNames(pipeline, newTabName);
+          if (!fetchedSuccess) {
+              return;
+          }
+  
+          // Update tab indices
+          const newTabArr = currentTabIndexStored.length 
+              ? [...currentTabIndexStored, currentTabIndexStored[currentTabIndexStored.length - 1] + 1]
+              : [1];
+          
+          dispatch(setTabIndex(newTabArr));
+          dispatch(setAllTabs(newTabs));
+  
+          setTimeout(() => {
+              dispatch(setSelectedTab({ "changed": true, tabSelected: newTabName }));
+          }, 100);
+  
+          
+          
+          // setTimeout(()=>{
+          //   const filteredVariables = storedVariables.filter(variable => 
+          //     !(variable["pipelineName"] && variable["pipelineName"][0] === pipeline)
+          //   );
+          //   dispatch(setBlocksVariables(filteredVariables));
+          // },500)
+          
+
     }
 
     const handleDone = ()=>{
+        if(hasTriggerVar){
+            handleSpawnPipeline();
+          }
         props.handleClose();
         createObjToStore();
+        
     } 
 
     const convertToSnakeCase = (inputString)=>{
@@ -344,7 +646,8 @@ export default function VariablesInput(props){
 
    useEffect(()=>{
     
-    if(variablesInput){
+    if(Object.keys(variablesInput).length > 0){
+      
       for(const key of Object.keys(variablesInput)){
           if(typeof variablesInput[key] === "string" && variablesInput[key].length!==0 ){
             setAllEmptyFields(false);
@@ -352,44 +655,55 @@ export default function VariablesInput(props){
           } else if(Array.isArray(variablesInput[key]) && variablesInput[key].length!==0){
             setAllEmptyFields(false);
             return;
-          }
+          } 
       }
       setAllEmptyFields(true);
     }
+
    },[variablesInput])
 
-   const createVariableInputObjects = (data, storedVars)=>{
+   const createVariableInputObjects = async(data, storedVars)=>{
     
       const obj = {...variablesInput};
       const errorMonitorObj = {};
-      
+  
       for(const value of data){
       
         if(value.type === "multiple_selection"){
 
-          if(value.default_value){
-            obj[value.varName] = [value.default_value];
+          if(value.default){
+            obj[value.varName] = [value.default];
           } else {
             obj[value.varName] = [];
           }
           
           errorMonitorObj[value.varName] = false;
-        } else if (value.type === "drop_down") {
+        } else if (value.type === "drop_down" || value.type === "trigger" ) {
           
-          if(value.default_value){
-            obj[value.varName] = [value.default_value];
+          if(value.default){
+            obj[value.varName] = [value.default];
           } else {
             obj[value.varName] = [];
           }
 
-            const updatedDropdownValues = dropdownValues;
-            updatedDropdownValues[value.varName]  = value["values"];
-            setDropDownValues(updatedDropdownValues);
-            errorMonitorObj[value.varName] = false;
+          let updatedDropdownValues = dropdownValues;
+          updatedDropdownValues[value.varName]  = value["values"];
+          setDropDownValues(updatedDropdownValues);
+          errorMonitorObj[value.varName] = false;
+            
+            //setare valoare initiala pentru a verifica ulterior daca s-a schimbat
+            // si daca s-a schimbat atunci cande vei salva valorile noi o sa stergi
+            // pipeline-ul vechi si o sa il spawnezi pe unul nou ...
+
+            
+            if (value.type === "trigger"){
+              setHasTriggerVar(true);
+            }
+
         } else if(value.type === "number" || value.type === "int"){
             
-            if(value.default_value){
-            obj[value.varName] = `${value.default_value}`;
+            if(value.default){
+            obj[value.varName] = `${value.default}`;
             } else {
               obj[value.varName] = "";
             }
@@ -403,8 +717,8 @@ export default function VariablesInput(props){
         } else if(value.type === "string" || value.type === "str" || value.type === "secret" ){
                 obj[value.varName] = "";
 
-                if(value.default_value){
-                obj[value.varName] = `${value.default_value}`;
+                if(value.default){
+                obj[value.varName] = `${value.default}`;
                 } else {
                   obj[value.varName] = "";
                 }
@@ -415,11 +729,24 @@ export default function VariablesInput(props){
                   setRulesForVariables(newRules);
                 }
                 errorMonitorObj[value.varName] = false;
+
+        } else if(value.type === "boolean"){
+              
+                obj[value.varName] = false;
+
+                if(value.default){
+                obj[value.varName] = value.default;
+                } else {
+                  obj[value.varName] = false;
+                }
+
+          errorMonitorObj[value.varName] = false;
+                
         } else if(value.type === "date"){
           obj[value.varName] = [];
           
-            if(value.default_value){
-                  obj[value.varName] = [value.default_value];
+            if(value.default){
+                  obj[value.varName] = [value.default];
             } else {
                   obj[value.varName] = [];
             }
@@ -428,16 +755,24 @@ export default function VariablesInput(props){
         }
       }
      
+   // we search for the blocks that have stored values
+   // like when we set up a value for a block this value for the block is saved in redux
+   // and then afterwards the value will be fetched from redux store and it will be 
+   // passed to the actual variable 
 
+   
     let foundBlocks = [];
+    // here we search for the specific block 
     for(const block of storedVars){
        if(block.block_name === props.fullNodeName && block.tabName === props.tabName){
          foundBlocks.push(block);
        }
      }
-
+     // if there are blocks found we plug the value for the specific variable
+    
      if(foundBlocks.length != 0){
       for(const block of foundBlocks){
+
         obj[block.variable_name] = block.value;
       }
      }
@@ -446,24 +781,26 @@ export default function VariablesInput(props){
       setHasInputError(errorMonitorObj);
    }
 
-
    const parsePhantomVariables = ()=>{
       let phantomVariable = false;
       const allBlockVariables = [];
     
      for(const varInstance of props.variablesData){
-        // we check if the variable coresponds to the pipeline in the current tab and for this we check for
-        // the tabName if the one specified as for the props is the same that the variable has
-        // if not we continue skipping this iteration
-        
-        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date"))
+
+        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" ))
         {
           allBlockVariables.push(varInstance);
         } 
 
+        if(varInstance["tag"]){
+          setPipelineType(varInstance["tag"]);
+        }
+
         if(varInstance.type === "multiple_selection"){
           setAreMultipleVariables(true);
         }
+        // here we store the type of pipeline block
+        setPipelineType(varInstance);
 
      }
 
@@ -488,20 +825,29 @@ export default function VariablesInput(props){
    const handleDateChange = (newValue, dateFormat, type, variableName) => {
     
     try{
-      const newDate = new Date(newValue);
-      const currentDate = new Date("2100-01-01");
-      const januaryFirst1900 = new Date('1899-12-31');
-      const parsedDate = format(newDate, transformDateFormat(dateFormat));
-      const isNewDateAfter1900 = newDate.getTime() >= januaryFirst1900.getTime();
-      const isNewDateBeforeOrEqualsCurrentDate = isNewDateAfter1900 && newDate.getTime() <= currentDate.getTime();
+      const newDateUtc = newValue.utc().toDate(); // Convert Dayjs object to UTC JavaScript Date
+
+      // Define comparison dates as UTC Date objects for accurate comparison
+      const endOf2099Utc = new Date("2100-01-01T00:00:00Z"); // Upper bound: start of 2100 UTC
+      const januaryFirst1900Utc = new Date('1899-12-31T00:00:00Z'); // Lower bound: start of 1900 UTC
+
+      // Format the newDateUtc into the desired string format: YYYY-MM-DDTHH:mm:ssZ
+      // This replaces the need for `transformDateFormat` for this specific output.
+      const parsedDate = format(newDateUtc, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+      // Perform validation using UTC timestamps for consistency
+      const isNewDateAfter1900 = newDateUtc.getTime() >= januaryFirst1900Utc.getTime();
+      const isNewDateBeforeOrEqualsCurrentDate = newDateUtc.getTime() <= endOf2099Utc.getTime();
+
 
       const errMonitor = {...hasInputError};
       const variableInput = {...variablesInput};
 
       setWasSomethingChanged(true);
 
-     
-      
+      console.log("isNewDateBeforeOrEqualsCurrentDate:");
+      console.log(isNewDateBeforeOrEqualsCurrentDate);
+
       if(!isNewDateBeforeOrEqualsCurrentDate){
         errMonitor[variableName] = true;
         return;
@@ -521,7 +867,7 @@ export default function VariablesInput(props){
       }
       
 
-      variableInput[variableName] = [parsedDate];
+      variableInput[variableName] = parsedDate;
       setVariablesInput(variableInput);
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
@@ -537,7 +883,6 @@ export default function VariablesInput(props){
   };
    
    useEffect(()=>{
-     
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
    },[blocksVariablesStored])
   
@@ -560,7 +905,9 @@ export default function VariablesInput(props){
    },[])
 
   useEffect(()=>{
-    
+  
+  
+
   for (const key in hasInputError) {
     if (hasInputError.hasOwnProperty(key)) {
        if (hasInputError[key] === true){
@@ -598,6 +945,7 @@ export default function VariablesInput(props){
     }
   }
    setIsDateOk(true);
+   
  },[purifiedVariables])
 
 
@@ -621,12 +969,8 @@ export default function VariablesInput(props){
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
 
- 
- 
-
-
-
-    return (
+  
+  return (
     <div>
       <ThemeProvider theme={darkTheme}>
       <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg" fullWidth={true} >
@@ -640,7 +984,7 @@ export default function VariablesInput(props){
                     <h1>Variables</h1>
                 </div>  
                 {purifiedVariables.map((value, index)=>{
-                    
+                  
                   if(value.type === "string" || value.type === "str"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -649,6 +993,20 @@ export default function VariablesInput(props){
                        {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
                     </FormControl>
                     
+                    );
+                  } else if(value.type === "boolean"){
+                    
+
+                    return(
+                      <FormGroup sx={{ margin:"auto",  width: "60%", padding: "20px" }}> 
+                          <div className='switch-var-container'>
+                            <div>
+                               <FormControlLabel control={<IOSSwitch  checked={variablesInput[value.varName]} onChange={(event)=>{ setWasSomethingChanged(true); handleChange(event,"boolean", value.varName )}}/>}/>
+                               <b>{value.varName}</b>
+                            </div>
+                          </div>
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                      </FormGroup>
                     );
                   } else if(value.type === "secret"){
                     return(
@@ -688,7 +1046,7 @@ export default function VariablesInput(props){
                       )}
                     </FormControl>
                     );
-                  } else if(value.type === "number" || value.type === "int"){
+                  }  else if(value.type === "number" || value.type === "int"){
                     
                     return(
                     <FormControl key={index} sx={{ marginBottom: "30px", width: "60%" }}>
@@ -758,8 +1116,36 @@ export default function VariablesInput(props){
                         </FormControl>
                       </div>
                     )
-                  }
-                   else if(value.type === "date"){
+                  } else if(value.type === "trigger"){
+               
+                    return(
+                      <div>
+                        <FormControl sx={{ m: 1, width: "60%" }}>
+                          <InputLabel id="demo-multiple-name-label">{`${value.varName}`}</InputLabel>
+                          <Select
+                            labelId="demo-multiple-name-label"
+                            id="demo-multiple-name"
+                            
+                            value={variablesInput[value.varName]}
+                            onChange={(event)=>{ setVariableNameTrigger(value.varName); setLinkedPipeline(event.target.value); setWasSomethingChanged(true); handleChange(event,"trigger",value.varName) }}
+                            input={<OutlinedInput label="Name" />}
+                            MenuProps={MenuProps}
+                          >
+                            {dropdownValues[value.varName] && dropdownValues[value.varName].map((variableName) => (
+                              <MenuItem
+                                key={variableName}
+                                value={variableName}
+                                
+                              >
+                                {variableName}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                        </FormControl>
+                      </div>
+                    )
+                  }  else if(value.type === "date"){
                     
                     return(
                       <>
@@ -770,11 +1156,11 @@ export default function VariablesInput(props){
                           <div className="date-container">
                             <LocalizationProvider dateAdapter={AdapterDayjs} >  
                                 
-                              <DatePicker
+                              <DateTimePicker
                                   ref={dateFieldRef}
                                   label={`${value.varName}`}
                                   defaultValue={variablesInput[value.varName].length!=0? dayjs(variablesInput[value.varName][0]) : dayjs(variablesInput[value.varName][0])}
-                                  format={`${value.format}`}
+                                  format={`YYYY-MM-DDTHH:mm:ss[Z]`}
                                   sx={{width:"66%", mt:2}}
                                   
                                   onChange={(evt)=>{handleDateChange(evt,value.format,"date",value.varName)}}
@@ -808,7 +1194,7 @@ export default function VariablesInput(props){
             </DialogContent>
             <DialogActions>
               <Button onClick={props.handleClose}>Close</Button>
-              <Button  disabled={!wasSomethingChanged || formHasError || (hasDate && !isDateOk) || allEmptyFields } onClick={()=>{handleDone()}}>Done</Button>
+              <Button  disabled={!wasSomethingChanged || formHasError  || allEmptyFields } onClick={()=>{handleDone()}}>Done</Button>
             </DialogActions>
         </Dialog>
       </ThemeProvider>

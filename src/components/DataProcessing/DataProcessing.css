@@ -104,6 +104,11 @@
     justify-content: space-around;
   }
 
+  .pipeline-controller-warning{
+    background-color:#ece93b;
+    color: #000;   
+  }
+
   .pipeline-started{
     background-color:green;
   }
@@ -114,6 +119,9 @@
   .play-btn:hover{
     cursor: pointer;
   }
+.warning-btn{
+  background-color: yellow;
+}
 
 .alert-error{
  background-color: rgb(153, 0, 0);
@@ -152,8 +160,8 @@ box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
   flex-direction: row;
   justify-content: space-around;
   align-items: center;
-  width: 150px;
-  background-color: #f0f5fd;
+  width: 100px;
+  background-color: #e1edff;
   border-radius: 10px;
   -webkit-box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
 -moz-box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
@@ -167,12 +175,25 @@ box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
   font-size: 1.3rem;
   width: 30px;
   height: 30px;
-
 }
 
 .info-icon-side:hover{
   cursor: pointer;
 }
+
+
+.info-icon-side-small{
+  color:rgb(70, 70, 107);
+  padding:10px;
+  font-size: 1.3rem;
+  width: 30px;
+  height: 30px;
+}
+
+.info-icon-side-small:hover{
+  cursor: pointer;
+}
+
 
 .trash-icon-side{
   color:rgb(15, 145, 32);
@@ -250,3 +271,4 @@ box-shadow: 10px 10px 5px -10px rgba(0,0,0,0.75);
 .no-pipeline-open-text-icon{
   font-size: 2.5rem;
 }
+

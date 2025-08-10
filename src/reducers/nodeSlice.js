@@ -1,5 +1,19 @@
-import {createSlice, nanoid} from '@reduxjs/toolkit'
+import {createSlice, nanoid, createAsyncThunk } from '@reduxjs/toolkit'
 import { act } from 'react';
+
+export const updateBlocksAndEnsureLatest = createAsyncThunk(
+  'nodes/updateBlocks',
+  async (newVarValue, thunkAPI) => {
+
+    const state = thunkAPI.getState().nodes; 
+    const blocksVariables = state.blocksVariables;
+    
+    const blocksVariablesStoredUpdated = [...blocksVariables, newVarValue];
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return blocksVariablesStoredUpdated;
+  }
+);
 
 const initialState = {
     selectedView:[1],
@@ -78,7 +92,12 @@ const initialState = {
     selectedFederatedFramework:"",
     brokerEntityId:"",
     tabIndex:[],
-    allTabs:[]
+    allTabs:[],
+    // trigger linked pipeline to delete
+    linkedTabToDelete: "",
+    status: 'idle', // can be 'idle', 'pending', or 'success'
+    error: null,
+
 }    
 
 export const nodeSlice = createSlice({
@@ -358,9 +377,28 @@ export const nodeSlice = createSlice({
 
         setFlevidenValues: (state,action) => {
             state.flevidenValues = action.payload;
+        },
+
+        setLinkedTabToDelete: (state,action) => {
+            state.linkedTabToDelete = action.payload;
         }
 
-    }
+    },
+    extraReducers: (builder) => {
+    builder
+      .addCase(updateBlocksAndEnsureLatest.pending, (state) => {
+        state.status = 'loading'; 
+      })
+      .addCase(updateBlocksAndEnsureLatest.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        // Update the state with the data returned from the thunk!
+        state.blocksVariables = action.payload;
+      })
+      .addCase(updateBlocksAndEnsureLatest.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      });
+  },
 });
 
 
@@ -450,8 +488,9 @@ export const {
     setTabIndex,
     setAllTabs,
     setFlevidenValues,
-    setSelectedFederatedFramework
-    
+    setSelectedFederatedFramework,
+    setLinkedTabToDelete
+
 } = nodeSlice.actions
 
 export default nodeSlice.reducer;
