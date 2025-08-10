@@ -28,6 +28,7 @@ import {setAllTabs,  setPipelinesBlocks, setTabIndex} from "../../../../reducers
 import {useDispatch} from 'react-redux';
 import {checkAndFormat} from "../../../../utils/checkAndFormat";
 import filterBlocksWithNonNullDefault from "../../../../utils/filterBlocksWithNonNullDefault";
+import isObject from '../../../../utils/isObject';
 import { useSelector } from "react-redux/es/hooks/useSelector";
 import {  setBlocksVariables, setSelectedTab} from '../../../../reducers/nodeSlice';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -136,7 +137,15 @@ export default function PipelineSelectDialog(props) {
               // iterate over config obj
               for(const [key,value]  of Object.entries(blck["configuration"])){
                 // we check for a default value
-                  if(value["default"]){
+
+                /*
+                 Task
+                  [] check if the value is actually an object or not
+                  [] for value check if the value is an object and also
+                  [] check if it is an object if it has a type key inside it
+                */
+
+                  if((typeof value === 'object' && value !== null) && value["type"] && value["default"]){
 
                       // if there is a default_value we push it to the vector
                       // and we use it further down the line
@@ -270,6 +279,7 @@ export default function PipelineSelectDialog(props) {
     // and do have a default value will spawn in a new tab the pipeline
     // from the default value and also will store it inside blocksStored
     // value from redux store
+    
 
     /*
       Steps :
@@ -315,12 +325,15 @@ export default function PipelineSelectDialog(props) {
     
 
       const filteredBlocks = filterBlocksWithNonNullDefault(pipelineBlocks);
-      // blocksWithTriggerAndDefValue = [...blocksWithTriggerAndDefValue, ...filterBlocksWithNonNullDefault(pipelineBlocks), ...variablesForSubPipelines];
-      blocksWithTriggerAndDefValue = [...blocksWithTriggerAndDefValue];
+
+      if(filteredBlocks && filteredBlocks.length !=0 ){
+          blocksWithTriggerAndDefValue.push(...filteredBlocks);
+      }
+
+      if(variablesForSubPipelines && variablesForSubPipelines.length!=0){
+         blocksWithTriggerAndDefValue.push(...variablesForSubPipelines);
+      }
      
-      // if(variablesForSubPipelines.length!==0){
-      //   blocksWithTriggerAndDefValue = [...blocksWithTriggerAndDefValue,...variablesForSubPipelines]
-      // }
 
      for (const block of blocksWithTriggerAndDefValue) {
       // Changed Object.values to Object.entries
@@ -390,20 +403,19 @@ export default function PipelineSelectDialog(props) {
           });
         } 
 
-        
         return {blockValuesForStore, pipeValuesNewTab};
   }
 
   const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
     
       let pipeline_blocks;
-      let chainedBlocks;
+      let chainedBlocks = [];
       let newTabPipelines;
 
       try{
         const resp = await axios.get(FETCH_PIPELINE_DATA(pipeline_name));
         pipeline_blocks = resp.data.pipeline.blocks;
-        let collectedDataForChainedPipelines = handleDefaultChainedValues(pipeline_blocks, pipeline_name, newTabName); 
+        let collectedDataForChainedPipelines = await handleDefaultChainedValues(pipeline_blocks, pipeline_name, newTabName); 
         chainedBlocks = collectedDataForChainedPipelines["blockValuesForStore"];
         newTabPipelines = collectedDataForChainedPipelines["pipeValuesNewTab"];
 
@@ -490,7 +502,6 @@ export default function PipelineSelectDialog(props) {
             return;
         }
 
-
         // after the fetch was done you may need to update the local vector
         // such that when you update the global state it reflects
         // the latest valid functionality
@@ -523,7 +534,6 @@ export default function PipelineSelectDialog(props) {
             dispatch(setSelectedTab({ "changed": true, tabSelected: newTabName }));
         }, 100);   
 
-        
         dispatch(setBlocksVariables([...filteredVariables, ...fetchedSuccessData["chainedBlocks"]]));
     }
 }

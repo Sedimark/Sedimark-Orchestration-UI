@@ -29,10 +29,10 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import { FETCH_MINIO_FILE, FETCH_PIPELINE_DATA } from '../../../../utils/apiEndpoints';
 import { format } from 'date-fns';
-import dayjs from 'dayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import {
   Unstable_NumberInput as BaseNumberInput,
   numberInputClasses,
@@ -40,6 +40,8 @@ import {
 import formatName from '../../../../utils/formatName';
 import { setBlocksVariables, setLinkedTabToDelete, setPipelinesBlocks, setTabIndex, setAllTabs, setSelectedTab, setSelectedView } from '../../../../reducers/nodeSlice';
 import {checkAndFormat} from "../../../../utils/checkAndFormat";
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc'; // Import the UTC plugin
 import axios from "axios";
 
 const ITEM_HEIGHT = 48;
@@ -823,20 +825,29 @@ export default function VariablesInput(props){
    const handleDateChange = (newValue, dateFormat, type, variableName) => {
     
     try{
-      const newDate = new Date(newValue);
-      const currentDate = new Date("2100-01-01");
-      const januaryFirst1900 = new Date('1899-12-31');
-      const parsedDate = format(newDate, transformDateFormat(dateFormat));
-      const isNewDateAfter1900 = newDate.getTime() >= januaryFirst1900.getTime();
-      const isNewDateBeforeOrEqualsCurrentDate = isNewDateAfter1900 && newDate.getTime() <= currentDate.getTime();
+      const newDateUtc = newValue.utc().toDate(); // Convert Dayjs object to UTC JavaScript Date
+
+      // Define comparison dates as UTC Date objects for accurate comparison
+      const endOf2099Utc = new Date("2100-01-01T00:00:00Z"); // Upper bound: start of 2100 UTC
+      const januaryFirst1900Utc = new Date('1899-12-31T00:00:00Z'); // Lower bound: start of 1900 UTC
+
+      // Format the newDateUtc into the desired string format: YYYY-MM-DDTHH:mm:ssZ
+      // This replaces the need for `transformDateFormat` for this specific output.
+      const parsedDate = format(newDateUtc, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+      // Perform validation using UTC timestamps for consistency
+      const isNewDateAfter1900 = newDateUtc.getTime() >= januaryFirst1900Utc.getTime();
+      const isNewDateBeforeOrEqualsCurrentDate = newDateUtc.getTime() <= endOf2099Utc.getTime();
+
 
       const errMonitor = {...hasInputError};
       const variableInput = {...variablesInput};
 
       setWasSomethingChanged(true);
 
-     
-      
+      console.log("isNewDateBeforeOrEqualsCurrentDate:");
+      console.log(isNewDateBeforeOrEqualsCurrentDate);
+
       if(!isNewDateBeforeOrEqualsCurrentDate){
         errMonitor[variableName] = true;
         return;
@@ -856,7 +867,7 @@ export default function VariablesInput(props){
       }
       
 
-      variableInput[variableName] = [parsedDate];
+      variableInput[variableName] = parsedDate;
       setVariablesInput(variableInput);
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
@@ -1145,11 +1156,11 @@ export default function VariablesInput(props){
                           <div className="date-container">
                             <LocalizationProvider dateAdapter={AdapterDayjs} >  
                                 
-                              <DatePicker
+                              <DateTimePicker
                                   ref={dateFieldRef}
                                   label={`${value.varName}`}
                                   defaultValue={variablesInput[value.varName].length!=0? dayjs(variablesInput[value.varName][0]) : dayjs(variablesInput[value.varName][0])}
-                                  format={`${value.format}`}
+                                  format={`YYYY-MM-DDTHH:mm:ss[Z]`}
                                   sx={{width:"66%", mt:2}}
                                   
                                   onChange={(evt)=>{handleDateChange(evt,value.format,"date",value.varName)}}

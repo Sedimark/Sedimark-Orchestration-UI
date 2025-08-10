@@ -25,6 +25,7 @@ import { fetchLinkedPipelinesOfType } from '../../utils/fetchLinkedPipelines';
 import LinkIcon from '@mui/icons-material/Link';
 import Logs from '../DataProcessing/dialogs/Logs/Logs';
 import {convertToSnakeCase} from "../../utils/convertToSnakeCase";
+import isObject from '../../utils/isObject';
 
 export default memo(({ data, isConnectable }) => {
   
@@ -170,6 +171,15 @@ export default memo(({ data, isConnectable }) => {
       
       const allVarsData = [];
       for(const varValue of Object.keys(data.config)){
+
+        if(!isObject(data.config[varValue])){
+          continue;
+        }
+        
+        if(!data.config[varValue]["type"]){
+          continue;
+        }
+         
         if(varValue === "pipelineName"){
           continue;
         }
@@ -239,13 +249,29 @@ export default memo(({ data, isConnectable }) => {
           setLinkedPipeline(false);
         }
 
+        // if(!isObject(data.config[varValue])){
+        //           continue;
+        // }
+        
+        // if(!data.config[varValue]["type"]){
+        //       continue;
+        // }
+         
+
         varObj = {
           varName: allVars[i],
           tabName:data.tabName,
           ...parsedJSONVar
         }
 
-        allVarsData.push(varObj);
+          allVarsData.push(varObj);
+
+         if(allVarsData.length != 0){
+            setVariablesPresent(true);
+          } else {
+            setVariablesPresent(false);
+          }
+        
       }
     }
     

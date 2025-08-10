@@ -25,6 +25,14 @@
     padding-bottom: 50px;
     border-radius:5px;
     background-color: #0f0f0f;
+}
 
+.select-asset-dropdown-container{
+    margin-top:20px;
+    /* width: 100%; */
+    margin: auto;
+    position: relative;
+    
+    /* margin-left: 15%; */
 }
 

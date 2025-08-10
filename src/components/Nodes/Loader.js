@@ -22,6 +22,7 @@ import { truncateString } from '../../utils/truncateString';
 import {parseJSONVar} from "../../utils/parseJSONVar";
 import {useDispatch} from 'react-redux'; 
 import formatName from '../../utils/formatName';
+import isObject from '../../utils/isObject';
 import {setPipelineStudioNodes,setStoredPipelineName, setBlocksVariables ,setShamrockNodes ,setBlockCatalogSelectedOptions, setPipelineStudioEdgeToDelete} from "../../reducers/nodeSlice";
  
 export default memo(({ data, isConnectable }) => {
@@ -232,11 +233,21 @@ export default memo(({ data, isConnectable }) => {
     if (typeof data.config[Object.keys(data.config)[0]] === 'object' && data.config[Object.keys(data.config)[0]] !== null) {
       
       const allVarsData = [];
+  
       for(const varValue of Object.keys(data.config)){
        
         if(varValue === "pipelineName"){
           continue;
         }
+
+        if(!isObject(data.config[varValue])){
+          continue;
+        }
+
+        if(!data.config[varValue]["type"]){
+          continue;
+        }
+ 
         const newObj = {
           varName:varValue,
           ...data.config[varValue]
@@ -245,7 +256,13 @@ export default memo(({ data, isConnectable }) => {
       } 
 
       setAllVariables(allVarsData);
-      setVariablesPresent(true);
+
+      if(allVarsData.length != 0){
+        setVariablesPresent(true);
+      } else {
+        setVariablesPresent(false);
+      }
+      
       return;
    }
 
