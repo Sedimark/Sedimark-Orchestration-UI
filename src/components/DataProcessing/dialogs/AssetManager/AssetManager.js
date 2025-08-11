@@ -7,9 +7,9 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
 import EntityView from '../EntityView/EntityView';
-import {BROKER_GET_ASSET_TYPES, BROKER_GET_ENTITY_TYPES, FETCH_PIPELINE_DATA} from "../../../../utils/apiEndpoints";
+import {GET_MODELS, BROKER_GET_ASSET_TYPES, BROKER_GET_ENTITY_TYPES, FETCH_PIPELINE_DATA} from "../../../../utils/apiEndpoints";
 import {setAllTabs,  setTabIndex, setPipelinesBlocks, setSelectedTab, setBlocksVariables } from "../../../../reducers/nodeSlice";
-import { faArrowLeft, faBoxOpen, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
+import { faArrowLeft, faBoxOpen, faCircleXmark, faTag } from '@fortawesome/free-solid-svg-icons';
 import { truncateString } from '../../../../utils/truncateString';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {checkAndFormat} from "../../../../utils/checkAndFormat";
@@ -41,6 +41,9 @@ export default function AssetManager(props) {
   const [wasError, setWasError] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   const [entityViewOpen, setEntityViewOpen] = useState(false);
+  const [preSelectMenu, setPreSelectMenu] = useState(true);
+  const [modelsMenu, setModelsMenu] = useState(false);
+  const [fullModelsList, setFullModelsList] = useState([]);
 
   const blockAlert = (msg) => {
       toast.error(msg, {
@@ -115,7 +118,7 @@ export default function AssetManager(props) {
 
 
   useEffect(() => {
-    fetchAllTypes();
+    // fetchAllTypes();
 }, []);
 
  
@@ -223,6 +226,24 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
 
  }
 
+ const fetchModelsAndRenderMenu = async()=>{
+
+    setShowLoader(true);
+    setModelsMenu(true);
+    setPreSelectMenu(false);
+    try{
+      const resp = await axios.get(GET_MODELS);
+      setFullModelsList(resp.data);
+      setModelsMenu(true);
+      setShowLoader(false);
+    } catch(err){
+      blockAlert("There was an error while fetching the models!");
+      setShowLoader(false);
+      console.log(err);
+    }
+
+ }
+
 
 
   useEffect(() => {
@@ -231,7 +252,7 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
     if (loading) {
       timeoutId = setTimeout(() => {
         setShowLoader(true);
-      }, 100); // Delay of 300ms
+      }, 100); 
     } else {
       setShowLoader(false);
     }
@@ -262,97 +283,149 @@ const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
                 <DialogContent>
                 <DialogContentText id="alert-dialog-description">
                 <div> My Assets</div>
-                 {
-                  typesMenu ?
-                  <div className='menu-pipelines'>
-                    {showLoader?
-                     <div className="loading-circle-container" style={{marginTop:"20px"}}>
-                          <div className="loading-circle"></div>
-                          <p className="loading-text" style={{marginLeft:"45%", marginTop:"10px"}}>Loading...</p>
-                      </div>
+
+                {
+                    preSelectMenu ?
+                    <div className='menu-pipelines'>
+                        <div className="type-of-asset-btns" style={{paddingTop:"20px" , paddingBottom:"20px",}}>
+                            <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px", width:"150px", marginLeft: '40%'}} onClick={()=>{ fetchModelsAndRenderMenu() }}> Models </Button>
+                            <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px", width:"150px", marginLeft: '40%', marginTop: '30px'}} onClick={()=>{ fetchAllTypes(); setPreSelectMenu(false); setModelsMenu(false); }}>  Data </Button>
+                        </div>
+                    </div>
+                    
                     :
+
                     <>
                       {
-                        wasError ?
-                          <>  
-                              <div>
-                                <FontAwesomeIcon icon={faCircleXmark} style={{color:"red"}}  className="no-templates-icon"/>
-                                <div className='no-templates-message'>There was an error while fetching the types!</div>
-                              </div>   
-                          </>
-                        :
-                        <>
-                              {
-                               allTypes && allTypes.length === 0 && !loading ?
-                                <div>
-                                    <FontAwesomeIcon icon={faBoxOpen}  className="no-templates-icon"/>
-                                    <div className='no-templates-message'>There are no types available!</div>
-                                </div>
-
-                                :
-
-                                <>
-                                      {allTypes.map((type)=>{
-                                        return(<div className='menu-pipelines-item' title={type}> {truncateString(type,31)} <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchEntitiesRequest(type); }}> View Entities </Button></div></div>)
-                                    })}
-                                </>
-                              }
-
-                        </>
-                          
-                      }
-
-                    </>
-                  }
-
-                    </div>
-                    :
-                    <div className='menu-pipelines'>
-                          { showLoader?
-                                <div className="loading-circle-container" style={{marginTop:"20px"}}>
-                                      <div className="loading-circle"></div>
-                                      <p className="loading-text" style={{marginLeft:"45%", marginTop:"10px"}}>Loading...</p>
-                                  </div>
-                                :
-                                <>
-                                  {
-                                    wasError ?
-                                      <>  
-                                          <div>
-                                            <FontAwesomeIcon icon={faCircleXmark} style={{color:"red"}}  className="no-templates-icon"/>
-                                            <div className='no-templates-message'>There was an error while fetching the types!</div>
-                                          </div>   
-                                      </>
-                                    :
-                                    <>
-                                          {
-                                            entitiesList.length === 0 ?
-                                            <div>
-                                                <FontAwesomeIcon icon={faBoxOpen}  className="no-templates-icon"/>
-                                                <div className='no-templates-message'>There are no types available!</div>
-                                            </div>
-
-                                            :
-
-                                            <>
-                                                  {entitiesList.map((entity)=>{
-                                                    return(<div className='entity-item'> <div className='entity-item-text' title={entity}>{truncateString(entity,60)}</div> <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); setEntityViewOpen(true); setEntityDetails(entity)}}> Details </Button>
-                                                    {/* <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); spawnPipeline(entity)}}> Create Pipeline </Button> */}
-                                                      </div>
+                        modelsMenu ?
+                            <div className='menu-pipelines'>
+                                 { showLoader ?
+                                        <div className="loading-circle-container" style={{marginTop:"20px"}}>
+                                            <div className="loading-circle"></div>
+                                            <p className="loading-text" style={{marginLeft:"45%", marginTop:"10px"}}>Loading...</p>
+                                        </div>
+                                                  :
+                                        <div className="simple-models-list-wrapper">
+                                          <div className="models-list-title">Models List</div>
+                                              <div className="model-assets-grid"> {/* Changed to grid for better layout */}
+                                                {fullModelsList.map((model) => {
+                                                  return (
+                                                    <div key={model.id} className="model-asset-container">
+                                                      {/* Added a Font Awesome icon for visual interest */}
+                                                      <FontAwesomeIcon icon={faTag} className="model-icon" />
+                                                      <span className="model-name-text">{model.name}</span>
                                                     </div>
-                                                    )
+                                                  );
                                                 })}
-                                            </>
-                                          }
-
-                                    </> 
-                                      
+                                                {/* Optional: Add a message if the list is empty */}
+                                                {fullModelsList.length === 0 && (
+                                                    <p className="no-models-message">No models available.</p>
+                                                )}
+                                              </div>
+                                      </div>
                                   }
 
-                                </>
-                              }
-                    </div>
-                 }
+                            </div>
+                          :
+                            <>
+                              {
+                                  typesMenu ?
+                                  <div className='menu-pipelines'>
+                                    {showLoader?
+                                    <div className="loading-circle-container" style={{marginTop:"20px"}}>
+                                          <div className="loading-circle"></div>
+                                          <p className="loading-text" style={{marginLeft:"45%", marginTop:"10px"}}>Loading...</p>
+                                      </div>
+                                    :
+                                    <>
+                                      {
+                                        wasError ?
+                                          <>  
+                                              <div>
+                                                <FontAwesomeIcon icon={faCircleXmark} style={{color:"red"}}  className="no-templates-icon"/>
+                                                <div className='no-templates-message'>There was an error while fetching the types!</div>
+                                              </div>   
+                                          </>
+                                        :
+                                        <>
+                                              {
+                                              allTypes && allTypes.length === 0 && !loading ?
+                                                <div>
+                                                    <FontAwesomeIcon icon={faBoxOpen}  className="no-templates-icon"/>
+                                                    <div className='no-templates-message'>There are no types available!</div>
+                                                </div>
+
+                                                :
+
+                                                <>
+                                                      {allTypes.map((type)=>{
+                                                        return(<div className='menu-pipelines-item' title={type}> {truncateString(type,31)} <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{ fetchEntitiesRequest(type); }}> View Entities </Button></div></div>)
+                                                    })}
+                                                </>
+                                              }
+
+                                        </>
+                                          
+                                      }
+
+                                    </>
+                                  }
+
+                                    </div>
+                                    :
+                                    <div className='menu-pipelines'>
+                                          { showLoader ?
+                                                <div className="loading-circle-container" style={{marginTop:"20px"}}>
+                                                      <div className="loading-circle"></div>
+                                                      <p className="loading-text" style={{marginLeft:"45%", marginTop:"10px"}}>Loading...</p>
+                                                  </div>
+                                                :
+                                                <>
+                                                  {
+                                                    wasError ?
+                                                      <>  
+                                                          <div>
+                                                            <FontAwesomeIcon icon={faCircleXmark} style={{color:"red"}}  className="no-templates-icon"/>
+                                                            <div className='no-templates-message'>There was an error while fetching the types!</div>
+                                                          </div>   
+                                                      </>
+                                                    :
+                                                    <>
+                                                          {
+                                                            entitiesList.length === 0 ?
+                                                            <div>
+                                                                <FontAwesomeIcon icon={faBoxOpen}  className="no-templates-icon"/>
+                                                                <div className='no-templates-message'>There are no types available!</div>
+                                                            </div>
+
+                                                            :
+
+                                                            <>
+                                                                  {entitiesList.map((entity)=>{
+                                                                    return(<div className='entity-item'> <div className='entity-item-text' title={entity}>{truncateString(entity,60)}</div> <div> <Button  variant="contained" className='menu-pipelines-item-btn' style={{marginRight:"20px"}} onClick={()=>{setTypesMenu(false); setEntityViewOpen(true); setEntityDetails(entity)}}> Details </Button>
+                                                                    
+                                                                      </div>
+                                                                    </div>
+                                                                    )
+                                                                })}
+                                                            </>
+                                                          }
+
+                                                    </> 
+                                                      
+                                                  }
+
+                                                </>
+                                              }
+                                    </div>
+                                }
+                            </>                  
+                      }
+                       
+                    </>
+
+                }
+                
 
                 { entityViewOpen && <EntityView entityDetails={entityDetails} open={entityViewOpen} onClose={()=>{setEntityViewOpen(false)}}></EntityView> }
 
