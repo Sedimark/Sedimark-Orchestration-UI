@@ -11,3 +11,138 @@
     font-size: 1.1rem;
     font-weight: bold;
 }
+
+.model-asset-container{
+    font-weight: bold;
+    font-size: 1.3rem;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    background-color: #000000; /* White background for each item */
+    border: 1px solid #000000; /* Subtle border */
+    border-radius: 8px;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Space between icon and text */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Soft shadow */
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    cursor: pointer; /* Indicate it's clickable */
+}
+
+.models-list-title{
+    text-align: center;
+    font-weight: bold;
+}
+
+/* Basic Reset & Box Sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Overall wrapper for the list component */
+.simple-models-list-wrapper {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 25px;
+  background-color: #1a1a1a; /* Very dark gray for the wrapper background */
+  border-radius: 10px;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5); /* Stronger, darker shadow */
+  font-family: Arial, sans-serif;
+  color: #f0f0f0; /* Light text color for general content */
+}
+
+/* Title styling */
+.models-list-title {
+  font-size: 1.8em;
+  font-weight: bold;
+  color: #ffffff; /* White text for title */
+  margin-bottom: 25px;
+  text-align: center;
+  position: relative;
+  padding-bottom: 10px;
+}
+
+.models-list-title::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 0;
+  width: 60px;
+  height: 3px;
+  background-color: #007bff; /* Accent blue remains, contrasts well */
+  border-radius: 2px;
+}
+
+/* Grid for model containers */
+.model-assets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); /* Responsive grid */
+  gap: 20px; /* Space between items */
+}
+
+/* Individual model container styling */
+.model-asset-container {
+  background-color: #2c2c2c; /* Slightly lighter dark gray for each item */
+  border: 1px solid #444; /* Darker, subtle border */
+  border-radius: 8px;
+  padding: 15px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px; /* Space between icon and text */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3); /* Darker, more subtle shadow */
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  cursor: pointer; /* Indicate it's clickable */
+}
+
+.model-asset-container:hover {
+  transform: translateY(-3px); /* Lift effect on hover */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); /* Enhanced, darker shadow on hover */
+  border-color: #007bff; /* Accent border on hover */
+}
+
+/* Font Awesome icon styling */
+.model-icon {
+  color: #007bff; /* Match accent color, pops on dark */
+  font-size: 1.2em;
+}
+
+/* Model name text styling */
+.model-name-text {
+  font-weight: 600; /* Slightly bolder */
+  color: #e0e0e0; /* Light gray text for names */
+  font-size: 1.05em;
+  flex-grow: 1; /* Allows text to take available space */
+  white-space: nowrap; /* Prevent text from wrapping */
+  overflow: hidden; /* Hide overflow text */
+  text-overflow: ellipsis; /* Add ellipsis for overflow text */
+}
+
+/* Message for empty list */
+.no-models-message {
+    text-align: center;
+    color: #a0a0a0; /* Lighter gray for message */
+    font-style: italic;
+    padding: 30px;
+    grid-column: 1 / -1; /* Span across all columns in the grid */
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .simple-models-list-wrapper {
+    padding: 15px;
+    margin: 15px;
+  }
+  .model-assets-grid {
+    grid-template-columns: 1fr; /* Single column on small screens */
+  }
+  .models-list-title {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+  }
+  .model-asset-container {
+    padding: 12px 15px;
+  }
+}   

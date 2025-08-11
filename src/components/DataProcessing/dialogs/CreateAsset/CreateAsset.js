@@ -103,10 +103,10 @@ export default function CreateAsset(props) {
     let finalNGSILDAsset;
     switch(selectedAssetType){
       case "workflow":
-        finalNGSILDAsset = transformFormDataToNgsiLdAsset(data);
+        finalNGSILDAsset = transformFormDataToNgsiLdWorkflowAsset(data);
         break;
       case "data":
-        finalNGSILDAsset = transformFormDataToNgsiLdWorkflowAsset(data);
+        finalNGSILDAsset = transformFormDataToNgsiLdAsset(data);
         break;
       case "AIModel":
         finalNGSILDAsset = transformFormDataToNgsiLdWorkflowAsset(data);
