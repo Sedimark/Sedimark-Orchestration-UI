@@ -345,15 +345,15 @@ export default function VariablesInput(props){
 
     const parseAndSet = (oldValues,newValues)=>{
 
-      
-
       let parsedArray = [];
+      // here we filter and store the variables for the other blocks in the UI
        for(const value of oldValues){
-        if(value.block_name !== props.fullNodeName || value.tabName !== props.tabName){
-            parsedArray.push(value);
-        }
+          if(value.block_name !== props.fullNodeName || value.tabName !== props.tabName){
+              parsedArray.push(value);
+          }
       }
 
+      //for the blocks that have new values we store the values
       const parsedNewValues = [];
       for(const val of newValues){
         if(val["value"].length !== 0){
@@ -361,6 +361,8 @@ export default function VariablesInput(props){
         }
       }
       
+       // the final array contains the values for the variables for the other blocks
+       // as well as the new provided values , in the input , for the variables.
 
        parsedArray = [...parsedArray, ...parsedNewValues];
        return parsedArray;
@@ -374,7 +376,7 @@ export default function VariablesInput(props){
     }; 
     
     
-    const createObjToStore = ()=>{
+    const createObjToStore = (oldPipelineValue)=>{
       
       
       let inputedValuesVariables = [...variableValues];
@@ -404,13 +406,22 @@ export default function VariablesInput(props){
     
         // here the object in the final objects array needs to be updated
         // to do that we have to find it and update it with the new value
+
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
       }
       
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
-      dispatch(setBlocksVariables(blocksVariablesStored)); 
+      if(oldPipelineValue){
+        // if the value of a trigger variable which links a pipeline is changed
+        // this will result in the spawning of a new pipeline and
+        // also it requires that the old variables linked to that pipeline
+        // are deleted
+
+          blocksVariablesStored = blocksVariablesStored.filter((blk)=> blk["pipelineName"] !== oldPipelineValue)
+      }
       
+      dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
      
@@ -442,7 +453,6 @@ export default function VariablesInput(props){
     
         dispatch(setAllTabs(newTabArr));
         if(newTabArr.length > 0){
-          // setSelectedTabHere(newTabArr[0]);
           dispatch(setSelectedView(newTabArr[0]));
         } else {
           dispatch(setTabIndex(null));
@@ -486,6 +496,15 @@ export default function VariablesInput(props){
 
   
     const handleSpawnPipeline = async()=>{
+
+        /*
+            When it comes to pipeline spawining there are 2 tasks
+             [] when a new pipeline is added add also to store , by updating the blocksVariablesStored 
+                store value with the values that are coresponding to the variables of the new pipeline
+
+             [] also delete the old variables there were from the old pipeline
+
+        */
         
 
         // we check to see if there was made a change to the variable variableNameTrigger
@@ -545,9 +564,18 @@ export default function VariablesInput(props){
         // if not we move forward
                 
         if(tabToDelete){
+
+
           dispatch(setLinkedTabToDelete(tabToDelete.name));
+          // now here we will delete the old variables store for this specific pipeline
+          // but for consistency this work will be delegated to the function createObjToStore
+          // here we create the object that is going to instruct the createObjToStore function
+          // to delete the values
+
+          // oldLinkedValue - this variables contains the value of the old linked pipeline
+
         }
-      
+
         // logic for creating a new tab
 
         let pipeline = linkedPipeline; 
@@ -586,11 +614,14 @@ export default function VariablesInput(props){
               "tabOrder": tabOrder,
               "isChained":true,
           });
-  
+          
+          // here the block names are saved
           const fetchedSuccess = await fetchAndSaveBlockNames(pipeline, newTabName);
           if (!fetchedSuccess) {
               return;
           }
+
+          // we need also to update variables
   
           // Update tab indices
           const newTabArr = currentTabIndexStored.length 
@@ -603,23 +634,14 @@ export default function VariablesInput(props){
           setTimeout(() => {
               dispatch(setSelectedTab({ "changed": true, tabSelected: newTabName }));
           }, 100);
-  
-          
-          
-          // setTimeout(()=>{
-          //   const filteredVariables = storedVariables.filter(variable => 
-          //     !(variable["pipelineName"] && variable["pipelineName"][0] === pipeline)
-          //   );
-          //   dispatch(setBlocksVariables(filteredVariables));
-          // },500)
-          
 
     }
 
     const handleDone = ()=>{
+      let variablesFromChildPipelines;
         if(hasTriggerVar){
-            handleSpawnPipeline();
-          }
+          variablesFromChildPipelines = handleSpawnPipeline();
+        }
         props.handleClose();
         createObjToStore();
         
@@ -844,9 +866,6 @@ export default function VariablesInput(props){
       const variableInput = {...variablesInput};
 
       setWasSomethingChanged(true);
-
-      console.log("isNewDateBeforeOrEqualsCurrentDate:");
-      console.log(isNewDateBeforeOrEqualsCurrentDate);
 
       if(!isNewDateBeforeOrEqualsCurrentDate){
         errMonitor[variableName] = true;

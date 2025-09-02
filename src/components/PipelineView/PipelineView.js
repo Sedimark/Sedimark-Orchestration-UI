@@ -73,13 +73,11 @@ export const PipelineView = (props)=>{
     const pipelineNrOfVariables = useSelector((state)=> state.pipelineNrOfVariables)
     const pipelineNodes = useSelector((state) => state.orderedNodes);
     const blockVariables = useSelector((state) => state.blocksVariables);
-    // ** These are the values for the pipelines names **//
     const pipelineNameTrain = useSelector((state)=> state.selectedPipelineNameTrain);
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const selectedPipelineNamePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
     const pipelineNameStreaming = useSelector((state)=> state.selectedPipelineStreaming);
     const pipelinePreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
-    // ** Here values for the pipelines names end ** //
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -161,8 +159,8 @@ export const PipelineView = (props)=>{
             props.tabName
         */
         for(const blockVar of blockVariables){
-           
-            if(blockVar["pipelineName"] == pipelineName && blockVar.tabName === props.tabName){
+            
+            if((blockVar["pipelineName"] == pipelineName && blockVar.tabName === props.tabName)){
                 theVars.push(blockVar);
             }
         }
@@ -183,7 +181,6 @@ export const PipelineView = (props)=>{
 
         const variables = {};
 
-        
 
         blockVariables.forEach((value) => {
             variables[value["variable_name"]] = value["value"];
@@ -205,7 +202,7 @@ export const PipelineView = (props)=>{
                 data: {
                     "run_id": runData.id,
                     "token": runData.token,
-                    "variables" : variables,
+                    "variables" : variables, 
                 }
             })
             
@@ -595,7 +592,6 @@ export const PipelineView = (props)=>{
             }
     }
     
-
     useEffect(() => {
 
         if (pipelineName.length > 0) {
@@ -645,7 +641,6 @@ export const PipelineView = (props)=>{
                 }))
             }
         }
-
     }, [pipelineName]);
 
     useEffect(()=>{
@@ -726,7 +721,7 @@ export const PipelineView = (props)=>{
         }
     },[props])
 
-
+    
     return(
         <div>
                     <ThemeProvider theme={darkTheme}>

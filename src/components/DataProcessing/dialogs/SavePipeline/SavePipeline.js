@@ -243,8 +243,6 @@ export default function SavePipeline(props) {
           
         }
                 
-
-        //se pleaca de la block-ul de loader
         let i = 0;
         let next_block = "";
 
