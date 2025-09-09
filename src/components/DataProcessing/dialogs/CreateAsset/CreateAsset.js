@@ -6,7 +6,6 @@ import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { validateNgsiLdString } from "../../../../utils/ngsiLdValidate";
 import { CREATE_ASSET } from "../../../../utils/apiEndpoints";
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -21,8 +20,6 @@ import {
 } from "../../../../utils/assetTypes";
 import {transformFormDataToNgsiLdAsset} from "../../../../utils/createNGSILDAsset.js"
 import { transformFormDataToNgsiLdWorkflowAsset } from "../../../../utils/createNGILDAssetWorkflow.js";
-import { transformFormDataToNgsiLdAIModelAsset } from "../../../../utils/createNGSILDAIModel.js";
-import style from "./CreateAsset.css";
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { SelectAsset } from "./SelectAsset";
@@ -34,8 +31,6 @@ export default function CreateAsset(props) {
     },
   });
 
-  const [editorValue, setEditorValue] = useState();
-  const [asset, setAsset] = useState({});
   const [formDisplay, setFormDisplay] = useState(false);
   const [selectedAssetType, setSelectedAssetType] = useState("");
   const [selectActualAsset, setSelectActualAsset] = useState(false);

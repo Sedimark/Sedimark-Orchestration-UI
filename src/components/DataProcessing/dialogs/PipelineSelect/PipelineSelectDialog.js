@@ -94,7 +94,6 @@ export default function PipelineSelectDialog(props) {
       redux and by using this in the redux we will have prepopulated default
       values as well as 
     */
- 
 
     //first we collect all the pipelines names
     const pipelineNames = [];
@@ -144,19 +143,41 @@ export default function PipelineSelectDialog(props) {
                   [] for value check if the value is an object and also
                   [] check if it is an object if it has a type key inside it
                 */
-
+                
                   if((typeof value === 'object' && value !== null) && value["type"] && value["default"]){
 
                       // if there is a default_value we push it to the vector
                       // and we use it further down the line
-                        variablesForStore.push( {
-                        "block_name": formatString(blck["name"]),
-                        "variable_name": key , // Use 'key' here if you want the configuration property name
-                        "value": value["default"], // Assuming processedObj["default"] should be blockConfig["default"] based on context
-                        "nodeId": "", // will be completed at a future time
-                        "pipelineName": pipeline,
-                        "tabName": `${pipeline}-${parentPipeline}`
-                      });
+                      if(value["type"] == "trigger"){
+
+                            variablesForStore.push( {
+                          "block_name": formatString(blck["name"]),
+                          "variable_name": key , 
+                          "value": value["default"], 
+                          "nodeId": "", 
+                          "pipelineName": pipeline,
+                          "tabName": `${pipeline}-${parentPipeline}`,
+                          "parentPipeline": parentPipeline,
+                          "type" : "trigger"
+                        });
+
+                      } else {
+
+                          variablesForStore.push( {
+                          "block_name": formatString(blck["name"]),
+                          "variable_name": key , 
+                          "value": value["default"], 
+                          "nodeId": "", 
+                          "pipelineName": pipeline,
+                          "tabName": `${pipeline}-${parentPipeline}`,
+                          "parentPipeline": parentPipeline
+                        });
+
+                      }
+                       
+                      // we need to check if the value is of type trigger
+                      // and if it is indeed we may try to 
+                        
 
                   }
               }
@@ -321,9 +342,7 @@ export default function PipelineSelectDialog(props) {
       // and append them acordingly
 
       const variablesForSubPipelines = await generateVariablesForSubPipe(blocksWithTriggerAndDefValue, pipelineParentName);
-
-    
-
+      
       const filteredBlocks = filterBlocksWithNonNullDefault(pipelineBlocks);
 
       if(filteredBlocks && filteredBlocks.length !=0 ){
@@ -379,7 +398,8 @@ export default function PipelineSelectDialog(props) {
                 "value": blockConfig["default"], // Assuming processedObj["default"] should be blockConfig["default"] based on context
                 "nodeId": "", // will be completed at a future time
                 "pipelineName": pipelineParentName,
-                "tabName": tabName
+                "tabName": tabName,
+                "type" : "trigger"
               }
 
               blockValuesForStore.push(newVarValue);
@@ -461,6 +481,8 @@ export default function PipelineSelectDialog(props) {
     
     if (selectedPipeline) {
        
+        // from globally stored variables we filter those that
+        // have the name of the pipeline 
         const filteredVariables = storedVariables.filter(variable => 
             !(variable["pipelineName"] && variable["pipelineName"][0] === pipeline)
         );

@@ -93,8 +93,6 @@ function DataProcessing({ logout }) {
     sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${tabPipeline}-runData`);
     sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${tabPipeline}-running-steps`);
     
-    // dispatch with the new values
-    // last part - should contain the correct updated values
 
     dispatch(setBlocksVariables(intermediatenewVariables));
     dispatch(setAllTabs(intermediateallTabsStored));

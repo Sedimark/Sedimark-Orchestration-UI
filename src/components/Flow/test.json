@@ -1,0 +1,740 @@
+[
+    {
+        "all_upstream_blocks_executed": true,
+        "color": null,
+        "configuration": {
+            "attrs": {
+                "default": "https://vocab.egm.io/flow",
+                "description": "Filtering attributes to filter timeseries for the selected entity",
+                "type": "string"
+            },
+            "entity_id": {
+                "default": "urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667",
+                "description": "This is the ID of the entity that is stored in the NGSI-LD Broker",
+                "type": "string"
+            },
+            "pipelineName": "ngsi_ld_generic_pipeline"
+        },
+        "downstream_blocks": [
+            "interoperability_enabler_data_connector"
+        ],
+        "executor_config": null,
+        "executor_type": "local_python",
+        "has_callback": false,
+        "name": "ngsi_ld_temporal_loader",
+        "language": "python",
+        "retry_config": null,
+        "status": "executed",
+        "timeout": null,
+        "type": "data_loader",
+        "upstream_blocks": [],
+        "uuid": "ngsi_ld_temporal_loader",
+        "callback_blocks": [],
+        "conditional_blocks": [],
+        "content": "import os\nimport pandas as pd\nfrom default_repo.utils.generic_pipeline_enabler.default import load_temporal_data\n\nif 'data_loader' not in globals():\n    from mage_ai.data_preparation.decorators import data_loader\nif 'test' not in globals():\n    from mage_ai.data_preparation.decorators import test\n\n@data_loader\ndef load_data_from_api(*args, **kwargs):\n    # query_broker_flag = kwargs.get('get_data_from_broker', True)\n\n    # if not query_broker_flag:\n    #     return {}\n\n    # <https://sedimark.github.io/broker/jsonld-contexts/sedimark-helsinki-compound.jsonld>; rel=\"http://www.w3.org/ns/json-ld#context\"; type=\"application/ld+json\"\n    # context = os.getenv(\"NGSI_LD_LINK_CONTEXT\", \"https://sedimark.github.io/broker/jsonld-contexts/sedimark-helsinki-compound.jsonld\")\n    context = \"https://sedimark.github.io/broker/jsonld-contexts/sedimark-helsinki-compound.jsonld\"\n\n    host = os.getenv(\"NGSI_LD_HOST\", None)\n    start_time = kwargs.get(\"start_time\", None)\n    end_time = kwargs.get(\"end_time\", None)\n    attrs = kwargs.get(\"attrs\", None)\n    dataset_id = kwargs.get('datasetId', 'urn:ngsi-ld:Dataset:pedestrian')\n\n    entity_id = kwargs.get(\"entity_id\", \"urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667\")\n\n    # start_time = \"2022-11-16T07:00:00Z\"\n    # start_time = None\n    # end_time = None\n    # attrs = \"https://vocab.egm.io/flow\"\n    # entity_id = \"urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667\"\n\n    temporal_data = load_temporal_data(host, context, entity_id, start_time, end_time, attrs, dataset_id)\n    return temporal_data\n\n\n@test\ndef test_output(output, *args) -> None:\n    \"\"\"\n    Template code for testing the output of the block.\n    \"\"\"\n    assert output is not None, 'The output is undefined'",
+        "outputs": [
+            {
+                "sample_data": {
+                    "columns": [
+                        "id",
+                        "type",
+                        "flow"
+                    ],
+                    "rows": [
+                        [
+                            "urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667",
+                            "CrowdFlowObserved",
+                            [
+                                {
+                                    "type": "Property",
+                                    "value": 261,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:70a8a0af-f35b-4f66-b880-f495ad8a5c7c",
+                                    "observedAt": "2022-11-16T07:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 368,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:ddfd91fb-0e61-439c-ae1a-6093a5c74042",
+                                    "observedAt": "2022-11-16T08:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 601,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:f8fd24dd-68ea-4005-bf06-79fe8cb861e5",
+                                    "observedAt": "2022-11-16T09:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 632,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:04bcb8cd-9ebb-4d7e-8101-086bcfc07a1a",
+                                    "observedAt": "2022-11-16T10:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 588,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:65f507fb-38f7-4ba0-a1ad-42ad53b29e39",
+                                    "observedAt": "2022-11-16T12:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 677,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:211a4df1-7bf5-4c7c-b1df-515ea842b243",
+                                    "observedAt": "2022-11-16T13:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 802,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:ec2bab9a-7f34-446f-8470-89d1ea264bcc",
+                                    "observedAt": "2022-11-16T15:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 594,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:d94848e0-aa0a-4ea1-81bd-38ac9c1c6f40",
+                                    "observedAt": "2022-11-16T16:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 398,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:d993a7ad-ded4-4aa4-a7e1-1295ec84efe4",
+                                    "observedAt": "2022-11-16T17:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 261,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:c651f8f5-24ed-4135-a669-360209dd49ed",
+                                    "observedAt": "2022-11-16T18:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 165,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:b86ff65d-bf14-4c87-a4d0-b91f400312e5",
+                                    "observedAt": "2022-11-16T19:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 112,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:dc6c9f64-bd38-4989-acf4-e20a4c1a1b99",
+                                    "observedAt": "2022-11-16T20:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 112,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:7a2e6c85-ec45-4c36-9ace-5c69b510a2c3",
+                                    "observedAt": "2022-11-16T21:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 11,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:03292867-ad5f-40b3-a319-9789f57146e5",
+                                    "observedAt": "2022-11-17T01:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 13,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:3437ec24-4c0e-4c1b-9f6f-cb8ff71d7efb",
+                                    "observedAt": "2022-11-17T02:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 22,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:33848223-bbc8-4454-a97e-51a6520ca428",
+                                    "observedAt": "2022-11-17T03:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 60,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:0d7461a4-f540-476a-94ea-d7d652b1ebec",
+                                    "observedAt": "2022-11-17T04:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 104,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:19396856-4ab2-4e10-8be6-470c34475218",
+                                    "observedAt": "2022-11-17T05:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 244,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:90e755d4-1fa3-4f76-8ee9-8e8ee207c012",
+                                    "observedAt": "2022-11-17T06:00:00Z"
+                                },
+                                {
+                                    "type": "Property",
+                                    "value": 235,
+                                    "unitCode": "E50",
+                                    "datasetId": "urn:ngsi-ld:Dataset:pedestrian",
+                                    "instanceId": "urn:ngsi-ld:Instance:fe145746-5dcc-4c1f-b4a5-e149d624bf38",
+                                    "observedAt": "2022-11-17T07:00:00Z"
+                                }
+                            ]
+                        ]
+                    ]
+                },
+                "shape": [
+                    1,
+                    3
+                ],
+                "type": "table",
+                "variable_uuid": "output_0"
+            }
+        ],
+        "metadata": {},
+        "tags": []
+    },
+    {
+        "all_upstream_blocks_executed": true,
+        "color": null,
+        "configuration": {
+            "pipelineName": "ngsi_ld_generic_pipeline"
+        },
+        "downstream_blocks": [
+            "data_preprocessing_trigger"
+        ],
+        "executor_config": null,
+        "executor_type": "local_python",
+        "has_callback": false,
+        "name": "interoperability_enabler_data_connector",
+        "language": "python",
+        "retry_config": null,
+        "status": "executed",
+        "timeout": null,
+        "type": "transformer",
+        "upstream_blocks": [
+            "ngsi_ld_temporal_loader"
+        ],
+        "uuid": "interoperability_enabler_data_connector",
+        "callback_blocks": [],
+        "conditional_blocks": [],
+        "content": "import os\nimport pandas as pd\nfrom default_repo.utils.generic_pipeline_enabler.default import interoperability_enabler_to_df\n\nif 'transformer' not in globals():\n    from mage_ai.data_preparation.decorators import transformer\nif 'test' not in globals():\n    from mage_ai.data_preparation.decorators import test\n\n\n@transformer\ndef transform(data, *args, **kwargs):\n    if not data:\n        return pd.DataFrame()\n    \n    context_df, temporal_df = interoperability_enabler_to_df(data)\n    return context_df, temporal_df\n\n\n@test\ndef test_output(output, *args) -> None:\n    \"\"\"\n    Template code for testing the output of the block.\n    \"\"\"\n    assert output is not None, 'The output is undefined'",
+        "outputs": [
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    1,
+                    2
+                ],
+                "type": "table",
+                "variable_uuid": "output_0",
+                "multi_output": true
+            },
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    10000,
+                    6
+                ],
+                "type": "table",
+                "variable_uuid": "output_1",
+                "multi_output": true
+            }
+        ],
+        "metadata": {},
+        "tags": []
+    },
+    {
+        "all_upstream_blocks_executed": true,
+        "color": null,
+        "configuration": {
+            "data_preprocessing_pipeline_trigger": {
+                "default": "data_preprocessing_test_copy",
+                "description": "Trigger for the data preprocessing pipeline",
+                "tag": "data_preprocessing",
+                "type": "trigger"
+            },
+            "pipelineName": "ngsi_ld_generic_pipeline"
+        },
+        "downstream_blocks": [
+            "data_profiler"
+        ],
+        "executor_config": null,
+        "executor_type": "local_python",
+        "has_callback": false,
+        "name": "data_preprocessing_trigger",
+        "language": "python",
+        "retry_config": null,
+        "status": "executed",
+        "timeout": null,
+        "type": "transformer",
+        "upstream_blocks": [
+            "interoperability_enabler_data_connector"
+        ],
+        "uuid": "data_preprocessing_trigger",
+        "callback_blocks": [],
+        "conditional_blocks": [],
+        "content": "import os\nimport pandas as pd\nfrom default_repo.utils.generic_pipeline_enabler.default import execute_pipeline_and_get_final_result\n\n# Restored decorator imports to ensure compatibility with your environment\nif 'transformer' not in globals():\n    from mage_ai.data_preparation.decorators import transformer\nif 'test' not in globals():\n    from mage_ai.data_preparation.decorators import test\n\n\n@transformer\ndef transform(data, *args, **kwargs):\n    \"\"\"\n    Main transformation block that triggers a child pipeline and processes its results.\n    \"\"\"\n\n    context_df, temporal_df = data\n\n    child_pipeline_uuid = kwargs.get(\"data_preprocessing_pipeline_trigger\", \"data_preprocesing_test\")\n\n    df = execute_pipeline_and_get_final_result(\n        pipeline_uuid=child_pipeline_uuid,\n        data=temporal_df,\n        kwargs=kwargs,\n        max_output_chars=300,\n        poll_interval=10\n    )\n    \n    return context_df, df\n\n\n@test\ndef test_output(output, *args) -> None:\n    \"\"\"\n    Template code for testing the output of the block.\n    \"\"\"\n    assert output is not None, 'The output is undefined'\n    assert isinstance(output, pd.DataFrame), 'The output should be a pandas DataFrame.'\n    assert not output.empty, 'The output DataFrame should not be empty if the child pipeline produced data.'",
+        "outputs": [
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    1,
+                    2
+                ],
+                "type": "table",
+                "variable_uuid": "output_0",
+                "multi_output": true
+            },
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    10000,
+                    6
+                ],
+                "type": "table",
+                "variable_uuid": "output_1",
+                "multi_output": true
+            }
+        ],
+        "metadata": {},
+        "tags": []
+    },
+    {
+        "all_upstream_blocks_executed": true,
+        "color": null,
+        "configuration": {
+            "pipelineName": "ngsi_ld_generic_pipeline"
+        },
+        "downstream_blocks": [
+            "data_manipulation_trigger"
+        ],
+        "executor_config": null,
+        "executor_type": "local_python",
+        "has_callback": false,
+        "name": "data_profiler",
+        "language": "python",
+        "retry_config": null,
+        "status": "executed",
+        "timeout": null,
+        "type": "transformer",
+        "upstream_blocks": [
+            "data_preprocessing_trigger"
+        ],
+        "uuid": "data_profiler",
+        "callback_blocks": [],
+        "conditional_blocks": [],
+        "content": "if 'transformer' not in globals():\n    from mage_ai.data_preparation.decorators import transformer\nif 'test' not in globals():\n    from mage_ai.data_preparation.decorators import test\n\n\n@transformer\ndef transform(data, *args, **kwargs):\n    \"\"\"\n    Template code for a transformer block.\n\n    Add more parameters to this function if this block has multiple parent blocks.\n    There should be one parameter for each output variable from each parent block.\n\n    Args:\n        data: The output from the upstream parent block\n        args: The output from any additional upstream blocks (if applicable)\n\n    Returns:\n        Anything (e.g. data frame, dictionary, array, int, str, etc.)\n    \"\"\"\n    # Specify your transformation logic here\n\n    return data\n\n\n@test\ndef test_output(output, *args) -> None:\n    \"\"\"\n    Template code for testing the output of the block.\n    \"\"\"\n    assert output is not None, 'The output is undefined'",
+        "outputs": [
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    1,
+                    2
+                ],
+                "type": "table",
+                "variable_uuid": "output_0",
+                "multi_output": true
+            },
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    10000,
+                    6
+                ],
+                "type": "table",
+                "variable_uuid": "output_1",
+                "multi_output": true
+            }
+        ],
+        "metadata": {},
+        "tags": []
+    },
+    {
+        "all_upstream_blocks_executed": true,
+        "color": null,
+        "configuration": {
+            "data_manipulation_pipeline_trigger": {
+                "default": "data_manipulation_test",
+                "description": "Trigger for the data manipulation pipeline",
+                "tag": "data_manipulation",
+                "type": "trigger"
+            },
+            "pipelineName": "ngsi_ld_generic_pipeline"
+        },
+        "downstream_blocks": [
+            "interoperability_enabler_data_exporter"
+        ],
+        "executor_config": null,
+        "executor_type": "local_python",
+        "has_callback": false,
+        "name": "data_manipulation_trigger",
+        "language": "python",
+        "retry_config": null,
+        "status": "executed",
+        "timeout": null,
+        "type": "transformer",
+        "upstream_blocks": [
+            "data_profiler"
+        ],
+        "uuid": "data_manipulation_trigger",
+        "callback_blocks": [],
+        "conditional_blocks": [],
+        "content": "import os\nimport pandas as pd\nfrom default_repo.utils.generic_pipeline_enabler.default import execute_pipeline_and_get_final_result\n\n# Restored decorator imports to ensure compatibility with your environment\nif 'transformer' not in globals():\n    from mage_ai.data_preparation.decorators import transformer\nif 'test' not in globals():\n    from mage_ai.data_preparation.decorators import test\n\n\n@transformer\ndef transform(data, *args, **kwargs):\n    \"\"\"\n    Main transformation block that triggers a child pipeline and processes its results.\n    \"\"\"\n    context_df, temporal_df = data\n    child_pipeline_uuid = kwargs.get(\"data_manipulation_pipeline_trigger\", \"data_manipulation_test\")\n\n    df = execute_pipeline_and_get_final_result(\n        pipeline_uuid=child_pipeline_uuid,\n        data=temporal_df,\n        kwargs=kwargs,\n        max_output_chars=300,\n        poll_interval=10\n    )\n    \n    return context_df, df\n\n\n@test\ndef test_output(output, *args) -> None:\n    \"\"\"\n    Template code for testing the output of the block.\n    \"\"\"\n    assert output is not None, 'The output is undefined'\n    assert isinstance(output, pd.DataFrame), 'The output should be a pandas DataFrame.'\n    assert not output.empty, 'The output DataFrame should not be empty if the child pipeline produced data.'",
+        "outputs": [
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    1,
+                    2
+                ],
+                "type": "table",
+                "variable_uuid": "output_0",
+                "multi_output": true
+            },
+            {
+                "sample_data": {
+                    "columns": [],
+                    "rows": []
+                },
+                "shape": [
+                    24,
+                    4
+                ],
+                "type": "table",
+                "variable_uuid": "output_1",
+                "multi_output": true
+            }
+        ],
+        "metadata": {},
+        "tags": []
+    },
+    {
+        "all_upstream_blocks_executed": true,
+        "color": null,
+        "configuration": {
+            "pipelineName": "ngsi_ld_generic_pipeline"
+        },
+        "downstream_blocks": [
+            "ngsi_ld_temporal_exporter"
+        ],
+        "executor_config": null,
+        "executor_type": "local_python",
+        "has_callback": false,
+        "name": "interoperability_enabler_data_exporter",
+        "language": "python",
+        "retry_config": null,
+        "status": "executed",
+        "timeout": null,
+        "type": "transformer",
+        "upstream_blocks": [
+            "data_manipulation_trigger"
+        ],
+        "uuid": "interoperability_enabler_data_exporter",
+        "callback_blocks": [],
+        "conditional_blocks": [],
+        "content": "import os\nfrom default_repo.utils.generic_pipeline_enabler.default import interoperability_enabler_to_ngsild\n\nif 'transformer' not in globals():\n    from mage_ai.data_preparation.decorators import transformer\nif 'test' not in globals():\n    from mage_ai.data_preparation.decorators import test\n\n\n@transformer\ndef transform(data, *args, **kwargs):\n    \"\"\"\n    Transform DataFrame back to JSON-LD format\n    \"\"\"\n    context_df, temporal_df = data\n    data = interoperability_enabler_to_ngsild(context_df, temporal_df)\n    return data\n\n\n@test\ndef test_output(output, *args) -> None:\n    \"\"\"\n    Template code for testing the output of the block.\n    \"\"\"\n    assert output is not None, 'The output is undefined'",
+        "outputs": [
+            {
+                "sample_data": {
+                    "columns": [
+                        "id",
+                        "type",
+                        "flow"
+                    ],
+                    "rows": [
+                        [
+                            "urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667",
+                            "CrowdFlowObserved",
+                            [
+                                {
+                                    "value": 1333.7253417969,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T12:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1969299316,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T13:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7252197266,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T14:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1968383789,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T15:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7242431641,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T16:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1961364746,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T17:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7253417969,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T18:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1969299316,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T19:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7257080078,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T20:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1972045898,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T21:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7253417969,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T22:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1969299316,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-03T23:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7250976562,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T00:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1967773438,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T01:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7253417969,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T02:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1969299316,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T03:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7247314453,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T04:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1965942383,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T05:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 1333.7247314453,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T06:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                },
+                                {
+                                    "value": 389.1965332031,
+                                    "datasetId": "urn:ngsi-ld:Prediction:b9184ad1-81b3-4ecb-822e-f9f233e55f36",
+                                    "type": "Property",
+                                    "observedAt": "2024-04-04T07:00:00Z",
+                                    "hasQuality": {
+                                        "type": null,
+                                        "object": null
+                                    }
+                                }
+                            ]
+                        ]
+                    ]
+                },
+                "shape": [
+                    1,
+                    3
+                ],
+                "type": "table",
+                "variable_uuid": "output_0"
+            }
+        ],
+        "metadata": {},
+        "tags": []
+    },
+    {
+        "all_upstream_blocks_executed": true,
+        "color": null,
+        "configuration": {
+            "pipelineName": "ngsi_ld_generic_pipeline"
+        },
+        "downstream_blocks": [],
+        "executor_config": null,
+        "executor_type": "local_python",
+        "has_callback": false,
+        "name": "ngsi_ld_temporal_exporter",
+        "language": "python",
+        "retry_config": null,
+        "status": "executed",
+        "timeout": null,
+        "type": "data_exporter",
+        "upstream_blocks": [
+            "interoperability_enabler_data_exporter"
+        ],
+        "uuid": "ngsi_ld_temporal_exporter",
+        "callback_blocks": [],
+        "conditional_blocks": [],
+        "content": "import os\nfrom default_repo.utils.generic_pipeline_enabler.default import export_temporal_data\n\nif 'data_exporter' not in globals():\n    from mage_ai.data_preparation.decorators import data_exporter\n\n\n@data_exporter\ndef export_data(data, *args, **kwargs):\n    # context = os.getenv(\"NGSI_LD_LINK_CONTEXT\", \"https://uri.etsi.org/ngsi-ld/v1/ngsi-ld-core-context-v1.8.jsonld\")\n    context = \"https://sedimark.github.io/broker/jsonld-contexts/sedimark-helsinki-compound.jsonld\"\n\n    host = os.getenv(\"NGSI_LD_HOST\", None)\n\n    # print(data)\n    response = export_temporal_data(data, host, context)\n\n    print(response)\n\n    \"\"\"\n    Exports data to some source.\n\n    Args:\n        data: The output from the upstream parent block\n        args: The output from any additional upstream blocks (if applicable)\n\n    Output (optional):\n        Optionally return any object and it'll be logged and\n        displayed when inspecting the block run.\n    \"\"\"\n    # Specify your data exporting logic here\n\n",
+        "outputs": [],
+        "metadata": {},
+        "tags": []
+    }
+]
+

@@ -155,7 +155,7 @@ export default function VariablesInput(props){
     const [pipelineLinkedInitialValue, setPipelineLinkedInitialValue] = useState("");
     const [variableNameTrigger, setVariableNameTrigger] = useState("");
     const storedVariables = useSelector((state)=>state.blocksVariables);
-    
+    const [triggerVars, setTriggerVars] = useState(new Set());
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -345,15 +345,15 @@ export default function VariablesInput(props){
 
     const parseAndSet = (oldValues,newValues)=>{
 
-      
-
       let parsedArray = [];
+      // here we filter and store the variables for the other blocks in the UI
        for(const value of oldValues){
-        if(value.block_name !== props.fullNodeName || value.tabName !== props.tabName){
-            parsedArray.push(value);
-        }
+          if(value.block_name !== props.fullNodeName || value.tabName !== props.tabName){
+              parsedArray.push(value);
+          }
       }
 
+      //for the blocks that have new values we store the values
       const parsedNewValues = [];
       for(const val of newValues){
         if(val["value"].length !== 0){
@@ -361,6 +361,8 @@ export default function VariablesInput(props){
         }
       }
       
+       // the final array contains the values for the variables for the other blocks
+       // as well as the new provided values , in the input , for the variables.
 
        parsedArray = [...parsedArray, ...parsedNewValues];
        return parsedArray;
@@ -374,7 +376,7 @@ export default function VariablesInput(props){
     }; 
     
     
-    const createObjToStore = ()=>{
+    const createObjToStore = (oldPipelineValue)=>{
       
       
       let inputedValuesVariables = [...variableValues];
@@ -393,24 +395,53 @@ export default function VariablesInput(props){
       
       for(const key in variablesInput){
 
-         objToStore = {
-          block_name:props.fullNodeName,
-          variable_name:key,
-          value:variablesInput[key],
-          nodeId:nodeNameId,
-          pipelineName:pipelineName,
-          tabName:props.tabName
+        // here we will need to have a logic that 
+        // if the variable is of kind trigger 
+        // then an aditional key will be added
+        if(triggerVars.has(key)){
+          // here we store also the type of the object
+          objToStore = {
+              block_name:props.fullNodeName,
+              variable_name:key,
+              value:variablesInput[key],
+              nodeId:nodeNameId,
+              pipelineName:pipelineName,
+              tabName:props.tabName,
+              type:"trigger"
+          }
+
+        } else {
+
+              objToStore = {
+              block_name:props.fullNodeName,
+              variable_name:key,
+              value:variablesInput[key],
+              nodeId:nodeNameId,
+              pipelineName:pipelineName,
+              tabName:props.tabName
+            }
+
         }
+         
     
         // here the object in the final objects array needs to be updated
         // to do that we have to find it and update it with the new value
+
         inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
         setVariableValues(inputedValuesVariables);
       }
       
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
-      dispatch(setBlocksVariables(blocksVariablesStored)); 
+      if(oldPipelineValue){
+        // if the value of a trigger variable which links a pipeline is changed
+        // this will result in the spawning of a new pipeline and
+        // also it requires that the old variables linked to that pipeline
+        // are deleted
+
+          blocksVariablesStored = blocksVariablesStored.filter((blk)=> blk["pipelineName"] !== oldPipelineValue)
+      }
       
+      dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
      
@@ -442,7 +473,6 @@ export default function VariablesInput(props){
     
         dispatch(setAllTabs(newTabArr));
         if(newTabArr.length > 0){
-          // setSelectedTabHere(newTabArr[0]);
           dispatch(setSelectedView(newTabArr[0]));
         } else {
           dispatch(setTabIndex(null));
@@ -486,6 +516,15 @@ export default function VariablesInput(props){
 
   
     const handleSpawnPipeline = async()=>{
+
+        /*
+            When it comes to pipeline spawining there are 2 tasks
+             [] when a new pipeline is added add also to store , by updating the blocksVariablesStored 
+                store value with the values that are coresponding to the variables of the new pipeline
+
+             [] also delete the old variables there were from the old pipeline
+
+        */
         
 
         // we check to see if there was made a change to the variable variableNameTrigger
@@ -545,9 +584,18 @@ export default function VariablesInput(props){
         // if not we move forward
                 
         if(tabToDelete){
+
+
           dispatch(setLinkedTabToDelete(tabToDelete.name));
+          // now here we will delete the old variables store for this specific pipeline
+          // but for consistency this work will be delegated to the function createObjToStore
+          // here we create the object that is going to instruct the createObjToStore function
+          // to delete the values
+
+          // oldLinkedValue - this variables contains the value of the old linked pipeline
+
         }
-      
+
         // logic for creating a new tab
 
         let pipeline = linkedPipeline; 
@@ -586,11 +634,14 @@ export default function VariablesInput(props){
               "tabOrder": tabOrder,
               "isChained":true,
           });
-  
+          
+          // here the block names are saved
           const fetchedSuccess = await fetchAndSaveBlockNames(pipeline, newTabName);
           if (!fetchedSuccess) {
               return;
           }
+
+          // we need also to update variables
   
           // Update tab indices
           const newTabArr = currentTabIndexStored.length 
@@ -603,23 +654,14 @@ export default function VariablesInput(props){
           setTimeout(() => {
               dispatch(setSelectedTab({ "changed": true, tabSelected: newTabName }));
           }, 100);
-  
-          
-          
-          // setTimeout(()=>{
-          //   const filteredVariables = storedVariables.filter(variable => 
-          //     !(variable["pipelineName"] && variable["pipelineName"][0] === pipeline)
-          //   );
-          //   dispatch(setBlocksVariables(filteredVariables));
-          // },500)
-          
 
     }
 
     const handleDone = ()=>{
+      let variablesFromChildPipelines;
         if(hasTriggerVar){
-            handleSpawnPipeline();
-          }
+          variablesFromChildPipelines = handleSpawnPipeline();
+        }
         props.handleClose();
         createObjToStore();
         
@@ -845,9 +887,6 @@ export default function VariablesInput(props){
 
       setWasSomethingChanged(true);
 
-      console.log("isNewDateBeforeOrEqualsCurrentDate:");
-      console.log(isNewDateBeforeOrEqualsCurrentDate);
-
       if(!isNewDateBeforeOrEqualsCurrentDate){
         errMonitor[variableName] = true;
         return;
@@ -969,6 +1008,7 @@ export default function VariablesInput(props){
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
 
+
   
   return (
     <div>
@@ -985,6 +1025,9 @@ export default function VariablesInput(props){
                 </div>  
                 {purifiedVariables.map((value, index)=>{
                   
+                  console.log("--=== > purifiedVarInstance < ===--");
+                  console.log(value);
+
                   if(value.type === "string" || value.type === "str"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -1117,7 +1160,12 @@ export default function VariablesInput(props){
                       </div>
                     )
                   } else if(value.type === "trigger"){
-               
+                    
+                    // we store the variables in the set, this will represent the
+                    // variables names that are of type trigger
+                  setTriggerVars(prevItems => new Set(prevItems).add(value.varName));
+                    
+
                     return(
                       <div>
                         <FormControl sx={{ m: 1, width: "60%" }}>

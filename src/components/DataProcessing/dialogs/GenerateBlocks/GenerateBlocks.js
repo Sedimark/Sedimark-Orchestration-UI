@@ -490,7 +490,7 @@ export default function GenerateBlocks(props) {
                                 </div> 
                                 <div className='generating-block-text'> 
                                   <p> Generating....  </p>
-                                  <p>{ truncateString(generationMessage,30)} </p>
+                                  <p title={generationMessage}>{ truncateString(generationMessage,70)} </p>
 
                                 </div>
                                 
