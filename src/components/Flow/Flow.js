@@ -370,13 +370,16 @@ function Flow(props) {
     
     let nrOfVars = 0;
     
-    
-
     for(const pipe_data of pipeline_data){
        
        nrOfVars += getVariablesCount(pipe_data.configuration);
     }
     
+    // for this task we will iterate through pipeline data
+    // and then for the trigger pipeline variable values
+    // we will fetch the pipeline and count those variables too
+
+
     const variablesForPipeline = {
       pipeline_name:pipeline_name,
       number_of_variables: nrOfVars

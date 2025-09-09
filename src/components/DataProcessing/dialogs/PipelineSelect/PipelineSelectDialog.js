@@ -94,7 +94,6 @@ export default function PipelineSelectDialog(props) {
       redux and by using this in the redux we will have prepopulated default
       values as well as 
     */
- 
 
     //first we collect all the pipelines names
     const pipelineNames = [];
@@ -149,15 +148,36 @@ export default function PipelineSelectDialog(props) {
 
                       // if there is a default_value we push it to the vector
                       // and we use it further down the line
-                        variablesForStore.push( {
-                        "block_name": formatString(blck["name"]),
-                        "variable_name": key , 
-                        "value": value["default"], 
-                        "nodeId": "", 
-                        "pipelineName": pipeline,
-                        "tabName": `${pipeline}-${parentPipeline}`,
-                        "parentPipeline": parentPipeline
-                      });
+                      if(value["type"] == "trigger"){
+
+                            variablesForStore.push( {
+                          "block_name": formatString(blck["name"]),
+                          "variable_name": key , 
+                          "value": value["default"], 
+                          "nodeId": "", 
+                          "pipelineName": pipeline,
+                          "tabName": `${pipeline}-${parentPipeline}`,
+                          "parentPipeline": parentPipeline,
+                          "type" : "trigger"
+                        });
+
+                      } else {
+
+                          variablesForStore.push( {
+                          "block_name": formatString(blck["name"]),
+                          "variable_name": key , 
+                          "value": value["default"], 
+                          "nodeId": "", 
+                          "pipelineName": pipeline,
+                          "tabName": `${pipeline}-${parentPipeline}`,
+                          "parentPipeline": parentPipeline
+                        });
+
+                      }
+                       
+                      // we need to check if the value is of type trigger
+                      // and if it is indeed we may try to 
+                        
 
                   }
               }
@@ -378,7 +398,8 @@ export default function PipelineSelectDialog(props) {
                 "value": blockConfig["default"], // Assuming processedObj["default"] should be blockConfig["default"] based on context
                 "nodeId": "", // will be completed at a future time
                 "pipelineName": pipelineParentName,
-                "tabName": tabName
+                "tabName": tabName,
+                "type" : "trigger"
               }
 
               blockValuesForStore.push(newVarValue);

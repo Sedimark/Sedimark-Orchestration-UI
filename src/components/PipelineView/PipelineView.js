@@ -152,6 +152,8 @@ export const PipelineView = (props)=>{
 
     const parseVarsForPipeline = ()=>{    
         
+        // this function returns the variables that are for the pipeline
+        // that is curently selected on the view
         const theVars = [];
         // aici trebuie sa adaugi si in functie de tab name la if
         /*
@@ -168,29 +170,57 @@ export const PipelineView = (props)=>{
         return theVars;
     }
 
+
+
+    
+
     const startPipeline = React.useCallback(async () => {
 
+    
         let nrOfVars = 0;
-  
+
+       // based of the stored in store variable pipelineNrOfVariables
+       // I get to fetch the nrOfVars and then I will use this to check
+
         nrOfVars = retrievePipelineVarCount(pipelineNrOfVariables, pipelineName);
+        // parseVarsForPipeline returns the blockVars which are the variables
+        // coresponding to the blocks that are contained by this pipeline
+
         const blockVars = parseVarsForPipeline();
         if(blockVars.length !== nrOfVars || (blockVars.length == 0 && nrOfVars!=0)){
-            blockAlert("Please enter a value for all the variables!");
+            blockAlert("Please ensure all variables within the complete pipeline definition are populated !");
             return;
         }
 
+        //  here we will need to fetch the type and actually use it later
+        // like based off the type we may need to 
+
         const variables = {};
 
+        // const fetchedChainedPipelines = 
 
+        let chainedPipelines = [];
+
+        for(const blkVal of blockVariables){
+            if(blkVal["type"] === "trigger"  && blkVal["pipelineName"] === pipelineName) {
+                chainedPipelines.push(blkVal["value"]);
+            }
+
+            // value["pipelineName"] === pipelineName
+        }
+        // here it adds the chained pipeline variables to the global big 
+        // object that will contain all the variables
         blockVariables.forEach((value) => {
-            variables[value["variable_name"]] = value["value"];
+            if(value["pipelineName"] === pipelineName || chainedPipelines.includes(value["pipelineName"])){
+                variables[value["variable_name"]] = value["value"];
+            }
+            
         })
 
 
         setStepStatus([true, true, true])
         setActiveStep(steps.indexOf("start"));
         
-  
 
         try {
             await axios({

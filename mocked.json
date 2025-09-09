@@ -1,0 +1,82 @@
+[
+    {
+        "block_name": "Data Preprocessing Trigger",
+        "variable_name": "data_preprocessing_pipeline_trigger",
+        "value": "data_preprocessing_test_copy",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    },
+    {
+        "block_name": "Data Manipulation Trigger",
+        "variable_name": "data_manipulation_pipeline_trigger",
+        "value": "data_manipulation_test",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    },
+    {
+        "block_name": "Ngsi Ld Temporal Loader",
+        "variable_name": "attrs",
+        "value": "https://vocab.egm.io/flow",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    },
+    {
+        "block_name": "Ngsi Ld Temporal Loader",
+        "variable_name": "entity_id",
+        "value": "urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    }
+]
+
+
+ "BLOCK VARS" 
+
+[
+    {
+        "block_name": "Data Preprocessing Trigger",
+        "variable_name": "data_preprocessing_pipeline_trigger",
+        "value": "data_preprocessing_test_copy",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    },
+    {
+        "block_name": "Data Manipulation Trigger",
+        "variable_name": "data_manipulation_pipeline_trigger",
+        "value": "data_manipulation_test",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    },
+    {
+        "block_name": "Ngsi Ld Temporal Loader",
+        "variable_name": "attrs",
+        "value": "https://vocab.egm.io/flow",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    },
+    {
+        "block_name": "Ngsi Ld Temporal Loader",
+        "variable_name": "entity_id",
+        "value": "urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667",
+        "nodeId": "",
+        "pipelineName": "ngsi_ld_generic_pipeline",
+        "tabName": "Tab 1"
+    }
+]
+
+
+// this is how variablesInput is going to look like:
+
+{
+    "end_time": [],
+    "entity_id": "urn:ngsi-ld:Sedimark:CrowdFlowObserved:100016667"
+}
+
+// so basically is a key value pair of data

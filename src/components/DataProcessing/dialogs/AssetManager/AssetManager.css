@@ -1,5 +1,5 @@
 .entity-item{
-    margin-top: 10px;
+    margin-top: 20px;
     display: flex;
     flex-direction: row;
     justify-content: space-around;
@@ -10,6 +10,7 @@
     padding-top: 5px;
     font-size: 1.1rem;
     font-weight: bold;
+    width: 90%;
 }
 
 .model-asset-container{
@@ -127,6 +128,47 @@
     font-style: italic;
     padding: 30px;
     grid-column: 1 / -1; /* Span across all columns in the grid */
+}
+
+.assets-title-spacing{
+  margin-top: 25px;
+}
+
+.asset-manager-back{
+ margin-left: 20px;
+ margin-top: 20px;
+}
+
+.my-assets-list{
+  height: 40vh;
+  overflow-y: scroll; 
+  scrollbar-width: thin; 
+  scrollbar-color: rgba(128, 128, 128, 0.3) rgba(0, 0, 0, 0.1); 
+}
+
+my-assets-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+my-assets-list::-webkit-scrollbar-track { 
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+my-assets-list::-webkit-scrollbar-thumb { 
+  background: rgba(128, 128, 128, 0.3);
+  border-radius: 10px;
+}
+
+
+my-assets-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.5);
+}
+
+.menu-name-container{
+  text-align: center;
+  font-weight: bold;
+  font-size: 1.5rem;
 }
 
 /* Responsive adjustments */

@@ -155,7 +155,7 @@ export default function VariablesInput(props){
     const [pipelineLinkedInitialValue, setPipelineLinkedInitialValue] = useState("");
     const [variableNameTrigger, setVariableNameTrigger] = useState("");
     const storedVariables = useSelector((state)=>state.blocksVariables);
-    
+    const [triggerVars, setTriggerVars] = useState(new Set());
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -395,14 +395,34 @@ export default function VariablesInput(props){
       
       for(const key in variablesInput){
 
-         objToStore = {
-          block_name:props.fullNodeName,
-          variable_name:key,
-          value:variablesInput[key],
-          nodeId:nodeNameId,
-          pipelineName:pipelineName,
-          tabName:props.tabName
+        // here we will need to have a logic that 
+        // if the variable is of kind trigger 
+        // then an aditional key will be added
+        if(triggerVars.has(key)){
+          // here we store also the type of the object
+          objToStore = {
+              block_name:props.fullNodeName,
+              variable_name:key,
+              value:variablesInput[key],
+              nodeId:nodeNameId,
+              pipelineName:pipelineName,
+              tabName:props.tabName,
+              type:"trigger"
+          }
+
+        } else {
+
+              objToStore = {
+              block_name:props.fullNodeName,
+              variable_name:key,
+              value:variablesInput[key],
+              nodeId:nodeNameId,
+              pipelineName:pipelineName,
+              tabName:props.tabName
+            }
+
         }
+         
     
         // here the object in the final objects array needs to be updated
         // to do that we have to find it and update it with the new value
@@ -988,6 +1008,7 @@ export default function VariablesInput(props){
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
 
+
   
   return (
     <div>
@@ -1004,6 +1025,9 @@ export default function VariablesInput(props){
                 </div>  
                 {purifiedVariables.map((value, index)=>{
                   
+                  console.log("--=== > purifiedVarInstance < ===--");
+                  console.log(value);
+
                   if(value.type === "string" || value.type === "str"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -1136,7 +1160,12 @@ export default function VariablesInput(props){
                       </div>
                     )
                   } else if(value.type === "trigger"){
-               
+                    
+                    // we store the variables in the set, this will represent the
+                    // variables names that are of type trigger
+                  setTriggerVars(prevItems => new Set(prevItems).add(value.varName));
+                    
+
                     return(
                       <div>
                         <FormControl sx={{ m: 1, width: "60%" }}>

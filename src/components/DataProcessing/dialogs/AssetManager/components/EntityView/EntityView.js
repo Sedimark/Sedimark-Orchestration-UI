@@ -6,7 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
-import {BROKER_GET_ENTITIES_BY_ID} from "../../../../utils/apiEndpoints";
+import {BROKER_GET_ENTITIES_BY_ID} from "../../../../../../utils/apiEndpoints";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {  faBoxOpen, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 import ControlledEditor from '@monaco-editor/react';

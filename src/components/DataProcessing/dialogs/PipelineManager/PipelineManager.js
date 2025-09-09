@@ -10,9 +10,10 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DeletePipeline from '../DeletePipeline/DeletePipeline';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ChangePipelineName from '../ChangePipelineName/ChangePipelineName';
-import { faTrash, faPen, faArrowUpRightFromSquare,faArrowLeft } from '@fortawesome/free-solid-svg-icons';
+import { faTrash, faPen, faArrowUpRightFromSquare,faArrowLeft, faCloudArrowUp } from '@fortawesome/free-solid-svg-icons';
 import ExportPipeline from '../ExportPipeline/ExportPipeline';
 import style from "./PipelineManager.css";
+import ImportPipelineZip from '../ImportPipelineZIP/ImportPipelineZIP';
 
 export default function PipelineManager(props) {
 
@@ -21,6 +22,7 @@ export default function PipelineManager(props) {
   const [editMenu, setEditMenu] = useState(false);
   const [exportMenuCWL, setExportMenuCWL] = useState(false);
   const [exportMenuMage, setExportMenuMage] = useState(false);
+  const [pipelineImport, setPipelineImport] = useState(false);
   const darkTheme = createTheme({
     palette: {
       mode: 'dark',
@@ -34,6 +36,7 @@ export default function PipelineManager(props) {
     setEditMenu(false);
     setExportMenuCWL(false);
     setExportMenuMage(false);
+    setPipelineImport(false);
   }
 
   return (
@@ -74,6 +77,7 @@ export default function PipelineManager(props) {
                   <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setEditMenu(true);}} sx={{ width:"20%", padding:"10px",margin:"auto", mt:"10px", mb:"10px"}} >Edit <FontAwesomeIcon icon={faPen} style={{"marginLeft":"30px"}} className='pipeline-manager-initial-screen-button-icon'  />  </Button>
                   <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setExportMenuCWL(true);}} sx={{ width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px"}} >Export to CWL <FontAwesomeIcon icon={faArrowUpRightFromSquare} className='pipeline-manager-initial-screen-button-icon' style={{"marginLeft":"35px"}} /> </Button>
                   <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setExportMenuMage(true);}} sx={{ width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px"}}> Export to MageAI <FontAwesomeIcon icon={faArrowUpRightFromSquare} className='pipeline-manager-initial-screen-button-icon' /> </Button>
+                  <Button  outlined variant='contained' onClick={()=>{setInitialMenu(false); setPipelineImport(true)}} sx={{ width:"20%", padding:"10px",  margin:"auto", mt:"10px", mb:"10px"}}> Import Pipeline ZIP <FontAwesomeIcon icon={faCloudArrowUp} className='pipeline-manager-initial-screen-button-icon' /> </Button>
                 </div>
               }
               {
@@ -91,6 +95,11 @@ export default function PipelineManager(props) {
               {
                 exportMenuMage && 
                 <ExportPipeline fromMage={true} subMenuName={"Export to MageAI"}/>
+              }
+              {
+                pipelineImport  &&
+                <ImportPipelineZip/>
+
               }
 
             </DialogContentText>
