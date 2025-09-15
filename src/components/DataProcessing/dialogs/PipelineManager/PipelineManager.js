@@ -52,8 +52,8 @@ export default function PipelineManager(props) {
             {...( deleteMenu && {
             PaperProps: {
             style: {
-                height: "750px",
-                maxHeight: "750px"
+                height: "730px",
+                maxHeight: "730px"
                   }
               }
           })}

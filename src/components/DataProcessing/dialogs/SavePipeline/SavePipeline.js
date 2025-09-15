@@ -467,17 +467,7 @@ export default function SavePipeline(props) {
          {
             pipelineBeingCreated && 
              <div className='pipeline-save-steps'>
-             {!wasPipelineCreated && !thereWasAnError
-                &&
-                <div className='loader-container'>
-                   <div className='pipeline-being-created-text'>Pipeline is being created...</div>
-                    <div class="loader center-loader">
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                        <div class="dot"></div>
-                    </div>
-                </div>
-             }
+             
               
              <div className='pipeline-name-wrapper'><span className="pipeline-being-created-text pipeline-name-container">Pipeline Name:</span>  {pipelineName}</div>                  
 

@@ -6,7 +6,7 @@ import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CREATE_ASSET } from "../../../../utils/apiEndpoints";
+import { CREATE_ASSET, FETCH_SPATIAL } from "../../../../utils/apiEndpoints";
 import { LocalizationProvider } from '@mui/x-date-pickers'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -37,10 +37,6 @@ export default function CreateAsset(props) {
   const [assetOfType, setAssetOfType] = useState("");
   const [selectedAsset, setSelectedAsset] = useState(false);
 
-  const ITEM_HEIGHT = 48;
-  const ITEM_PADDING_TOP = 8;
-
-
     const blockAlert = (msg) => {
         toast.error(msg, {
             duration: 4000,
@@ -56,6 +52,7 @@ export default function CreateAsset(props) {
   };
   
   const postAssetObject = async(asset)=>{
+
 
     try{
       const resp = axios.post(CREATE_ASSET,asset);
@@ -82,7 +79,6 @@ export default function CreateAsset(props) {
         return AIModelAsset;
       case "service" :
         return serviceAsset
-
     }
   }
 
@@ -93,7 +89,31 @@ export default function CreateAsset(props) {
     setSelectActualAsset(false);
   }
 
-   const handleSubmit = (data) => {
+  const fetchSpatialData = async(assetObj) =>{
+    
+    console.log(assetObj);
+    if(assetObj["spatial"]){
+        
+     try{
+          const resp = await axios.get(FETCH_SPATIAL(assetObj["spatial"]["value"]));
+          console.log(!resp.data.geonames);
+          if(resp.data.geonames.length == 0){
+            blockAlert("Invalid spatial location!");
+            return false;
+          }
+
+          assetObj["spatial"]["value"] = resp.data.geonames;
+          return true;
+
+        } catch(err){
+          console.log(err);
+          blockAlert("There was an error while fetching the coordinates for the spatial location!");
+          return false;
+        }
+    }
+  }
+
+   const handleSubmit = async(data) => {
 
     let finalNGSILDAsset;
     switch(selectedAssetType){
@@ -108,10 +128,12 @@ export default function CreateAsset(props) {
         break;
     }
 
-    postAssetObject(finalNGSILDAsset);
-
+    const success = await fetchSpatialData(finalNGSILDAsset);
+    if(success){
+      postAssetObject(finalNGSILDAsset);
+    }
+    
   };
-
 
 
   return(
@@ -146,7 +168,6 @@ export default function CreateAsset(props) {
 
               {
                   formDisplay ?
-
                       <>
                       {selectActualAsset ?
 

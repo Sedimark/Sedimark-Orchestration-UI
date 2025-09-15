@@ -22,7 +22,7 @@ import Select from '@mui/material/Select';
 import FormHelperText from '@mui/material/FormHelperText';
 import TextField from '@mui/material/TextField';
 import {  IconButton, InputAdornment } from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { BugReport, Visibility, VisibilityOff } from '@mui/icons-material';
 import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
@@ -31,8 +31,12 @@ import { FETCH_MINIO_FILE, FETCH_PIPELINE_DATA } from '../../../../utils/apiEndp
 import { format } from 'date-fns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import AddIcon from '@mui/icons-material/Add'; // Iconița pentru butonul de adăugare
 import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
+import {
+  Chip,
+  Stack,
+} from '@mui/material';
 import {
   Unstable_NumberInput as BaseNumberInput,
   numberInputClasses,
@@ -152,10 +156,13 @@ export default function VariablesInput(props){
     const [linkedPipeline, setLinkedPipeline] = useState("");
     const [pipelineType , setPipelineType] = useState("");
     const [parentPipeline, setParentPipeline] = useState("");
-    const [pipelineLinkedInitialValue, setPipelineLinkedInitialValue] = useState("");
     const [variableNameTrigger, setVariableNameTrigger] = useState("");
-    const storedVariables = useSelector((state)=>state.blocksVariables);
     const [triggerVars, setTriggerVars] = useState(new Set());
+    
+    // here it is a placeholder for the values that will stay here from inputs
+    // the same it is like for those with bullets
+
+    const [buffer, setBuffer] = useState({});
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -217,7 +224,6 @@ export default function VariablesInput(props){
           console.log(err);
       }
     };
-
 
 
     const handleChangeNumber = (variableName, event, type)=>{
@@ -326,18 +332,7 @@ export default function VariablesInput(props){
   };
 
 
-  const getPipelineName = ()=>{
-    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
-        if(key == formatName(props.fullNodeName)){
-          return value.pipeline_name;
-        }
-    }
-      return "";
-  }
-   
-
-
-    const darkTheme = createTheme({
+  const darkTheme = createTheme({
       palette: {
         mode: 'dark',
       },
@@ -353,12 +348,10 @@ export default function VariablesInput(props){
           }
       }
 
-      //for the blocks that have new values we store the values
+      
       const parsedNewValues = [];
       for(const val of newValues){
-        if(val["value"].length !== 0){
-          parsedNewValues.push(val);
-        }
+        parsedNewValues.push(val);
       }
       
        // the final array contains the values for the variables for the other blocks
@@ -377,7 +370,6 @@ export default function VariablesInput(props){
     
     
     const createObjToStore = (oldPipelineValue)=>{
-      
       
       let inputedValuesVariables = [...variableValues];
       let objToStore;
@@ -448,38 +440,6 @@ export default function VariablesInput(props){
     const blockNotifyError = (text)=>{
         toast.error(text);
     }
-
-
-    const closeTab = (tabInfo)=>{
-        
-        const fullTabInfo = allTabs.find(item=>item.name === tabInfo["name"]);
-        const newTabIndexes = tabIndexStored.filter( tab => tab !== fullTabInfo.tabOrder);
-        dispatch(setTabIndex(newTabIndexes));
-        const newTabArr = allTabs.filter(item=>item.name !== tabInfo["name"]);
-        const newVariables = blocksVariablesStored.filter(item=>  item.tabName !== fullTabInfo.name);
-        
-        let pipelineName = "";
-    
-        for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
-          if(key == formatName(props.fullNodeName)){
-            pipelineName = value.pipeline_name;
-            break;
-          }
-        }
-
-        sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${pipelineName}-runData`);
-        sessionStorage.removeItem(`${fullTabInfo.tabOrder}-${pipelineName}-running-steps`);
-        dispatch(setBlocksVariables(newVariables));
-    
-        dispatch(setAllTabs(newTabArr));
-        if(newTabArr.length > 0){
-          dispatch(setSelectedView(newTabArr[0]));
-        } else {
-          dispatch(setTabIndex(null));
-        }
-     
-    }
-
 
     const fetchAndSaveBlockNames = async(pipeline_name , newTabName )=>{
         
@@ -664,7 +624,6 @@ export default function VariablesInput(props){
         }
         props.handleClose();
         createObjToStore();
-        
     } 
 
     const convertToSnakeCase = (inputString)=>{
@@ -720,6 +679,18 @@ export default function VariablesInput(props){
           }
           
           errorMonitorObj[value.varName] = false;
+        } else if(value.type === "array"){
+
+          if(value.default){
+            obj[value.varName] = value.default;
+          } else {
+            obj[value.varName] = [];
+          }
+          
+          // here we initialize the buffer too
+          buffer[value.varName] = "";
+          errorMonitorObj[value.varName] = false;
+
         } else if (value.type === "drop_down" || value.type === "trigger" ) {
           
           if(value.default){
@@ -732,11 +703,6 @@ export default function VariablesInput(props){
           updatedDropdownValues[value.varName]  = value["values"];
           setDropDownValues(updatedDropdownValues);
           errorMonitorObj[value.varName] = false;
-            
-            //setare valoare initiala pentru a verifica ulterior daca s-a schimbat
-            // si daca s-a schimbat atunci cande vei salva valorile noi o sa stergi
-            // pipeline-ul vechi si o sa il spawnezi pe unul nou ...
-
             
             if (value.type === "trigger"){
               setHasTriggerVar(true);
@@ -805,6 +771,7 @@ export default function VariablesInput(props){
    
     let foundBlocks = [];
     // here we search for the specific block 
+
     for(const block of storedVars){
        if(block.block_name === props.fullNodeName && block.tabName === props.tabName){
          foundBlocks.push(block);
@@ -814,7 +781,6 @@ export default function VariablesInput(props){
     
      if(foundBlocks.length != 0){
       for(const block of foundBlocks){
-
         obj[block.variable_name] = block.value;
       }
      }
@@ -829,7 +795,7 @@ export default function VariablesInput(props){
     
      for(const varInstance of props.variablesData){
 
-        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" ))
+        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" || varInstance.type === "array" ))
         {
           allBlockVariables.push(varInstance);
         } 
@@ -922,7 +888,9 @@ export default function VariablesInput(props){
   };
    
    useEffect(()=>{
+
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
+
    },[blocksVariablesStored])
   
 
@@ -972,6 +940,84 @@ export default function VariablesInput(props){
     return wasFound;
   }
 
+ 
+
+
+ const selectPipelineBasedOnStoredData = ()=>{
+ 
+    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
+      if(key == formatName(props.fullNodeName)){
+        setSelectedPipeline(value);
+      }
+    }
+ }
+
+ const handleClickShowPassword = (index) => {
+  setShowPassword(prevState => ({
+    ...prevState,
+    [index]: !prevState[index], 
+  }));
+};
+
+const saveFromBuffer = (variableName)=>{
+
+  // if the value from the buffer is "" then we do not perform any action
+  if(buffer[variableName].length === 0){
+    return;
+  }
+ 
+  const newVariablesInput  = {...variablesInput};
+  const currentArray = newVariablesInput[variableName] || [];
+  newVariablesInput[variableName] = [...currentArray, buffer[variableName]];
+  setVariablesInput(newVariablesInput);
+  setWasSomethingChanged(true);
+
+  //next step we need to store the value in variableValues too
+
+  let inputedValuesVariables = [...variableValues];
+  let objToStore = {
+    block_name:props.fullNodeName,
+    variable_name:variableName,
+    value:newVariablesInput[variableName],
+    type:"array"
+  }
+
+  inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+  setVariableValues(inputedValuesVariables);
+
+  // here we set to " " once the value from the buffer has been appended
+  const currentBuff = {...buffer};
+  currentBuff[variableName] = "";
+  setBuffer(currentBuff);
+}
+
+const deleteOneBufferChip = (variableName, value)=>{
+
+  const newVariablesInput  = {...variablesInput};
+  const currentArray = newVariablesInput[variableName] || [];
+  newVariablesInput[variableName] = currentArray.filter((elem) => elem !== value );
+  setWasSomethingChanged(true);
+  setVariablesInput(newVariablesInput);
+
+  let inputedValuesVariables = [...variableValues];
+  let objToStore = {
+    block_name:props.fullNodeName,
+    variable_name:variableName,
+    value:newVariablesInput[variableName],
+    type:"array"
+  }
+
+  inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+  setVariableValues(inputedValuesVariables);
+
+}
+
+
+ useEffect(()=>{
+  selectPipelineBasedOnStoredData();
+ },[storedPipelinesBlockInfo])
+
+
  useEffect(()=>{
 
   for(const variable_pur of purifiedVariables){
@@ -987,34 +1033,12 @@ export default function VariablesInput(props){
    
  },[purifiedVariables])
 
-
- const selectPipelineBasedOnStoredData = ()=>{
- 
-    for(const [key, value] of Object.entries(storedPipelinesBlockInfo)){
-      if(key == formatName(props.fullNodeName)){
-        setSelectedPipeline(value);
-      }
-    }
- }
-
- const handleClickShowPassword = (index) => {
-  setShowPassword(prevState => ({
-    ...prevState,
-    [index]: !prevState[index], // Schimbă vizibilitatea doar pentru câmpul curent
-  }));
-};
-
- useEffect(()=>{
-  selectPipelineBasedOnStoredData();
- },[storedPipelinesBlockInfo])
-
-
   
+
   return (
     <div>
       <ThemeProvider theme={darkTheme}>
       <Dialog open={props.open} onClose={props.handleClose} sx={{textAlign:"center", backgroundColor:""}} maxWidth="lg" fullWidth={true} >
-    
             <DialogTitle> {props.fullNodeName} </DialogTitle>
             <DialogContent sx={{textAlign:'center'}} >   
             <Box sx={{ height: "140%", width: '100%', padding:"10px", margin:"auto",borderRadius:"5px" }}  bgcolor="#000" >
@@ -1025,9 +1049,6 @@ export default function VariablesInput(props){
                 </div>  
                 {purifiedVariables.map((value, index)=>{
                   
-                  console.log("--=== > purifiedVarInstance < ===--");
-                  console.log(value);
-
                   if(value.type === "string" || value.type === "str"){
                     return(
                     <FormControl key={index} sx={{ marginBottom: "40px", width: "60%" }}>
@@ -1038,8 +1059,7 @@ export default function VariablesInput(props){
                     
                     );
                   } else if(value.type === "boolean"){
-                    
-
+                  
                     return(
                       <FormGroup sx={{ margin:"auto",  width: "60%", padding: "20px" }}> 
                           <div className='switch-var-container'>
@@ -1161,8 +1181,6 @@ export default function VariablesInput(props){
                     )
                   } else if(value.type === "trigger"){
                     
-                    // we store the variables in the set, this will represent the
-                    // variables names that are of type trigger
                   setTriggerVars(prevItems => new Set(prevItems).add(value.varName));
                     
 
@@ -1183,7 +1201,6 @@ export default function VariablesInput(props){
                               <MenuItem
                                 key={variableName}
                                 value={variableName}
-                                
                               >
                                 {variableName}
                               </MenuItem>
@@ -1193,26 +1210,87 @@ export default function VariablesInput(props){
                         </FormControl>
                       </div>
                     )
-                  }  else if(value.type === "date"){
+                  } else if(value.type === "array"){
+                   
+                    return (
+                        <FormControl sx={{ marginBottom: "30px", width: "60%" }}>
+
+                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+
+                                <TextField 
+                                    error = {hasInputError[value.varName]}
+                                    value={buffer[value.varName]}
+                                    onChange={(e) => setBuffer(prevBuffer => ({ ...prevBuffer, [value.varName]: e.target.value }))}
+                                    id={`outlined-basic-${index}`}
+                                    label={`${value.varName}`}
+                                    variant="outlined" 
+                                    sx={{ flex: '7 1 0%' }} 
+                                    InputProps={{
+                                      sx: {
+                                        '& .MuiInputBase-input': {
+                                          paddingTop: '12px',    
+                                          paddingBottom: '12px', 
+                                          paddingLeft: '16px',  
+                                          paddingRight: '16px',  
+                                        },
+                                      },
+                                    }}
+                                />
+
+                                <Button
+                                  variant="contained"
+                                  onClick={() => {
+                                    saveFromBuffer(value.varName);
+                                  }} 
+                                  disabled={false}
+                                  size="small" 
+                                  sx={{
+                                    width: '16px', 
+                                    height: '46px',   
+                                    p: 0,             
+                                    justifyContent: 'center', 
+                                    alignItems: 'center'   
+                                  }}
+                                >
+                                  <AddIcon /> 
+                                </Button>
+                              </Box>
+
+                              {variablesInput[value.varName] && variablesInput[value.varName].length > 0 && (
+                                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
+                                  {variablesInput[value.varName].map((item) => (
+                                    <Chip
+                                      key={item} 
+                                      label={item}
+                                      onDelete={() => {deleteOneBufferChip(value.varName,item)}} 
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                  ))}
+                                </Stack>
+                             )}
+
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                            
+                          </FormControl>
+                        );
+                      
+                  } else if(value.type === "date"){
                     
                     return(
                       <>
-                        <div>
-                       
-                        </div>
-
-                          <div className="date-container">
-                            <LocalizationProvider dateAdapter={AdapterDayjs} >  
+                        <div className="date-container">
+                          <LocalizationProvider dateAdapter={AdapterDayjs} >  
+                              
+                            <DateTimePicker
+                                ref={dateFieldRef}
+                                label={`${value.varName}`}
+                                defaultValue={variablesInput[value.varName].length!=0? dayjs(variablesInput[value.varName][0]) : dayjs(variablesInput[value.varName][0])}
+                                format={`YYYY-MM-DDTHH:mm:ss[Z]`}
+                                sx={{width:"66%", mt:2}}
                                 
-                              <DateTimePicker
-                                  ref={dateFieldRef}
-                                  label={`${value.varName}`}
-                                  defaultValue={variablesInput[value.varName].length!=0? dayjs(variablesInput[value.varName][0]) : dayjs(variablesInput[value.varName][0])}
-                                  format={`YYYY-MM-DDTHH:mm:ss[Z]`}
-                                  sx={{width:"66%", mt:2}}
-                                  
-                                  onChange={(evt)=>{handleDateChange(evt,value.format,"date",value.varName)}}
-                                />
+                                onChange={(evt)=>{handleDateChange(evt,value.format,"date",value.varName)}}
+                              />
                             </LocalizationProvider>       
                             {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> }        
                           </div>

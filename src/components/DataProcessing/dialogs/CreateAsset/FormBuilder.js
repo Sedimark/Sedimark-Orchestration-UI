@@ -11,7 +11,8 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker"
 import { Controller, useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Add } from "@mui/icons-material"
+import { Add } from "@mui/icons-material";
+import { v4 as uuidv4 } from 'uuid';
 import dayjs from "dayjs"
 
 export const  FormBuilder = ({ fields, onSubmit }) => {
@@ -27,7 +28,25 @@ export const  FormBuilder = ({ fields, onSubmit }) => {
     }
   })
 
-  const schema = z.object(zodShape)
+  const schema = z.object(zodShape);
+
+
+  // here we define the default values
+  const sedimarkUUID = uuidv4();
+
+  const specificDefaultValues = {
+    identifier:  `urn:sedimark:asset:${sedimarkUUID}`,
+  };
+
+  const genericDefaultValues = fields.reduce((acc, f) => {
+  acc[f.name] = f.type === "keywords" ? [] : f.type === "date" ? null : "";
+  return acc;
+}, {});
+
+ const finalDefaultValues = {
+  ...genericDefaultValues, 
+  ...specificDefaultValues, 
+ };
 
   const {
     control,
@@ -37,15 +56,12 @@ export const  FormBuilder = ({ fields, onSubmit }) => {
     formState: { errors }
   } = useForm({
     resolver: zodResolver(schema),
-    defaultValues: fields.reduce((acc, f) => {
-      acc[f.name] = f.type === "keywords" ? [] : f.type === "date" ? null : ""
-      return acc
-    }, {})
+    defaultValues: finalDefaultValues
   })
 
 const [keywordInputs, setKeywordInputs] = React.useState({})
 
-// Adaugă un keyword într-un câmp de tip "keywords"
+
 const addKeyword = (name) => {
   const currentInput = (keywordInputs[name] || "").trim()
   const currentValues = watch(name)
