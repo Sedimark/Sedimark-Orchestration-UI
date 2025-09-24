@@ -161,8 +161,10 @@ export default function VariablesInput(props){
     
     // here it is a placeholder for the values that will stay here from inputs
     // the same it is like for those with bullets
-
+  
     const [buffer, setBuffer] = useState({});
+    // this will hold just the values that are being inputted
+    const [bufferKeyValPair, setBufferKeyValPair] = useState({});
 
     let blocksVariablesStored = useSelector((state)=> state.blocksVariables);
     const updateObjectInArray = (arr, newObj)=>{
@@ -669,8 +671,18 @@ export default function VariablesInput(props){
       const errorMonitorObj = {};
   
       for(const value of data){
-      
-        if(value.type === "multiple_selection"){
+
+        if(value.type === "dictionary"){
+
+          if(value.default){
+            obj[value.varName] = value.default;
+          } else {
+            obj[value.varName] = [];
+          }
+          
+          errorMonitorObj[value.varName] = false;
+
+        } else if(value.type === "multiple_selection"){
 
           if(value.default){
             obj[value.varName] = [value.default];
@@ -795,7 +807,7 @@ export default function VariablesInput(props){
     
      for(const varInstance of props.variablesData){
 
-        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" || varInstance.type === "array" ))
+        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" || varInstance.type === "array" || varInstance.type === "dictionary" ))
         {
           allBlockVariables.push(varInstance);
         } 
@@ -961,18 +973,16 @@ export default function VariablesInput(props){
 
 const saveFromBuffer = (variableName)=>{
 
-  // if the value from the buffer is "" then we do not perform any action
   if(buffer[variableName].length === 0){
     return;
   }
- 
+
+
   const newVariablesInput  = {...variablesInput};
   const currentArray = newVariablesInput[variableName] || [];
-  newVariablesInput[variableName] = [...currentArray, buffer[variableName]];
+  newVariablesInput[variableName] = [...new Set([...currentArray, buffer[variableName]])];
   setVariablesInput(newVariablesInput);
   setWasSomethingChanged(true);
-
-  //next step we need to store the value in variableValues too
 
   let inputedValuesVariables = [...variableValues];
   let objToStore = {
@@ -985,13 +995,15 @@ const saveFromBuffer = (variableName)=>{
   inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
   setVariableValues(inputedValuesVariables);
 
-  // here we set to " " once the value from the buffer has been appended
+
   const currentBuff = {...buffer};
   currentBuff[variableName] = "";
   setBuffer(currentBuff);
 }
 
 const deleteOneBufferChip = (variableName, value)=>{
+
+ 
 
   const newVariablesInput  = {...variablesInput};
   const currentArray = newVariablesInput[variableName] || [];
@@ -1013,6 +1025,42 @@ const deleteOneBufferChip = (variableName, value)=>{
 }
 
 
+ const updateKeyValPair = (value, position, varName)=>{
+
+  /*
+       value = actual value of the input
+       position = if it's the key or the value
+       varNamer = this will seve as a key and will help us identify for which
+                  pair this will be provided for
+  */
+
+   const copyKeyValPair = {...bufferKeyValPair};
+   if(copyKeyValPair[varName]){
+    // case where the key does exist
+    copyKeyValPair[varName][position] = value;
+
+   } else {
+    // here if the key does not exists
+    copyKeyValPair[varName] = {};
+    copyKeyValPair[varName][position] = value;
+
+   }
+   setBufferKeyValPair(copyKeyValPair);
+ }
+
+
+ const saveKeyValPair = (variableName)=>{
+
+    const toUpdateVariablesInput = {...variablesInput};
+    toUpdateVariablesInput[variableName] = [...variablesInput[variableName],{"key": bufferKeyValPair[variableName]["key"], "value": bufferKeyValPair[variableName]["value"] }];
+    setVariablesInput(toUpdateVariablesInput);
+
+    const currentBuff = {...bufferKeyValPair};
+    currentBuff[variableName] = {};
+    setBuffer(setBufferKeyValPair);
+
+ }
+ 
  useEffect(()=>{
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
@@ -1210,6 +1258,97 @@ const deleteOneBufferChip = (variableName, value)=>{
                         </FormControl>
                       </div>
                     )
+                  } else if (value.type === "dictionary"){
+                     return (
+                            <FormControl sx={{ marginBottom: "30px", width: "60%" }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                                
+                                <TextField
+                                  error={hasInputError[value.varName + '_key']}
+                                  value={bufferKeyValPair && bufferKeyValPair[value.varName] && bufferKeyValPair[value.varName]["key"] || ''}
+                                  onChange={(evt)=>{updateKeyValPair(evt.target.value, "key", value.varName)}}
+                                  id={`outlined-key-input-${index}`} 
+                                  label={`${value.varName} (Key)`}
+                                  variant="outlined"
+                                  sx={{ flex: '3 1 0%' }}
+                                  InputProps={{
+                                    sx: {
+                                      '& .MuiInputBase-input': {
+                                        paddingTop: '12px',
+                                        paddingBottom: '12px',
+                                        paddingLeft: '16px',
+                                        paddingRight: '16px',
+                                      },
+                                    },
+                                  }}
+                                />
+
+                                
+                                <TextField
+                                  error={hasInputError[value.varName + '_value']} 
+                                  value={bufferKeyValPair && bufferKeyValPair[value.varName] && bufferKeyValPair[value.varName]["value"] || ''}
+                                  onChange={(evt)=>{updateKeyValPair(evt.target.value, "value", value.varName)}}
+                                  id={`outlined-value-input-${index}`} 
+                                  label={`${value.varName} (Value)`}
+                                  variant="outlined"
+                                  sx={{ flex: '3 1 0%' }} 
+                                  InputProps={{
+                                    sx: {
+                                      '& .MuiInputBase-input': {
+                                        paddingTop: '12px',
+                                        paddingBottom: '12px',
+                                        paddingLeft: '16px',
+                                        paddingRight: '16px',
+                                      },
+                                    },
+                                  }}
+                                />
+
+
+                                <Button
+                                  variant="contained"
+                                  onClick={() => {
+                                    saveKeyValPair(value.varName); 
+                                  }}
+                                  disabled={false} 
+                                  size="small"
+                                  sx={{
+                                    width: '16px',
+                                    height: '46px',
+                                    p: 0,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                  }}
+                                >
+                                  <AddIcon />
+                                </Button>
+                              </Box>
+
+                          
+                               {variablesInput[value.varName] && variablesInput[value.varName].length > 0 && (
+                                <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mt: 1 }}>
+                                  {variablesInput[value.varName].map((item, chipIndex) => (
+                                    <Chip
+                                      key={`${item.key}-${item.value}-${chipIndex}`} 
+                                      label={`${item.key}: ${item.value}`} 
+                                      onDelete={() => { deleteOneBufferChip(value.varName, item); }} 
+                                      color="primary"
+                                      variant="outlined"
+                                    />
+                                  ))}
+                                </Stack>
+                              )}
+
+                            
+                              {value["description"] && (
+                                <div className='variable-description'>
+                                  <FontAwesomeIcon icon={faCircleInfo} /> {value["description"]}
+                                </div>
+                              )}
+                               
+                            </FormControl>
+                      );
+
                   } else if(value.type === "array"){
                    
                     return (
