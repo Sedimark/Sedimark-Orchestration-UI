@@ -20,8 +20,12 @@
     padding-top:160px;
 }
 
+.loading-circle-container-templates{
+    padding-top:100px;
+}
+
 .loading-text{
-    margin-top: 20px;
+    margin-top: 5px;
     font-size: 1.2rem;
 }
 

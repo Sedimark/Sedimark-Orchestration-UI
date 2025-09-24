@@ -23,17 +23,14 @@ import axios from 'axios';
 import { truncateString } from '../../../../utils/truncateString';
 import style from "./TemplatesDialog.css";
 
-
 export default function TemplatesDialog(props) {
  
-
   const darkTheme = createTheme({
     palette: {
       mode: 'dark',
     },
   });
 
-  const navigate = useNavigate();
   const dispatch = useDispatch();
   const storedVariables = useSelector((state)=>state.blocksVariables);
   const tabIndexStored = useSelector((state)=> state.tabIndex);
@@ -65,19 +62,17 @@ export default function TemplatesDialog(props) {
   
 
   const fetchPipelineTemplates = async(template_type)=>{
-
+    setLoading(true);
     try{
 
       const resp = await axios.get(GET_PIPELINE_TEMPLATES(template_type));    
       setAllPipelines(resp.data.map((pipe)=>pipe.name));
       setTimeout(()=>{
-        setLoading(false);
         setAllTemplatesList(true);
         setNextStepVisible(true);
         setThereWasAnError(false);
       },100)
       
-
     } catch(err){
 
       setLoading(false);
@@ -222,7 +217,6 @@ export default function TemplatesDialog(props) {
           blockAlert("Error!");
         }
 
-        // aici ii dam un trigger
         const newDate = Date.now();
 
         try{
@@ -243,7 +237,6 @@ export default function TemplatesDialog(props) {
         
           return ;
         }
-
   }
  
   const handleBack = ()=>{
@@ -263,7 +256,7 @@ export default function TemplatesDialog(props) {
   return (
      
     <ThemeProvider theme={darkTheme}>
-                    <
+                  <
                     Dialog
                     open={props.open}
                     onClose={props.handleClose}
@@ -290,7 +283,7 @@ export default function TemplatesDialog(props) {
 
                             <div class="pipeline-wrapper">
                                 <h1 class="title">🚧 Building the pipeline</h1>
-                                  <div className="loading-circle-container" style={{marginTop:"20px"}}>
+                                  <div className="loading-circle-container-templates" style={{marginTop:"20px"}}>
                                     <div className="loading-circle"></div>
                                     <p className="loading-text">Loading...</p>
                                   </div>

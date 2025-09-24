@@ -277,30 +277,7 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
 
-            {/* <ListItem key={"Federated Learning"} disablePadding sx={{ display: 'block' }} onClick={()=>{setFederatedDialogOpen(true)}}>
-              <ListItemButton
-                  sx={{
-                    minHeight: 48,
-                    justifyContent: open ? 'initial' : 'center',
-                    px: 2.5,
-                    color:"white"
-                  }}
-                  key={2}
-                >
-                  <ListItemIcon
-                    sx={{
-                      minWidth: 0,
-                      mr: open ? 3 : 'auto',
-                      justifyContent: 'center',
-                      color:"white"
-                    }}
-                  >
-                    <SettingsInputAntennaIcon/>
-                  </ListItemIcon>
-                  <ListItemText primary={"Federated Learning"} sx={{ opacity: open ? 1 : 0 }} />
-                </ListItemButton>
-            </ListItem> */}
-            
+
             <ListItem key={"Pipeline Manager"} disablePadding sx={{ display: 'block' }} onClick={()=>{setIsPipelineManagerOpen(true)}}>
                 <ListItemButton
                     sx={{
@@ -325,8 +302,29 @@ export default function MiniDrawer() {
                 </ListItemButton>
             </ListItem>
             
-              {/* <Divider component="li"/> */}
-
+            <ListItem key={"Federated Learning"} disablePadding sx={{ display: 'block' }} onClick={()=>{setFederatedDialogOpen(true)}}>
+              <ListItemButton
+                  sx={{
+                    minHeight: 48,
+                    justifyContent: open ? 'initial' : 'center',
+                    px: 2.5,
+                    color:"white"
+                  }}
+                  key={2}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 0,
+                      mr: open ? 3 : 'auto',
+                      justifyContent: 'center',
+                      color:"white"
+                    }}
+                  >
+                    <SettingsInputAntennaIcon/>
+                  </ListItemIcon>
+                  <ListItemText primary={"Federated Learning"} sx={{ opacity: open ? 1 : 0 }} />
+                </ListItemButton>
+            </ListItem>
         
        </List>
 

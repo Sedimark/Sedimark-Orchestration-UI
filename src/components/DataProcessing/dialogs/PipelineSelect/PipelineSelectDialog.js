@@ -150,7 +150,7 @@ export default function PipelineSelectDialog(props) {
                       // and we use it further down the line
                       if(value["type"] == "trigger"){
 
-                            variablesForStore.push( {
+                        variablesForStore.push( {
                           "block_name": formatString(blck["name"]),
                           "variable_name": key , 
                           "value": value["default"], 

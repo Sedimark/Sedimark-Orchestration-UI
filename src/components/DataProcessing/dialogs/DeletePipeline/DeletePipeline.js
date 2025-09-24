@@ -320,7 +320,7 @@ export default function DeletePipeline(props) {
                         }
                         
                     </List>
-                    <Button variant='contained' onClick={()=>{setAreYouSureOpen(true)}} disabled={checked.length === 0 || isDeleting} sx={{backgroundColor:"red", color:"#fff", mt:"10px", fontWeight:"bold", ml:"40%", '&:hover': {
+                    <Button variant='contained' onClick={()=>{setAreYouSureOpen(true)}} disabled={checked.length === 0 || isDeleting} sx={{backgroundColor:"red", color:"#fff", mt:"20px", fontWeight:"bold", ml:"40%", '&:hover': {
                         backgroundColor: '#fc5549', // Background color on hover
                         transform: 'scale(1.01)', // Slightly scale up on hover
                         },}}>{(checked.length === 1 || checked.length === 0) ? "Delete pipeline" : "Delete pipelines"} <DeleteForeverIcon sx={{marginLeft:"10px"}}/> </Button>
