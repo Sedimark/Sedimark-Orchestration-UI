@@ -10,13 +10,13 @@ import TabPanel from '@mui/lab/TabPanel';
 import { PipelineView } from "../PipelineView/PipelineView";
 import { setSelectedView, setBlocksVariables } from "../../reducers/nodeSlice";
 import { Button } from "@mui/material";
-import { setAllTabs, setTabIndex } from "../../reducers/nodeSlice";
+import { setAllTabs, setTabIndex, setModelVersionStored } from "../../reducers/nodeSlice";
 import AreYouSure from "./dialogs/AreYouSure/AreYouSure";
 import LinkIcon from '@mui/icons-material/Link';
 import { truncateString } from "../../utils/truncateString";
 import AutoAwesomeMosaicIcon from '@mui/icons-material/AutoAwesomeMosaic';
 import Stack from "../../utils/stack";
-// import { closeTab } from "../../utils/closeTab";
+    
 
 function DataProcessing({ logout }) {
   const dispatch = useDispatch();
@@ -105,6 +105,8 @@ function DataProcessing({ logout }) {
       dispatch(setTabIndex(null));
     }
     
+    dispatch(setModelVersionStored({}));
+
   }
 
   useEffect(()=>{

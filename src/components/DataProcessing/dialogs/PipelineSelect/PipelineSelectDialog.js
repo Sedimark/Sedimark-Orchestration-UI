@@ -483,6 +483,7 @@ export default function PipelineSelectDialog(props) {
        
         // from globally stored variables we filter those that
         // have the name of the pipeline 
+  
         const filteredVariables = storedVariables.filter(variable => 
             !(variable["pipelineName"] && variable["pipelineName"][0] === pipeline)
         );

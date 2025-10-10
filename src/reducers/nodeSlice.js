@@ -97,7 +97,8 @@ const initialState = {
     linkedTabToDelete: "",
     status: 'idle', // can be 'idle', 'pending', or 'success'
     error: null,
-
+    modelVersion: {},
+    modelPrunningStatus: {}
 }    
 
 export const nodeSlice = createSlice({
@@ -106,6 +107,9 @@ export const nodeSlice = createSlice({
     reducers:{
         setSelectedFederatedFramework:(state, action)=>{
             state.selectedFederatedFramework = action.payload;
+        },
+        setModelPrunningStatus: (state, action) =>{
+            state.modelPrunningStatus = action.payload;
         },
         setTabIndex:(state, action)=>{
             state.tabIndex = action.payload;
@@ -381,6 +385,10 @@ export const nodeSlice = createSlice({
 
         setLinkedTabToDelete: (state,action) => {
             state.linkedTabToDelete = action.payload;
+        },
+
+        setModelVersionStored: (state, action) => {
+            state.modelVersion = action.payload;
         }
 
     },
@@ -489,7 +497,9 @@ export const {
     setAllTabs,
     setFlevidenValues,
     setSelectedFederatedFramework,
-    setLinkedTabToDelete
+    setLinkedTabToDelete,
+    setModelVersionStored,
+    setModelPrunningStatus
 
 } = nodeSlice.actions
 

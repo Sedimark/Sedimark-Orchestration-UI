@@ -26,6 +26,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import AreYouSure from "../DataProcessing/dialogs/AreYouSure/AreYouSure";
 import Metrics from "../DataProcessing/dialogs/Metrics/Metrics";
+import ModelPerformanceResults from "../DataProcessing/dialogs/ModelPerformanceResults/ModelPerformanceResults";
 import axios from "axios";
 import toast from 'react-hot-toast';
 import {createTheme, styled} from '@mui/material/styles';
@@ -38,20 +39,21 @@ import {
     faLink,
     faCircleStop,
     faMicrochip,
-    faWarning
+    faWarning,
+    faBoxesStacked
 } from '@fortawesome/free-solid-svg-icons';
 import {ThemeProvider} from '@mui/material/styles';
 import Tooltip, { tooltipClasses } from '@mui/material/Tooltip';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useDispatch } from 'react-redux';
-import {setSelectedTrainedModel, setIsPredictedSelected, setRunningPipelines} from "../../reducers/nodeSlice";
+import {setSelectedTrainedModel, setModelPrunningStatus ,setIsPredictedSelected, setRunningPipelines} from "../../reducers/nodeSlice";
 import { deleteElement } from "../../utils/deleteElement";
-import {containsString} from "../../utils/containsString";
 import Box from '@mui/material/Box';
 import Flow from "../Flow/Flow";
 import DialogActions from "@mui/material/DialogActions";
 import CircularProgress from '@mui/material/CircularProgress';
 import style from "./PipelineView.css"
+
 
 
 const CustomTooltip = styled(({ className, ...props }) => (
@@ -69,6 +71,7 @@ const CustomTooltip = styled(({ className, ...props }) => (
 export const PipelineView = (props)=>{
  
     const dispatch = useDispatch(); 
+    const modelPrunningStatus = useSelector((state)=> state.modelPrunningStatus);
     const runningPipelines = useSelector((state)=> state.runningPipelines);
     const pipelineNrOfVariables = useSelector((state)=> state.pipelineNrOfVariables)
     const pipelineNodes = useSelector((state) => state.orderedNodes);
@@ -77,7 +80,10 @@ export const PipelineView = (props)=>{
     const pipelineNamePreprocessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
     const selectedPipelineNamePrediction = useSelector((state)=> state.selectedPipelineNamePrediction);
     const pipelineNameStreaming = useSelector((state)=> state.selectedPipelineStreaming);
+    const modelVersion = useSelector((state)=> state.modelVersion);
     const pipelinePreProcessing = useSelector((state)=> state.selectedPipelineDataPreprocessing);
+    const [modelPrunningNotification, setModelPrunningNotification] = useState(false);
+    const [modelPrunningResultsMenu, setModelPrunningResultsMenu] = useState(false);
     const [isPipelineStarted, setIsPipelineStarted] = useState(false);
     const [runData, setRunData] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -97,6 +103,7 @@ export const PipelineView = (props)=>{
     const [errorLoadingData, setErrorLoadingData] = React.useState(false);
     const [createAndFetchTrigger, setCreateAndFetchTrigger] = React.useState(false);
     const [isChained, setIsChained] = React.useState(false);
+    const [completedPipeline, setCompletedPipeline] = React.useState(false);
     const isRun = React.useRef(false);
     const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -171,13 +178,13 @@ export const PipelineView = (props)=>{
     }
 
 
-
-    
-
     const startPipeline = React.useCallback(async () => {
 
     
         let nrOfVars = 0;
+        dispatch(setModelPrunningStatus({
+                status:"pending"
+        }));
 
        // based of the stored in store variable pipelineNrOfVariables
        // I get to fetch the nrOfVars and then I will use this to check
@@ -210,18 +217,25 @@ export const PipelineView = (props)=>{
         }
         // here it adds the chained pipeline variables to the global big 
         // object that will contain all the variables
+
+        // here we need when sending the value for the model_uri 
+        // we will concatenate the model version with the model name
+        // having the format required
+
+    
         blockVariables.forEach((value) => {
             if(value["pipelineName"] === pipelineName || chainedPipelines.includes(value["pipelineName"])){
-                variables[value["variable_name"]] = value["value"];
+                 if(value["variable_name"] == "model_uri"){
+                    variables[value["variable_name"]] = `models:/${Object.keys(modelVersion)[0]}/${modelVersion[Object.keys(modelVersion)[0]]}`;
+                 } else {
+                    variables[value["variable_name"]] = value["value"];
+                 }   
             }
-            
         })
-
 
         setStepStatus([true, true, true])
         setActiveStep(steps.indexOf("start"));
         
-
         try {
             await axios({
                 method: "POST",
@@ -236,6 +250,7 @@ export const PipelineView = (props)=>{
                 }
             })
             
+
             return true;
         } catch(_) {
             blockAlert("Error occurred when starting the pipeline");
@@ -261,14 +276,14 @@ export const PipelineView = (props)=>{
                     });
 
                     const data = response.data;
-                    
+                    console.log("data:");
+                    console.log(data);
+
                     if (["completed", "failed", "cancelled", "upstream_failed"].includes(data)) {
                         isResolved = true;
 
                         // here we find all the pipelines
                         let allRunningPipelines = runningPipelines;
-                        
-                       
                         
                         const toSave = {...JSON.parse(sessionStorage.getItem(`${props.tabOrder}-${pipelineName}-running-steps`)), "isPipelineStarted": false}
                         sessionStorage.setItem(`${props.tabOrder}-${pipelineName}-running-steps`, JSON.stringify(toSave));
@@ -294,6 +309,11 @@ export const PipelineView = (props)=>{
         const statuses = stepStatus;
 
         if (result === "completed") {
+
+            dispatch(setModelPrunningStatus({
+                status:"done"
+            }));
+
             steps.forEach((_, index) => {
                 statuses[index] = true;
             })
@@ -312,7 +332,6 @@ export const PipelineView = (props)=>{
 
     const runPipeline = React.useCallback(async (source) => {
 
-        // aici ar fii pipeline starting code
         if (source === "button") {
             const result = await startPipeline();
               
@@ -321,7 +340,6 @@ export const PipelineView = (props)=>{
                 setActiveStep(steps.indexOf("running"));
                 setIsPipelineStarted(true);
                 
-                // pipeline starting code
                 const toSave = {...JSON.parse(sessionStorage.getItem(`${props.tabOrder}-${pipelineName}-running-steps`)),
                     "activeStep": steps.indexOf("running"), "isPipelineStarted": true};
                 
@@ -684,6 +702,20 @@ export const PipelineView = (props)=>{
 
     },[runData])
 
+
+    useEffect(()=>{
+        
+        console.log("modelPrunningStatus:");
+        console.log(modelPrunningStatus);
+
+        if(Object.keys(modelPrunningStatus).length!==0 && modelPrunningStatus["status"] === "done" && modelPrunningNotification == false){
+            setModelPrunningNotification(true);
+        } else {
+            setModelPrunningNotification(false);
+        }
+
+    },[modelPrunningStatus])
+    
     useEffect(()=>{
         
         setPipelineName(props.pipelineName);
@@ -749,11 +781,14 @@ export const PipelineView = (props)=>{
         } else {
             setIsChained(false);
         }
+        dispatch(setModelPrunningStatus({
+                status:"pending"
+        }));
     },[props])
 
-    
+
     return(
-        <div>
+            <div>
                     <ThemeProvider theme={darkTheme}>
                             <Dialog open={open} onClose={handleClose} sx={{ display: "flex", flexDirection: "column", alignItems: "space-between", justifyContent: "space-between", color: "white", textAlign:"center", backgroundColor:""}} maxWidth="xl" fullWidth="xl" >
                                 <Box sx={{ height: "120%", width: '90%', margin:"auto",borderRadius:"5px", marginTop:"40px", marginBottom:"40px", padding:"20px" }}  bgcolor="#000" >
@@ -892,10 +927,8 @@ export const PipelineView = (props)=>{
                                      </>
 
                                     }
-                                   
-                                    
-                                      
-                                    </>
+
+                                </>
                                  
                                  {
                                     props.pipelineType !== "streaming" && !isChained &&
@@ -947,21 +980,25 @@ export const PipelineView = (props)=>{
 
                                            <div className="side-info-container">
 
-                                           <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName): formatString(pipelineName)}`}>
-                                               <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
-                                           </Tooltip>
+                                            <Tooltip title={`${(props.pipelineType === "data_preprocessing" ||  props.pipelineType === "streaming")? formatString(pipelineName): formatString(pipelineName)}`}>
+                                                <Button><FontAwesomeIcon icon={faCircleInfo}  className="info-icon-side"/>   </Button>
+                                            </Tooltip>
                                             
                                                
                                                <Tooltip title="Run History">
                                                    <FontAwesomeIcon icon={faArrowsRotate} onClick={() => setOpen(true)} className="info-icon-side"/>
                                                </Tooltip>
 
-                                            <Tooltip title="Resources">
-                                                 <FontAwesomeIcon icon={faMicrochip}  onClick={()=>{setMetricsOpen(true)}} style={{paddingRight:"20px"}} className="info-icon-side"/>
-                                             </Tooltip>
+                                                <Tooltip title="Resources">
+                                                    <FontAwesomeIcon icon={faMicrochip}  onClick={()=>{setMetricsOpen(true)}} style={{paddingRight:"20px"}} className="info-icon-side"/>
+                                                </Tooltip>
+
+                                                <Tooltip title="Results">
+                                                    <FontAwesomeIcon icon={faBoxesStacked}  onClick={()=>{setModelPrunningNotification(false); setModelPrunningResultsMenu(true)}} style={{paddingRight:"20px"}} className="info-icon-side"/>
+                                                    {modelPrunningNotification && <div className="red-dot red-dot-results"></div>} 
+                                                </Tooltip>
                                               
                                              </div>
-
                                        }
                                       
                                    </>
@@ -976,7 +1013,7 @@ export const PipelineView = (props)=>{
                                 
                             { isAreYouSureOpen && <AreYouSure pipelineName={pipelineName} open={isAreYouSureOpen} pipelineType={props.pipelineType} handleClose={closAreYouSure} additionalSteps={handleDeleteTheRestData} thePipelineName={pipelineName} pipelineStudio={false} ></AreYouSure>}
                             { metricsOpen && <Metrics open={metricsOpen} pipelineName={pipelineName} handleClose={()=>{setMetricsOpen(false)}} />}
-                        
+                            {modelPrunningResultsMenu && <ModelPerformanceResults open={modelPrunningResultsMenu} handleClose={()=>{setModelPrunningResultsMenu(false)}}/>}
                         </div>
 
                     </div>
