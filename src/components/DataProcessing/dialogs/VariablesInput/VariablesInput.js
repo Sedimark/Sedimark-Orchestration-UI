@@ -27,7 +27,7 @@ import { faBoxOpen, faCircleInfo } from '@fortawesome/free-solid-svg-icons';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
-import { FETCH_MINIO_FILE, FETCH_PIPELINE_DATA } from '../../../../utils/apiEndpoints';
+import { FETCH_MINIO_FILE, FETCH_PIPELINE_DATA, GET_MODELS } from '../../../../utils/apiEndpoints';
 import { format } from 'date-fns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -42,10 +42,10 @@ import {
   numberInputClasses,
 } from '@mui/base/Unstable_NumberInput';
 import formatName from '../../../../utils/formatName';
-import { setBlocksVariables, setLinkedTabToDelete, setPipelinesBlocks, setTabIndex, setAllTabs, setSelectedTab, setSelectedView } from '../../../../reducers/nodeSlice';
+import { setBlocksVariables, setLinkedTabToDelete, setPipelinesBlocks, setTabIndex, setAllTabs, setSelectedTab, setSelectedView, setModelVersionStored, setSelectModelVersionStore } from '../../../../reducers/nodeSlice';
 import {checkAndFormat} from "../../../../utils/checkAndFormat";
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc'; // Import the UTC plugin
+
 import axios from "axios";
 
 const ITEM_HEIGHT = 48;
@@ -134,6 +134,8 @@ export default function VariablesInput(props){
     const storedPipelinesBlockInfo = useSelector((state)=> state.pipelinesBlocks);
     const isDataFetching = useSelector((state)=>state.is_data_fetching);
     const datasetColumns = useSelector((state)=> state.dataset_columns);
+    const storedModelVersion = useSelector((state)=> state.modelVersion);
+    const [modelVarName, setModelVarName] = useState("");
     const [isDataLoading, setIsDataLoading] = useState(true);
     const [columns, setColumns] = useState([]);
     const [variableValues, setVariableValues] = useState([]);
@@ -158,6 +160,8 @@ export default function VariablesInput(props){
     const [parentPipeline, setParentPipeline] = useState("");
     const [variableNameTrigger, setVariableNameTrigger] = useState("");
     const [triggerVars, setTriggerVars] = useState(new Set());
+    const [modelVersion, setModelVersion] = useState("");
+    const [modelVersionList, setModelVersionList] = useState([]);
     
     // here it is a placeholder for the values that will stay here from inputs
     // the same it is like for those with bullets
@@ -175,6 +179,23 @@ export default function VariablesInput(props){
       } else {
         return [...arr, newObj];
       }
+    }
+
+    const fetchModelValues = async() =>{
+
+      setIsDataLoading(true);
+
+        try{
+          const resp = await axios.get(GET_MODELS);
+          setIsDataLoading(false);
+          return resp.data;
+          
+        } catch(err){
+          console.log(err);
+          setIsDataLoading(false);
+          blockAlert("There was an error while fetching the model!");
+          return [];
+        }
     }
 
     const parseBucketName = (inputString)=>{
@@ -279,10 +300,11 @@ export default function VariablesInput(props){
       return regexString;
     }
 
-    const handleChange = (event, type, variableName) => {
+    const handleChange = (event, type, variableName, dropdownValues) => {
+    
 
       let { target: { value } } = event;
-  
+      
       if(type === "text"){
         
         if(rulesForVariables[variableName]){
@@ -306,17 +328,20 @@ export default function VariablesInput(props){
             setHasInputError(errMonitor);
           }
         }
-
       } 
 
-      // if it is boolean we need to pick up the value from checked
-      // not from other things 
 
      if(type == "boolean"){
         setWasSomethingChanged(true);
         value = event.target.checked;
      }
-    
+   
+     if(type == "model"){     
+     
+        const findModelVersions = dropdownValues.find((dpdVal)=> dpdVal["name"] == value);
+        setModelVersionList(findModelVersions["versions"]);
+      }
+
       let inputedValuesVariables = [...variableValues];
       let objToStore = {
         block_name:props.fullNodeName,
@@ -324,13 +349,12 @@ export default function VariablesInput(props){
         value:value,
       }
 
-        
       const newValue = {...variablesInput};
       newValue[variableName] = value;
       setVariablesInput(newValue);
       inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
       setVariableValues(inputedValuesVariables);
-    
+
   };
 
 
@@ -355,10 +379,7 @@ export default function VariablesInput(props){
       for(const val of newValues){
         parsedNewValues.push(val);
       }
-      
-       // the final array contains the values for the variables for the other blocks
-       // as well as the new provided values , in the input , for the variables.
-
+    
        parsedArray = [...parsedArray, ...parsedNewValues];
        return parsedArray;
     }
@@ -372,7 +393,7 @@ export default function VariablesInput(props){
     
     
     const createObjToStore = (oldPipelineValue)=>{
-      
+    
       let inputedValuesVariables = [...variableValues];
       let objToStore;
 
@@ -386,12 +407,12 @@ export default function VariablesInput(props){
       }
 
       setParentPipeline(pipelineName);
+
+      // aici este de tinut minte ca variablesInput este o variabila care
+      // nu ajunge sa fie asignata la executie de ce?
       
       for(const key in variablesInput){
 
-        // here we will need to have a logic that 
-        // if the variable is of kind trigger 
-        // then an aditional key will be added
         if(triggerVars.has(key)){
           // here we store also the type of the object
           objToStore = {
@@ -417,24 +438,19 @@ export default function VariablesInput(props){
 
         }
          
-    
         // here the object in the final objects array needs to be updated
         // to do that we have to find it and update it with the new value
 
-        inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
-        setVariableValues(inputedValuesVariables);
+        if(objToStore){
+          inputedValuesVariables = updateObjectInArray(inputedValuesVariables, objToStore);
+          setVariableValues(inputedValuesVariables);
+        }
       }
-      
+
       blocksVariablesStored = parseAndSet(blocksVariablesStored, inputedValuesVariables);
       if(oldPipelineValue){
-        // if the value of a trigger variable which links a pipeline is changed
-        // this will result in the spawning of a new pipeline and
-        // also it requires that the old variables linked to that pipeline
-        // are deleted
-
           blocksVariablesStored = blocksVariablesStored.filter((blk)=> blk["pipelineName"] !== oldPipelineValue)
       }
-      
       dispatch(setBlocksVariables(blocksVariablesStored)); 
     }
 
@@ -475,6 +491,8 @@ export default function VariablesInput(props){
     
           return true;
     }
+
+
 
   
     const handleSpawnPipeline = async()=>{
@@ -531,7 +549,6 @@ export default function VariablesInput(props){
           }
         }
 
-
         //first we find the tab
         let tabToDelete ;
         for(const tab of allTabs){
@@ -546,19 +563,9 @@ export default function VariablesInput(props){
         // if not we move forward
                 
         if(tabToDelete){
-
-
           dispatch(setLinkedTabToDelete(tabToDelete.name));
-          // now here we will delete the old variables store for this specific pipeline
-          // but for consistency this work will be delegated to the function createObjToStore
-          // here we create the object that is going to instruct the createObjToStore function
-          // to delete the values
-
-          // oldLinkedValue - this variables contains the value of the old linked pipeline
-
         }
 
-        // logic for creating a new tab
 
         let pipeline = linkedPipeline; 
 
@@ -574,12 +581,9 @@ export default function VariablesInput(props){
 
           newTabs = newTabs.filter(item => item.name !== tabToDelete.name )
         }
-        
 
-        // Initialize tabIndexStored if it's undefined
         const currentTabIndexStored = tabIndexStored || [];
-        
-        // Determine new tab name and order
+
         let newTabName, tabOrder;
         if (!currentTabIndexStored.length) {
             tabOrder = 1;
@@ -620,6 +624,7 @@ export default function VariablesInput(props){
     }
 
     const handleDone = ()=>{
+
       let variablesFromChildPipelines;
         if(hasTriggerVar){
           variablesFromChildPipelines = handleSpawnPipeline();
@@ -665,11 +670,25 @@ export default function VariablesInput(props){
 
    },[variablesInput])
 
+
+   const findValueStored = (value, storedVars)=>{
+      for(const storedV of storedVars){
+        if(storedV["variable_name"] === value["varName"]){
+          return storedV;
+        }
+      }
+
+      return {}
+   }
+
    const createVariableInputObjects = async(data, storedVars)=>{
     
+
       const obj = {...variablesInput};
       const errorMonitorObj = {};
-  
+      let modelVariableName = "";
+      let models = [];
+
       for(const value of data){
 
         if(value.type === "dictionary"){
@@ -682,6 +701,42 @@ export default function VariablesInput(props){
           
           errorMonitorObj[value.varName] = false;
 
+        } else if(value.type === "model"){
+       
+          setModelVarName(value.varName);
+          models = await fetchModelValues();
+          if(models.length === 0){
+            continue;
+          }
+          let updatedDropdownValues = dropdownValues;
+          updatedDropdownValues[value.varName]  = models;
+          setDropDownValues(updatedDropdownValues);
+
+          modelVariableName = value.varName;
+
+          let foundModel;
+          for(const varStored of storedVars){
+            if(varStored["variable_name"] === value.varName){
+                foundModel = varStored["value"];
+            }
+          }
+
+        
+          if(foundModel){
+            
+            let foundStoredModelVersion; 
+            const findModelVersions = updatedDropdownValues[value.varName].find((dpdVal)=> dpdVal["name"] == foundModel);
+
+
+            setModelVersionList(findModelVersions["versions"]);
+
+            if(storedModelVersion && Object.keys(storedModelVersion) && Object.keys(storedModelVersion).includes(foundModel) && storedModelVersion[foundModel]){
+              foundStoredModelVersion = storedModelVersion[foundModel];
+            }
+            setModelVersion(foundStoredModelVersion);
+          }
+         
+      
         } else if(value.type === "multiple_selection"){
 
           if(value.default){
@@ -699,7 +754,6 @@ export default function VariablesInput(props){
             obj[value.varName] = [];
           }
           
-          // here we initialize the buffer too
           buffer[value.varName] = "";
           errorMonitorObj[value.varName] = false;
 
@@ -790,15 +844,33 @@ export default function VariablesInput(props){
        }
      }
      // if there are blocks found we plug the value for the specific variable
+
+
+    // aici mai jos este variabila ce tine numele variabile ce se refera la model
+    // si pe care trebuie sa o cauti in foundBlocks:
+    // modelVariableName
+
     
+
+     let foundModel = "";
+
      if(foundBlocks.length != 0){
       for(const block of foundBlocks){
+        
+        const cleanedVal1 = String(block["variable_name"]).trim().replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u2029\uFEFF]/g, '');
+        const cleanedVal2 = String(modelVariableName).trim().replace(/[\u0000-\u001F\u007F-\u009F\u200B-\u200F\u2028-\u2029\uFEFF]/g, '');
+
+        if(cleanedVal1 == cleanedVal2){
+            foundModel = block["value"];
+        }
         obj[block.variable_name] = block.value;
       }
      }
 
-      setVariablesInput(obj);
-      setHasInputError(errorMonitorObj);
+
+    setVariablesInput(obj);
+    setHasInputError(errorMonitorObj);
+
    }
 
    const parsePhantomVariables = ()=>{
@@ -807,7 +879,7 @@ export default function VariablesInput(props){
     
      for(const varInstance of props.variablesData){
 
-        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" || varInstance.type === "array" || varInstance.type === "dictionary" ))
+        if(varInstance.type && (varInstance.type === "string" || varInstance.type === "str" || varInstance.type === "int" || varInstance.type === "secret" || varInstance.type === "number" || varInstance.type === "multiple_selection" || varInstance.type === "drop_down" || varInstance.type === "date" || varInstance.type === "trigger" || varInstance.type === "boolean" || varInstance.type === "array" || varInstance.type === "dictionary" || varInstance.type === "model"  ))
         {
           allBlockVariables.push(varInstance);
         } 
@@ -902,7 +974,6 @@ export default function VariablesInput(props){
    useEffect(()=>{
 
       createVariableInputObjects(props.variablesData, blocksVariablesStored); 
-
    },[blocksVariablesStored])
   
 
@@ -1003,8 +1074,6 @@ const saveFromBuffer = (variableName)=>{
 
 const deleteOneBufferChip = (variableName, value)=>{
 
- 
-
   const newVariablesInput  = {...variablesInput};
   const currentArray = newVariablesInput[variableName] || [];
   newVariablesInput[variableName] = currentArray.filter((elem) => elem !== value );
@@ -1058,9 +1127,23 @@ const deleteOneBufferChip = (variableName, value)=>{
     const currentBuff = {...bufferKeyValPair};
     currentBuff[variableName] = {};
     setBuffer(setBufferKeyValPair);
+ }
+
+
+
+ const updateModelVersionInStore = (varName, value)=>{
+
+  const keyName = variablesInput[varName];
+  const newModelVersionObj = {
+    ...storedModelVersion,
+    [keyName]:value
+  }
+
+  dispatch(setModelVersionStored(newModelVersionObj));
 
  }
- 
+
+
  useEffect(()=>{
   selectPipelineBasedOnStoredData();
  },[storedPipelinesBlockInfo])
@@ -1081,7 +1164,8 @@ const deleteOneBufferChip = (variableName, value)=>{
    
  },[purifiedVariables])
 
-  
+
+ 
 
   return (
     <div>
@@ -1227,7 +1311,79 @@ const deleteOneBufferChip = (variableName, value)=>{
                         </FormControl>
                       </div>
                     )
-                  } else if(value.type === "trigger"){
+                  } else if(value.type === "model") {
+                    
+                  return(
+
+                    <>
+                      <div>
+                        <FormControl sx={{ m: 1, width: "60%" }}>
+                          <InputLabel id="demo-multiple-name-label">{`${value.varName}`}</InputLabel>
+                          <Select
+                            labelId="demo-multiple-name-label"
+                            id="demo-multiple-name"
+                            
+                            value={variablesInput[value.varName]}
+                            onChange={(event)=>{setWasSomethingChanged(true); handleChange(event,"model",value["varName"], dropdownValues[value.varName])}}
+                            input={<OutlinedInput label="Name" />}
+                            MenuProps={MenuProps}
+                          >
+                            {dropdownValues[value.varName] && dropdownValues[value.varName].map((model) => {
+                              
+                              if(typeof model === 'object')
+                              return(
+                                       <MenuItem
+                                            key={model["name"]}
+                                            value={model["name"]}
+                                          >
+
+                                            {model["name"]}
+
+                                      </MenuItem>
+                                )
+                              }
+                         
+                            )}
+                          </Select>
+                          {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                        </FormControl>
+                        
+                      </div>
+                      <div>
+                          <FormControl sx={{ m: 1, width: "30%" }}>
+                            <InputLabel id="model-version">model_version</InputLabel>
+                            <Select
+                              labelId="demo-multiple-name-label"
+                              id="model-version-dropdown"
+                              value={modelVersion}
+                              onChange={(event)=>{setModelVersion(event.target.value); updateModelVersionInStore(value.varName,event.target.value)}}
+                              input={<OutlinedInput label="Name" />}
+                              MenuProps={MenuProps}
+                            >
+                              {modelVersionList && modelVersionList.map((version) => {
+                                
+                                return(
+                                        <MenuItem
+                                              key={version["version"]}
+                                              value={version["version"]}
+                                              
+                                            >
+                                              {version["version"]}
+                                        </MenuItem>
+                                  )
+
+                                }
+                          
+                              )}
+                            </Select>
+                            {value["description"] && <div className='variable-description'> <FontAwesomeIcon icon={faCircleInfo}/> {value["description"]} </div> } 
+                          </FormControl>
+                      </div>
+                    </>
+
+                    )
+
+                   } else if(value.type === "trigger"){
                     
                   setTriggerVars(prevItems => new Set(prevItems).add(value.varName));
                     
@@ -1442,7 +1598,7 @@ const deleteOneBufferChip = (variableName, value)=>{
               {
                 isDataLoading &&
                 <div className='data-loading-container'>
-                  <div className="loading-circle-container">
+                  <div style={{padding:"40px"}}>
                       <div className="loading-circle"></div>
                       <p className="loading-text">Loading...</p>
                   </div>

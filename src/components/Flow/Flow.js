@@ -92,6 +92,8 @@ function Flow(props) {
     const positions = {};
     let finalNodes = [];
 
+    
+
     const setPosition = (nodes, currentNode, x, y) => {
       finalNodes.push(currentNode.node_id);
       if (currentNode.upstream_blocks.length === 0) {
